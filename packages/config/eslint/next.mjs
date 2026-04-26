@@ -1,0 +1,16 @@
+// @ts-check
+import nextPlugin from '@next/eslint-plugin-next';
+import react from './react.mjs';
+
+/** Next.js layer. Use in any apps/* Next workspace. */
+export default [
+    ...react,
+    {
+        files: ['**/*.{ts,tsx,js,jsx}'],
+        plugins: { '@next/next': nextPlugin },
+        rules: {
+            ...nextPlugin.configs.recommended.rules,
+            ...nextPlugin.configs['core-web-vitals'].rules,
+        },
+    },
+];

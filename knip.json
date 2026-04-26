@@ -1,0 +1,80 @@
+{
+    "$schema": "https://unpkg.com/knip@5/schema.json",
+    "workspaces": {
+        ".": {
+            "entry": ["turbo.json", "lighthouserc.cjs", "commitlint.config.mjs", "knip.json"],
+            "ignore": ["**/.next/**", "**/dist/**", "**/.turbo/**", "**/src-tauri/**"],
+            "ignoreDependencies": ["@lhci/cli", "rimraf", "stylelint", "syncpack"]
+        },
+        "apps/admin": {
+            "entry": [
+                "app/**/{page,layout,loading,error,not-found,route,template}.{ts,tsx}",
+                "app/web-vitals.tsx",
+                "instrumentation.ts",
+                "env.ts",
+                "features/**/index.tsx",
+                "next.config.mjs"
+            ],
+            "project": ["**/*.{ts,tsx}"],
+            "ignore": [".next/**"]
+        },
+        "apps/web": {
+            "entry": [
+                "app/**/{page,layout,loading,error,not-found,route,template}.{ts,tsx}",
+                "app/web-vitals.tsx",
+                "instrumentation.ts",
+                "env.ts",
+                "features/**/index.tsx",
+                "next.config.mjs"
+            ],
+            "project": ["**/*.{ts,tsx}"],
+            "ignore": [".next/**"]
+        },
+        "apps/mobile": {
+            "entry": [
+                "app/**/{page,layout,loading,error,not-found,route,template}.{ts,tsx}",
+                "app/web-vitals.tsx",
+                "instrumentation.ts",
+                "env.ts",
+                "features/**/index.tsx",
+                "next.config.mjs"
+            ],
+            "project": ["**/*.{ts,tsx}"],
+            "ignore": [".next/**", "src-tauri/**"]
+        },
+        "packages/ui": {
+            "entry": [
+                "src/index.ts",
+                "src/server/index.ts",
+                "src/components/**/*.{ts,tsx}",
+                "src/hooks/*.ts",
+                "src/lib/*.ts"
+            ],
+            "project": ["src/**/*.{ts,tsx}"]
+        },
+        "packages/scoring-ui": {
+            "entry": ["src/index.ts", "src/components/**/*.tsx", "src/theme/*.ts"],
+            "project": ["src/**/*.{ts,tsx}"]
+        },
+        "packages/core": {
+            "entry": ["src/index.ts"],
+            "project": ["src/**/*.ts"]
+        },
+        "packages/types": {
+            "entry": ["src/index.ts"],
+            "project": ["src/**/*.ts"]
+        },
+        "packages/utils": {
+            "entry": ["src/index.ts"],
+            "project": ["src/**/*.ts"]
+        },
+        "packages/mock-data": {
+            "entry": ["src/index.ts"],
+            "project": ["src/**/*.ts"]
+        },
+        "packages/config": {
+            "entry": ["tsconfig/*.json"],
+            "project": ["**/*.{ts,mjs}"]
+        }
+    }
+}

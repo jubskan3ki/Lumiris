@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+# LUMIRIS pre-commit guardrails — keep the codebase Clinical & Transparent.
+set -e
+
+# 1. Lint + format only what's staged.
+bunx lint-staged
+
+# 2. Cheap secret scan — block obvious AWS/GitHub/Stripe tokens.
+SECRET_PATTERN='(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36,}|sk_live_[0-9a-zA-Z]{24,}|-----BEGIN [A-Z ]+PRIVATE KEY-----)'
+if git diff --cached --name-only --diff-filter=ACM | xargs -r grep -nE "$SECRET_PATTERN" 2>/dev/null; then
+  echo "\n[lumiris] ✗ Potential secret detected in staged changes. Aborting."
+  exit 1
+fi

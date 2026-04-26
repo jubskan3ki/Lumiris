@@ -1,0 +1,32 @@
+{
+    "name": "@lumiris/utils",
+    "version": "0.1.0",
+    "private": true,
+    "description": "LUMIRIS runtime helpers — env validation, web-vitals plumbing, formatters, analytics interface. Pure (no JSX), cross-app.",
+    "type": "module",
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
+    "exports": {
+        ".": "./src/index.ts",
+        "./env": "./src/env.ts",
+        "./web-vitals": "./src/web-vitals.ts",
+        "./format": "./src/format.ts",
+        "./analytics": "./src/analytics.ts"
+    },
+    "scripts": {
+        "lint": "eslint src",
+        "lint:fix": "eslint src --fix",
+        "typecheck": "tsc --noEmit",
+        "clean": "rimraf dist .turbo"
+    },
+    "dependencies": {
+        "@lumiris/types": "workspace:*"
+    },
+    "devDependencies": {
+        "@lumiris/config": "workspace:*",
+        "@types/node": "^22.10.0",
+        "eslint": "^9.17.0",
+        "rimraf": "^6.0.1",
+        "typescript": "^5.7.3"
+    }
+}

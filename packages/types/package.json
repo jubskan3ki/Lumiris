@@ -1,0 +1,29 @@
+{
+    "name": "@lumiris/types",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Unified TypeScript definitions for DPP, Scores, Users, and the LUMIRIS audit domain.",
+    "type": "module",
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
+    "exports": {
+        ".": "./src/index.ts",
+        "./dpp": "./src/dpp.ts",
+        "./score": "./src/score.ts",
+        "./user": "./src/user.ts",
+        "./journal": "./src/journal.ts",
+        "./regulatory": "./src/regulatory.ts"
+    },
+    "scripts": {
+        "lint": "eslint src",
+        "lint:fix": "eslint src --fix",
+        "typecheck": "tsc --noEmit",
+        "clean": "rimraf dist .turbo"
+    },
+    "devDependencies": {
+        "@lumiris/config": "workspace:*",
+        "eslint": "^9.17.0",
+        "rimraf": "^6.0.1",
+        "typescript": "^5.7.3"
+    }
+}

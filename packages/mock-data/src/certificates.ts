@@ -1,0 +1,73 @@
+import type { Certificate } from '@lumiris/types';
+
+export const mockCertificates: Certificate[] = [
+    {
+        id: 'CERT-001',
+        brand: 'Maison Lumiere',
+        documentName: 'GOTS Organic Certification 2024',
+        type: 'Organic',
+        organization: 'Global Organic Textile Standard',
+        expiryDate: '2025-06-15',
+        scope: 'Raw Material Processing',
+        factory: 'Tessuti Milano SRL',
+        carbonScore: 4.2,
+        status: 'Valid',
+        crossCheckFlag: false,
+    },
+    {
+        id: 'CERT-002',
+        brand: 'Atelier Nord',
+        documentName: 'ISO 14001 Environmental Management',
+        type: 'Environmental',
+        organization: 'International Organization for Standardization',
+        expiryDate: '2024-12-31',
+        scope: 'Full Production Chain',
+        factory: 'Nordic Textiles AB',
+        carbonScore: 3.1,
+        status: 'Expired',
+        crossCheckFlag: false,
+    },
+    {
+        id: 'CERT-003',
+        brand: 'Verde Collective',
+        documentName: 'OEKO-TEX Standard 100',
+        type: 'Safety',
+        organization: 'OEKO-TEX Association',
+        expiryDate: '2025-09-22',
+        scope: 'Finished Products',
+        factory: 'EcoWeave Portugal Lda',
+        carbonScore: 1.8,
+        status: 'Valid',
+        crossCheckFlag: false,
+    },
+    {
+        id: 'CERT-004',
+        brand: 'Lux Fabrica',
+        documentName: 'GRS Recycled Content',
+        type: 'Recycled',
+        organization: 'Textile Exchange',
+        expiryDate: '2025-03-01',
+        scope: 'Material Sourcing',
+        factory: 'EcoWeave Portugal Lda',
+        carbonScore: 3.8,
+        status: 'Pending_Review',
+        crossCheckFlag: true,
+    },
+    {
+        id: 'CERT-005',
+        brand: 'Atelier Nord',
+        documentName: 'Bluesign System Partner',
+        type: 'Environmental',
+        organization: 'Bluesign Technologies',
+        expiryDate: '2025-11-30',
+        scope: 'Chemical Management',
+        factory: 'Tessuti Milano SRL',
+        carbonScore: 2.4,
+        status: 'Valid',
+        crossCheckFlag: true,
+    },
+];
+
+export function mockCertificatesByFactory(factory: string): Certificate[] {
+    return mockCertificates.filter((c) => c.factory === factory);
+}

@@ -1,0 +1,43 @@
+**/node_modules
+**/.next
+**/out
+**/.turbo
+**/dist
+**/build
+**/coverage
+**/.lighthouseci
+**/.lighthouse-*.html
+**/*.log
+**/.DS_Store
+**/Thumbs.db
+
+# Env (never bake secrets into images)
+.env
+.env.*
+!.env.example
+
+# VCS / CI artefacts
+.git
+.github
+.husky
+.vscode
+.idea
+
+# Tauri local artefacts
+**/src-tauri/target
+**/src-tauri/gen
+
+# Tests / docs / bench (not needed at runtime)
+**/__tests__
+**/*.test.ts
+**/*.test.tsx
+README.md
+CONTRIBUTING.md
+SECURITY.md
+docs
+bench
+
+# Ansible / infra (not needed inside images)
+ansible
+docker-compose*.yml
+Makefile

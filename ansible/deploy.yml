@@ -1,0 +1,90 @@
+---
+# Zero-downtime deploy of an immutable image tag (default: short SHA from git).
+# Pattern: pull → scale +1 → wait healthy → scale -1 (no in-place restart).
+#
+# Usage:
+#   ansible-playbook ansible/deploy.yml -e image_tag=$(git rev-parse --short HEAD)
+
+- name: Deploy LUMIRIS (zero-downtime)
+  hosts: lumiris_vps
+  become: true
+  gather_facts: false
+
+  vars:
+      image_tag: "{{ image_tag | default(lookup('env', 'IMAGE_TAG')) }}"
+
+  pre_tasks:
+      - name: Sanity — image_tag must be defined
+        ansible.builtin.assert:
+            that:
+                - image_tag is defined
+                - image_tag | length > 0
+                - image_tag != 'latest'
+            fail_msg: 'Pass -e image_tag=<short-sha>. `latest` is forbidden in prod.'
+
+  tasks:
+      - name: Sync repo to host (compose files + Makefile)
+        ansible.posix.synchronize:
+            src: ../
+            dest: '{{ app_root }}/'
+            recursive: true
+            delete: false
+            rsync_opts:
+                - '--exclude=.git'
+                - '--exclude=node_modules'
+                - '--exclude=.next'
+                - '--exclude=apps/*/node_modules'
+                - '--exclude=packages/*/node_modules'
+                - '--exclude=ansible/inventories/production.yml'
+                - '--exclude=ansible/secrets.sops.yml'
+        become_user: "{{ deploy_user | default('deploy') }}"
+
+      - name: Decrypt secrets (sops → .env)
+        ansible.builtin.shell: |
+            set -euo pipefail
+            if [ -f ansible/secrets.sops.yml ]; then
+              sops --decrypt ansible/secrets.sops.yml \
+                | yq -o=shell '.' > .env.decrypted
+              # Merge with the per-host overrides
+              cat .env.decrypted .env.host 2>/dev/null > .env
+              rm -f .env.decrypted
+            fi
+        args:
+            chdir: '{{ app_root }}'
+            executable: /bin/bash
+        changed_when: false
+
+      - name: Login to GHCR
+        ansible.builtin.shell: |
+            echo "{{ ghcr_token }}" | docker login ghcr.io -u "{{ ghcr_username }}" --password-stdin
+        args:
+            executable: /bin/bash
+        no_log: true
+        changed_when: false
+
+      - name: Pull all app images at the requested tag
+        community.docker.docker_image:
+            name: 'ghcr.io/{{ ghcr_owner }}/{{ item }}:{{ image_tag }}'
+            source: pull
+            force_source: true
+        loop: [admin, web, mobile, api]
+
+      - name: Run zero-downtime deploy via Makefile
+        ansible.builtin.command:
+            cmd: make deploy-zd IMAGE_TAG={{ image_tag }} HEALTH_TIMEOUT={{ deploy_health_timeout_seconds | default(240) }}
+            chdir: '{{ app_root }}'
+        environment:
+            IMAGE_TAG: '{{ image_tag }}'
+        register: deploy_result
+
+      - name: Show deploy output
+        ansible.builtin.debug:
+            var: deploy_result.stdout_lines
+
+      - name: Persist last-deployed tag
+        ansible.builtin.copy:
+            dest: '{{ app_root }}/.deployed-tag'
+            mode: '0644'
+            content: |
+                IMAGE_TAG={{ image_tag }}
+                DEPLOYED_AT={{ ansible_date_time.iso8601 | default('') }}

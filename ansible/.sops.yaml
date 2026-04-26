@@ -1,0 +1,7 @@
+# sops creation rules. Replace the age recipient with your real public key.
+# Generate one with: age-keygen -o ~/.config/sops/age/keys.txt
+creation_rules:
+    - path_regex: ansible/secrets\.sops\.ya?ml$
+      age: age1exampleexampleexampleexampleexampleexampleexample
+    - path_regex: ansible/inventories/.*/secrets\.sops\.ya?ml$
+      age: age1exampleexampleexampleexampleexampleexampleexample

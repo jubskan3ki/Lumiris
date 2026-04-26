@@ -1,0 +1,33 @@
+{
+    "name": "@lumiris/core",
+    "version": "0.1.0",
+    "private": true,
+    "description": "LUMIRIS business logic — the canonical 50/30/20 transparency Scoring Algorithm and audit primitives. Identical on admin, web, and mobile.",
+    "type": "module",
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
+    "exports": {
+        ".": "./src/index.ts",
+        "./scoring": "./src/scoring/index.ts",
+        "./grade": "./src/scoring/grade.ts",
+        "./constants": "./src/constants.ts"
+    },
+    "scripts": {
+        "lint": "eslint src",
+        "lint:fix": "eslint src --fix",
+        "typecheck": "tsc --noEmit",
+        "test": "bun test",
+        "test:watch": "bun test --watch",
+        "clean": "rimraf dist .turbo"
+    },
+    "dependencies": {
+        "@lumiris/types": "workspace:*"
+    },
+    "devDependencies": {
+        "@lumiris/config": "workspace:*",
+        "@types/bun": "^1.1.14",
+        "eslint": "^9.17.0",
+        "rimraf": "^6.0.1",
+        "typescript": "^5.7.3"
+    }
+}

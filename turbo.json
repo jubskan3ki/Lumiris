@@ -1,0 +1,45 @@
+{
+    "$schema": "https://turbo.build/schema.json",
+    "ui": "tui",
+    "globalDependencies": [".env", ".env.local", "tsconfig.base.json"],
+    "globalEnv": ["NODE_ENV", "VERCEL_URL", "VERCEL_ENV"],
+    "tasks": {
+        "build": {
+            "dependsOn": ["^build", "topo"],
+            "inputs": ["$TURBO_DEFAULT$", "!**/*.md", "!**/*.test.{ts,tsx}", "!**/__tests__/**"],
+            "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"],
+            "env": ["NEXT_PUBLIC_*"]
+        },
+        "dev": {
+            "cache": false,
+            "persistent": true,
+            "dependsOn": ["^build"]
+        },
+        "start": {
+            "cache": false,
+            "persistent": true,
+            "dependsOn": ["build"]
+        },
+        "lint": {
+            "dependsOn": ["^lint"],
+            "outputs": []
+        },
+        "typecheck": {
+            "dependsOn": ["^typecheck"],
+            "outputs": [],
+            "inputs": ["$TURBO_DEFAULT$", "tsconfig.json"]
+        },
+        "test": {
+            "dependsOn": ["^build"],
+            "outputs": ["coverage/**"]
+        },
+        "topo": {
+            "cache": true,
+            "outputs": [],
+            "inputs": ["apps/*/package.json", "scripts/check-topology.mjs"]
+        },
+        "clean": {
+            "cache": false
+        }
+    }
+}

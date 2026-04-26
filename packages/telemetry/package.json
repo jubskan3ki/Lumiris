@@ -1,0 +1,44 @@
+{
+    "name": "@lumiris/telemetry",
+    "version": "0.1.0",
+    "private": true,
+    "description": "LUMIRIS telemetry — OpenTelemetry traces/metrics, Sentry errors, Web Vitals. Identical wiring across admin, web, mobile, api.",
+    "type": "module",
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
+    "exports": {
+        ".": "./src/index.ts",
+        "./otel-node": "./src/otel-node.ts",
+        "./sentry-next": "./src/sentry-next.ts",
+        "./sentry-node": "./src/sentry-node.ts",
+        "./web-vitals": "./src/web-vitals.ts",
+        "./redact": "./src/redact.ts"
+    },
+    "scripts": {
+        "lint": "eslint src",
+        "lint:fix": "eslint src --fix",
+        "typecheck": "tsc --noEmit",
+        "clean": "rimraf dist .turbo"
+    },
+    "dependencies": {
+        "@opentelemetry/api": "^1.9.0",
+        "@opentelemetry/auto-instrumentations-node": "^0.55.0",
+        "@opentelemetry/exporter-metrics-otlp-http": "^0.57.0",
+        "@opentelemetry/exporter-trace-otlp-http": "^0.57.0",
+        "@opentelemetry/resources": "^1.30.0",
+        "@opentelemetry/sdk-metrics": "^1.30.0",
+        "@opentelemetry/sdk-node": "^0.57.0",
+        "@opentelemetry/sdk-trace-base": "^1.30.0",
+        "@opentelemetry/sdk-trace-node": "^1.30.0",
+        "@opentelemetry/semantic-conventions": "^1.28.0",
+        "@sentry/nextjs": "^8.47.0",
+        "@sentry/node": "^8.47.0",
+        "web-vitals": "^4.2.4"
+    },
+    "devDependencies": {
+        "@lumiris/config": "workspace:*",
+        "eslint": "^9.17.0",
+        "rimraf": "^6.0.1",
+        "typescript": "^5.7.3"
+    }
+}
