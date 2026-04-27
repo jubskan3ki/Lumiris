@@ -83,7 +83,11 @@ export function IrisGrade() {
         }));
     }, []);
 
-    const activeRow = rows.find((r) => r.grade === active) ?? rows[0]!;
+    const fallbackRow = rows[0];
+    const activeRow = rows.find((r) => r.grade === active) ?? fallbackRow;
+    if (!activeRow) {
+        return null;
+    }
 
     return (
         <section className="bg-foreground relative overflow-hidden py-32">

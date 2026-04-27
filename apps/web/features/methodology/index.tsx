@@ -2,11 +2,14 @@
 
 import { motion } from 'framer-motion';
 import { Shield, Leaf, Recycle, AlertTriangle } from 'lucide-react';
+import { LUMIRIS_WEIGHTS } from '@lumiris/core/constants';
+
+const formatWeight = (w: number) => `${Math.round(w * 100)}%`;
 
 const pillars = [
     {
         title: 'Transparency',
-        weight: '50%',
+        weight: formatWeight(LUMIRIS_WEIGHTS.integrity),
         icon: Shield,
         color: 'grade-a',
         borderColor: 'border-grade-a/30',
@@ -18,7 +21,7 @@ const pillars = [
     },
     {
         title: 'Impact',
-        weight: '30%',
+        weight: formatWeight(LUMIRIS_WEIGHTS.trust),
         icon: Leaf,
         color: 'grade-b',
         borderColor: 'border-grade-b/30',
@@ -30,7 +33,7 @@ const pillars = [
     },
     {
         title: 'Circularity',
-        weight: '20%',
+        weight: formatWeight(LUMIRIS_WEIGHTS.impact),
         icon: Recycle,
         color: 'grade-c',
         borderColor: 'border-grade-c/30',

@@ -92,19 +92,19 @@ export function BusinessContent() {
                             improve their product transparency data &mdash; before consumers see the score.
                         </p>
                         <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row">
-                            <a
-                                href="#"
+                            <button
+                                type="button"
                                 className="bg-foreground text-background inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-opacity hover:opacity-90"
                             >
                                 Access the Audit Pipeline
                                 <ArrowRight className="h-4 w-4" />
-                            </a>
-                            <a
-                                href="#"
+                            </button>
+                            <button
+                                type="button"
                                 className="border-border text-foreground hover:bg-secondary inline-flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium transition-colors"
                             >
                                 Request a Demo
-                            </a>
+                            </button>
                         </div>
                     </Reveal>
 
@@ -245,13 +245,13 @@ export function BusinessContent() {
                         Join the brands using LUMIRIS COMMAND to turn supply chain data into a competitive advantage.
                     </p>
                     <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                        <a
-                            href="#"
+                        <button
+                            type="button"
                             className="bg-foreground text-background inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-medium transition-opacity hover:opacity-90"
                         >
                             Start Your Audit
                             <ArrowRight className="h-4 w-4" />
-                        </a>
+                        </button>
                         <a
                             href="mailto:brands@lumiris.eu"
                             className="border-border text-foreground hover:bg-secondary inline-flex items-center gap-2 rounded-xl border px-6 py-3 text-sm font-medium transition-colors"

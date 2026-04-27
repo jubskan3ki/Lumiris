@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { Sidebar, type NavSection } from '@/features/sidebar';
 import { TopBar } from '@/features/top-bar';
 import { Overview } from '@/features/overview';
@@ -10,7 +10,7 @@ import { CertificateVault } from '@/features/certificate-vault';
 import { Journal } from '@/features/journal';
 import { AuditLogView } from '@/features/audit-log-view';
 
-const pageVariants = {
+const pageVariants: Variants = {
     initial: { opacity: 0, y: 6 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' } },
     exit: { opacity: 0, y: -4, transition: { duration: 0.12 } },

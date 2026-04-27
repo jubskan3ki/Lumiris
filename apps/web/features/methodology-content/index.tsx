@@ -3,12 +3,15 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Leaf, Recycle, AlertTriangle, FileSearch, CheckCircle2, Database, ArrowRight } from 'lucide-react';
+import { LUMIRIS_WEIGHTS } from '@lumiris/core/constants';
+
+const formatWeight = (w: number) => `${Math.round(w * 100)}%`;
 
 /* ---------- PILLAR DATA ---------- */
 const pillars = [
     {
         title: 'Transparency',
-        weight: '50%',
+        weight: formatWeight(LUMIRIS_WEIGHTS.integrity),
         icon: Shield,
         color: 'grade-a',
         description:
@@ -17,7 +20,7 @@ const pillars = [
     },
     {
         title: 'Impact',
-        weight: '30%',
+        weight: formatWeight(LUMIRIS_WEIGHTS.trust),
         icon: Leaf,
         color: 'grade-b',
         description:
@@ -26,7 +29,7 @@ const pillars = [
     },
     {
         title: 'Circularity',
-        weight: '20%',
+        weight: formatWeight(LUMIRIS_WEIGHTS.impact),
         icon: Recycle,
         color: 'grade-c',
         description:
@@ -292,37 +295,45 @@ export function MethodologyContent() {
                         {/* Detail panel */}
                         <div className="w-full flex-1">
                             <AnimatePresence mode="wait">
-                                <motion.div
-                                    key={activeGrade}
-                                    initial={{ opacity: 0, y: 16 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -16 }}
-                                    transition={{ duration: 0.25 }}
-                                    className={`rounded-2xl border border-${grades[activeGrade].color}/20 bg-${grades[activeGrade].color}/[0.06] p-8`}
-                                >
-                                    <div className="mb-5 flex items-center gap-3">
-                                        <div
-                                            className={`h-14 w-14 rounded-xl bg-${grades[activeGrade].color}/10 flex items-center justify-center`}
+                                {(() => {
+                                    const active = grades[activeGrade];
+                                    if (!active) {
+                                        return null;
+                                    }
+                                    return (
+                                        <motion.div
+                                            key={activeGrade}
+                                            initial={{ opacity: 0, y: 16 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -16 }}
+                                            transition={{ duration: 0.25 }}
+                                            className={`rounded-2xl border border-${active.color}/20 bg-${active.color}/[0.06] p-8`}
                                         >
-                                            <span
-                                                className={`font-mono text-2xl font-bold text-${grades[activeGrade].color}`}
-                                            >
-                                                {grades[activeGrade].letter}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-primary-foreground text-lg font-bold">
-                                                {grades[activeGrade].label}
-                                            </h3>
-                                            <p className="text-primary-foreground/40 font-mono text-xs">
-                                                {grades[activeGrade].range}
+                                            <div className="mb-5 flex items-center gap-3">
+                                                <div
+                                                    className={`h-14 w-14 rounded-xl bg-${active.color}/10 flex items-center justify-center`}
+                                                >
+                                                    <span
+                                                        className={`font-mono text-2xl font-bold text-${active.color}`}
+                                                    >
+                                                        {active.letter}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-primary-foreground text-lg font-bold">
+                                                        {active.label}
+                                                    </h3>
+                                                    <p className="text-primary-foreground/40 font-mono text-xs">
+                                                        {active.range}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <p className="text-primary-foreground/55 text-sm leading-relaxed">
+                                                {active.description}
                                             </p>
-                                        </div>
-                                    </div>
-                                    <p className="text-primary-foreground/55 text-sm leading-relaxed">
-                                        {grades[activeGrade].description}
-                                    </p>
-                                </motion.div>
+                                        </motion.div>
+                                    );
+                                })()}
                             </AnimatePresence>
                         </div>
                     </div>

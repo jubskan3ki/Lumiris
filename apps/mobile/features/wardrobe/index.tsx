@@ -1,45 +1,88 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shirt, TrendingUp, GitCompareArrows, X, Check } from 'lucide-react';
-import { type Product, GRADE_CONFIG, WARDROBE_ITEMS } from '@/lib/lumiris-data';
+import { TrendingUp, GitCompareArrows, X } from 'lucide-react';
+import { Wardrobe as VaultGrid, IrisGrade, type WardrobeItem } from '@lumiris/scoring-ui';
+import { WARDROBE_ITEMS, type MobileProduct } from '@/lib/lumiris-data';
 
 interface WardrobeProps {
-    onSelectProduct: (product: Product) => void;
+    onSelectProduct: (product: MobileProduct) => void;
 }
 
 export function Wardrobe({ onSelectProduct }: WardrobeProps) {
     const [compareMode, setCompareMode] = useState(false);
-    const [compareItems, setCompareItems] = useState<Product[]>([]);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [showComparison, setShowComparison] = useState(false);
 
-    const gradeDistribution = getGradeDistribution();
-    const overallScore = getOverallScore();
+    const items: WardrobeItem[] = useMemo(
+        () =>
+            WARDROBE_ITEMS.map((p) => ({
+                id: p.id,
+                name: p.name,
+                brand: p.brand,
+                grade: p.grade,
+                score: p.score,
+                price: p.price,
+            })),
+        [],
+    );
 
-    function toggleCompareItem(product: Product) {
-        setCompareItems((prev) => {
-            if (prev.find((p) => p.id === product.id)) {
-                return prev.filter((p) => p.id !== product.id);
-            }
-            if (prev.length >= 2) return prev;
-            const next = [...prev, product];
-            if (next.length === 2) {
-                setTimeout(() => setShowComparison(true), 200);
-            }
-            return next;
+    const productById = useMemo(() => new Map(WARDROBE_ITEMS.map((p) => [p.id, p])), []);
+
+    const overall = useMemo(() => {
+        if (WARDROBE_ITEMS.length === 0) {
+            return { grade: 'E' as const, percentage: 0 };
+        }
+        const sum = WARDROBE_ITEMS.reduce((acc, p) => acc + p.score, 0);
+        const avg = sum / WARDROBE_ITEMS.length;
+        return { grade: gradeFromAverage(avg), percentage: avg };
+    }, []);
+
+    const distribution = useMemo(() => {
+        const dist: Record<string, number> = {};
+        WARDROBE_ITEMS.forEach((p) => {
+            const key = p.grade === 'A+' ? 'A' : p.grade;
+            dist[key] = (dist[key] ?? 0) + 1;
         });
-    }
+        return dist;
+    }, []);
 
-    function exitCompare() {
+    const exitCompare = () => {
         setShowComparison(false);
         setCompareMode(false);
-        setCompareItems([]);
-    }
+        setSelectedIds([]);
+    };
+
+    const handleSelect = (item: WardrobeItem) => {
+        if (compareMode) {
+            setSelectedIds((prev) => {
+                if (prev.includes(item.id)) {
+                    return prev.filter((id) => id !== item.id);
+                }
+                if (prev.length >= 2) {
+                    return prev;
+                }
+                const next = [...prev, item.id];
+                if (next.length === 2) {
+                    setTimeout(() => setShowComparison(true), 200);
+                }
+                return next;
+            });
+            return;
+        }
+        const product = productById.get(item.id);
+        if (product) {
+            onSelectProduct(product);
+        }
+    };
+
+    const compareProducts: MobileProduct[] = selectedIds
+        .map((id) => productById.get(id))
+        .filter((p): p is MobileProduct => Boolean(p));
 
     return (
         <div className="bg-background flex h-full flex-col">
-            {/* Header */}
             <motion.div
                 className="flex items-center justify-between px-6 pb-4 pt-14"
                 initial={{ opacity: 0, y: -10 }}
@@ -53,7 +96,7 @@ export function Wardrobe({ onSelectProduct }: WardrobeProps) {
                     onClick={() => (compareMode ? exitCompare() : setCompareMode(true))}
                     className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
                         compareMode
-                            ? 'border-grade-b bg-grade-b/10 text-grade-b'
+                            ? 'border-lumiris-cyan bg-lumiris-cyan/10 text-lumiris-cyan'
                             : 'border-border bg-card text-foreground'
                     }`}
                 >
@@ -63,57 +106,25 @@ export function Wardrobe({ onSelectProduct }: WardrobeProps) {
             </motion.div>
 
             <div className="flex-1 overflow-y-auto px-5 pb-28">
-                {/* Wardrobe Health gauge */}
                 <motion.div
                     className="border-border/60 bg-card mb-5 flex items-center gap-5 rounded-2xl border p-5"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                 >
-                    {/* Circular gauge */}
-                    <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
-                        <svg className="h-full w-full -rotate-90" viewBox="0 0 80 80">
-                            <circle cx="40" cy="40" r="34" fill="none" strokeWidth="4" className="stroke-secondary" />
-                            <motion.circle
-                                cx="40"
-                                cy="40"
-                                r="34"
-                                fill="none"
-                                strokeWidth="4"
-                                strokeLinecap="round"
-                                stroke={GRADE_CONFIG[overallScore.grade].color}
-                                strokeDasharray={`${2 * Math.PI * 34}`}
-                                initial={{ strokeDashoffset: 2 * Math.PI * 34 }}
-                                animate={{
-                                    strokeDashoffset: 2 * Math.PI * 34 * (1 - overallScore.percentage / 100),
-                                }}
-                                transition={{ delay: 0.3, duration: 1.2, ease: 'easeOut' }}
-                            />
-                        </svg>
-                        <span
-                            className="absolute text-2xl font-bold"
-                            style={{ color: GRADE_CONFIG[overallScore.grade].color }}
-                        >
-                            {overallScore.grade}
-                        </span>
-                    </div>
-
+                    <IrisGrade grade={overall.grade} size="lg" />
                     <div className="flex-1">
                         <h3 className="text-foreground text-sm font-bold">Wardrobe Health</h3>
-                        <p
-                            className="mt-0.5 text-xs font-semibold"
-                            style={{ color: GRADE_CONFIG[overallScore.grade].color }}
-                        >
-                            {GRADE_CONFIG[overallScore.grade].label}
+                        <p className="text-muted-foreground mt-0.5 text-xs">
+                            Average score {Math.round(overall.percentage)} / 100
                         </p>
-                        <div className="bg-grade-a/8 mt-2.5 flex items-center gap-1.5 rounded-xl px-2.5 py-1.5">
-                            <TrendingUp className="text-grade-a h-3 w-3" />
-                            <span className="text-grade-a text-[11px] font-medium">Top 20% in your city</span>
+                        <div className="bg-lumiris-emerald/10 mt-2.5 flex items-center gap-1.5 rounded-xl px-2.5 py-1.5">
+                            <TrendingUp className="text-lumiris-emerald h-3 w-3" />
+                            <span className="text-lumiris-emerald text-[11px] font-medium">Top 20% in your city</span>
                         </div>
                     </div>
                 </motion.div>
 
-                {/* Grade distribution chips */}
                 <motion.div
                     className="mb-5 flex gap-2"
                     initial={{ opacity: 0 }}
@@ -123,104 +134,52 @@ export function Wardrobe({ onSelectProduct }: WardrobeProps) {
                     {(['A', 'B', 'C', 'D', 'E'] as const).map((grade) => (
                         <div
                             key={grade}
-                            className="border-border/40 bg-card flex flex-1 flex-col items-center gap-0.5 rounded-xl border py-2.5"
+                            className="border-border/40 bg-card flex flex-1 flex-col items-center gap-1 rounded-xl border py-2.5"
                         >
-                            <span className="text-base font-bold" style={{ color: GRADE_CONFIG[grade].color }}>
-                                {gradeDistribution[grade] || 0}
-                            </span>
-                            <span className="text-[10px] font-bold" style={{ color: GRADE_CONFIG[grade].color }}>
-                                {grade}
-                            </span>
+                            <span className="text-foreground text-base font-bold">{distribution[grade] ?? 0}</span>
+                            <IrisGrade grade={grade} size="sm" />
                         </div>
                     ))}
                 </motion.div>
 
-                {/* Compare mode hint */}
                 <AnimatePresence>
-                    {compareMode && compareItems.length < 2 && (
+                    {compareMode && selectedIds.length < 2 && (
                         <motion.div
-                            className="border-grade-b/30 bg-grade-b/5 mb-4 rounded-2xl border px-4 py-3 text-center"
+                            className="border-lumiris-cyan/30 bg-lumiris-cyan/5 mb-4 rounded-2xl border px-4 py-3 text-center"
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
                         >
-                            <p className="text-grade-b text-xs font-medium">
-                                Select {2 - compareItems.length} product
-                                {2 - compareItems.length > 1 ? 's' : ''} to compare
+                            <p className="text-lumiris-cyan text-xs font-medium">
+                                Select {2 - selectedIds.length} product
+                                {2 - selectedIds.length > 1 ? 's' : ''} to compare
                             </p>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                {/* Item gallery */}
-                <div className="grid grid-cols-2 gap-3">
-                    {WARDROBE_ITEMS.map((item, i) => {
-                        const config = GRADE_CONFIG[item.grade];
-                        const isSelected = compareItems.find((c) => c.id === item.id);
-                        const isGradeA = item.grade === 'A';
-                        return (
-                            <motion.button
-                                key={item.id}
-                                className={`group relative flex flex-col overflow-hidden rounded-2xl border text-left transition-all ${
-                                    isSelected ? 'border-grade-b ring-grade-b/20 ring-2' : 'border-border/60'
-                                } bg-card`}
-                                initial={{ opacity: 0, y: 12 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.25 + i * 0.05 }}
-                                onClick={() => (compareMode ? toggleCompareItem(item) : onSelectProduct(item))}
-                                style={{
-                                    ...(item.grade === 'E' ? { filter: 'saturate(0.4) brightness(0.92)' } : {}),
-                                    ...(isGradeA ? { animation: 'grade-a-glow 3s ease-in-out infinite' } : {}),
-                                }}
-                            >
-                                {/* Compare checkbox */}
-                                {compareMode && (
-                                    <div
-                                        className={`absolute left-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all ${
-                                            isSelected ? 'border-grade-b bg-grade-b' : 'border-border bg-card/90'
-                                        }`}
-                                    >
-                                        {isSelected && <Check className="text-primary-foreground h-3 w-3" />}
-                                    </div>
-                                )}
-
-                                {/* Product image placeholder */}
-                                <div className="bg-secondary/50 relative flex h-28 items-center justify-center">
-                                    <Shirt className="text-muted-foreground/25 h-9 w-9" />
-                                    <div
-                                        className="text-primary-foreground absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold"
-                                        style={{ background: config.color }}
-                                    >
-                                        {item.grade}
-                                    </div>
-                                </div>
-
-                                <div className="p-3">
-                                    <h4 className="text-foreground text-xs font-semibold leading-tight">{item.name}</h4>
-                                    <p className="text-muted-foreground mt-0.5 text-[11px]">{item.brand}</p>
-                                    <p className="text-foreground mt-1 text-xs font-bold">
-                                        {'\u20AC'}
-                                        {item.price}
-                                    </p>
-                                </div>
-                            </motion.button>
-                        );
-                    })}
-                </div>
+                <VaultGrid items={items} onSelect={handleSelect} selectedIds={selectedIds} />
             </div>
 
-            {/* Comparison overlay */}
             <AnimatePresence>
-                {showComparison && compareItems.length === 2 && (
-                    <ComparisonView items={compareItems} onClose={exitCompare} />
+                {showComparison && compareProducts.length === 2 && (
+                    <ComparisonView products={compareProducts} onClose={exitCompare} />
                 )}
             </AnimatePresence>
         </div>
     );
 }
 
-function ComparisonView({ items, onClose }: { items: Product[]; onClose: () => void }) {
-    const [a, b] = items;
+interface ComparisonViewProps {
+    products: readonly MobileProduct[];
+    onClose: () => void;
+}
+
+function ComparisonView({ products, onClose }: ComparisonViewProps) {
+    const [a, b] = products;
+    if (!a || !b) {
+        return null;
+    }
 
     return (
         <motion.div
@@ -230,7 +189,6 @@ function ComparisonView({ items, onClose }: { items: Product[]; onClose: () => v
             exit={{ opacity: 0, y: 40 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         >
-            {/* Header */}
             <div className="flex items-center justify-between px-6 pb-4 pt-14">
                 <h2 className="text-foreground text-lg font-bold">Compare</h2>
                 <button
@@ -242,35 +200,25 @@ function ComparisonView({ items, onClose }: { items: Product[]; onClose: () => v
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 pb-8">
-                {/* Grade comparison */}
                 <div className="mb-6 flex gap-3">
-                    {[a, b].map((item) => {
-                        const cfg = GRADE_CONFIG[item.grade];
-                        return (
-                            <div
-                                key={item.id}
-                                className="border-border/60 bg-card flex flex-1 flex-col items-center gap-2 rounded-2xl border py-5"
-                            >
-                                <div
-                                    className="flex h-14 w-14 items-center justify-center rounded-full border-2"
-                                    style={{
-                                        borderColor: cfg.color,
-                                        boxShadow: `0 0 16px ${cfg.color}20`,
-                                    }}
-                                >
-                                    <span className="text-2xl font-bold" style={{ color: cfg.color }}>
-                                        {item.grade}
-                                    </span>
-                                </div>
-                                <p className="text-foreground text-xs font-semibold">{item.name}</p>
-                                <p className="text-muted-foreground text-[11px]">{item.brand}</p>
-                            </div>
-                        );
-                    })}
+                    {[a, b].map((product) => (
+                        <div
+                            key={product.id}
+                            className="border-border/60 bg-card flex flex-1 flex-col items-center gap-2 rounded-2xl border py-5"
+                        >
+                            <IrisGrade grade={product.grade} size="lg" />
+                            <p className="text-foreground text-xs font-semibold">{product.name}</p>
+                            <p className="text-muted-foreground text-[11px]">{product.brand}</p>
+                        </div>
+                    ))}
                 </div>
 
-                {/* Stats side by side */}
-                <ComparisonRow label="Price" valueA={`\u20AC${a.price}`} valueB={`\u20AC${b.price}`} />
+                <ComparisonRow
+                    label="Score"
+                    valueA={`${Math.round(a.score)} / 100`}
+                    valueB={`${Math.round(b.score)} / 100`}
+                />
+                <ComparisonRow label="Price" valueA={`€${a.price}`} valueB={`€${b.price}`} />
                 <ComparisonRow label="Value" valueA={a.priceGradeRatio} valueB={b.priceGradeRatio} />
                 <ComparisonRow
                     label="CO2"
@@ -298,7 +246,13 @@ function ComparisonView({ items, onClose }: { items: Product[]; onClose: () => v
     );
 }
 
-function ComparisonRow({ label, valueA, valueB }: { label: string; valueA: string; valueB: string }) {
+interface ComparisonRowProps {
+    label: string;
+    valueA: string;
+    valueB: string;
+}
+
+function ComparisonRow({ label, valueA, valueB }: ComparisonRowProps) {
     return (
         <div className="border-border/40 flex items-center gap-3 border-b py-3">
             <span className="text-foreground flex-1 text-right text-sm font-semibold">{valueA}</span>
@@ -310,24 +264,11 @@ function ComparisonRow({ label, valueA, valueB }: { label: string; valueA: strin
     );
 }
 
-function getGradeDistribution(): Record<string, number> {
-    const dist: Record<string, number> = {};
-    WARDROBE_ITEMS.forEach((item) => {
-        dist[item.grade] = (dist[item.grade] || 0) + 1;
-    });
-    return dist;
-}
-
-function getOverallScore() {
-    const gradeValues = { A: 5, B: 4, C: 3, D: 2, E: 1 };
-    const total = WARDROBE_ITEMS.reduce((sum, item) => sum + gradeValues[item.grade], 0);
-    const avg = total / WARDROBE_ITEMS.length;
-    let grade: 'A' | 'B' | 'C' | 'D' | 'E' = 'C';
-    if (avg >= 4.5) grade = 'A';
-    else if (avg >= 3.5) grade = 'B';
-    else if (avg >= 2.5) grade = 'C';
-    else if (avg >= 1.5) grade = 'D';
-    else grade = 'E';
-
-    return { grade, percentage: (avg / 5) * 100 };
+function gradeFromAverage(avg: number): 'A+' | 'A' | 'B' | 'C' | 'D' | 'E' {
+    if (avg >= 90) return 'A+';
+    if (avg >= 80) return 'A';
+    if (avg >= 65) return 'B';
+    if (avg >= 50) return 'C';
+    if (avg >= 35) return 'D';
+    return 'E';
 }

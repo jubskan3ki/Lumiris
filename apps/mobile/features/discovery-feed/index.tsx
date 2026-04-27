@@ -2,25 +2,23 @@
 
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowUpRight } from 'lucide-react';
-import { DISCOVERY_FEED, GRADE_CONFIG } from '@/lib/lumiris-data';
+import { IrisGrade } from '@lumiris/scoring-ui';
+import { DISCOVERY_FEED } from '@/lib/lumiris-data';
 
 export function DiscoveryFeed() {
     return (
         <div className="bg-background flex h-full flex-col">
-            {/* Header */}
             <motion.div className="px-6 pb-4 pt-14" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
                 <div className="flex items-center gap-2">
                     <h1 className="text-foreground text-xl font-bold">Discover</h1>
-                    <Sparkles className="text-grade-c h-4 w-4" />
+                    <Sparkles className="text-lumiris-amber h-4 w-4" />
                 </div>
                 <p className="text-muted-foreground mt-0.5 text-sm">Transparency Trends from the Lumiris Journal</p>
             </motion.div>
 
             <div className="flex-1 overflow-y-auto px-5 pb-28">
-                {/* Feed items */}
                 <div className="flex flex-col gap-4">
                     {DISCOVERY_FEED.map((item, i) => {
-                        const config = GRADE_CONFIG[item.grade];
                         const daysAgo = Math.round((Date.now() - new Date(item.publishedAt).getTime()) / 86400000);
                         const isOpaque = item.grade === 'E';
                         return (
@@ -33,12 +31,7 @@ export function DiscoveryFeed() {
                                 style={isOpaque ? { filter: 'saturate(0.4) brightness(0.95)' } : {}}
                             >
                                 <div className="flex items-start gap-3">
-                                    <div
-                                        className="text-primary-foreground mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold"
-                                        style={{ background: config.color }}
-                                    >
-                                        {item.grade}
-                                    </div>
+                                    <IrisGrade grade={item.grade} size="md" className="mt-0.5 shrink-0" />
                                     <div className="flex-1">
                                         <h3 className="text-foreground text-sm font-semibold leading-snug">
                                             {item.title}
@@ -67,7 +60,6 @@ export function DiscoveryFeed() {
                     })}
                 </div>
 
-                {/* Journal CTA */}
                 <motion.div
                     className="border-border/40 bg-secondary/50 mt-6 flex flex-col items-center gap-2 rounded-2xl border py-6"
                     initial={{ opacity: 0 }}
@@ -76,7 +68,10 @@ export function DiscoveryFeed() {
                 >
                     <Sparkles className="text-muted-foreground/40 h-5 w-5" />
                     <p className="text-muted-foreground text-xs font-medium">More from the Lumiris Journal</p>
-                    <button className="bg-foreground text-primary-foreground mt-1 rounded-full px-5 py-2 text-xs font-semibold transition-all active:scale-95">
+                    <button
+                        type="button"
+                        className="bg-foreground text-primary-foreground mt-1 rounded-full px-5 py-2 text-xs font-semibold transition-all active:scale-95"
+                    >
                         Explore
                     </button>
                 </motion.div>

@@ -187,13 +187,13 @@ export function Wardrobe() {
                             transition={{ duration: 0.5, delay: 0.4 }}
                             className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row lg:justify-start"
                         >
-                            <a
-                                href="#"
+                            <button
+                                type="button"
                                 className="bg-foreground text-background inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-medium transition-opacity hover:opacity-90"
                             >
                                 <Download className="h-4 w-4" />
                                 Download the App
-                            </a>
+                            </button>
                         </motion.div>
                     </motion.div>
 

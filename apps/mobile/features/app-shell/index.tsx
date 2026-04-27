@@ -3,33 +3,53 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Scan, Archive, Sparkles } from 'lucide-react';
+import { computeScore } from '@lumiris/core/scoring';
+import { mockCertificates, mockDpps } from '@lumiris/mock-data';
 import { IrisScanner } from '../iris-scanner';
 import { DeepReveal } from '../deep-reveal';
 import { Wardrobe } from '../wardrobe';
 import { DiscoveryFeed } from '../discovery-feed';
-import { type Product, SAMPLE_PRODUCT } from '@/lib/lumiris-data';
+import { WARDROBE_ITEMS, type MobileProduct } from '@/lib/lumiris-data';
 
 type Screen = 'scanner' | 'wardrobe' | 'discover';
 
 export function AppShell() {
     const [activeScreen, setActiveScreen] = useState<Screen>('scanner');
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [selectedProduct, setSelectedProduct] = useState<MobileProduct | null>(null);
 
     const handleProductScanned = useCallback(() => {
-        setSelectedProduct(SAMPLE_PRODUCT);
+        // Live scan: pick a random anchored DPP, run computeScore against it,
+        // and stitch the canonical 50/30/20 result onto the existing product fixture
+        // for display. Direct call here is intentional — see CLAUDE.md scoring rule.
+        const dpp = mockDpps[Math.floor(Math.random() * mockDpps.length)] ?? mockDpps[0];
+        if (!dpp) {
+            return;
+        }
+        const result = computeScore(dpp, { certificates: mockCertificates });
+        const productForDpp = WARDROBE_ITEMS.find((p) => p.dppId === dpp.id);
+        if (!productForDpp) {
+            return;
+        }
+        setSelectedProduct({
+            ...productForDpp,
+            grade: result.grade,
+            score: result.total,
+            breakdown: result.breakdown,
+            reasons: result.reasons,
+            dpp,
+        });
     }, []);
 
     const handleCloseProduct = useCallback(() => {
         setSelectedProduct(null);
     }, []);
 
-    const handleSelectProduct = useCallback((product: Product) => {
+    const handleSelectProduct = useCallback((product: MobileProduct) => {
         setSelectedProduct(product);
     }, []);
 
     return (
-        <div className="bg-background relative mx-auto flex h-[100dvh] max-w-md flex-col overflow-hidden">
-            {/* Main content */}
+        <div className="bg-background relative mx-auto flex h-dvh max-w-md flex-col overflow-hidden">
             <div className="relative flex-1 overflow-hidden">
                 <AnimatePresence mode="wait">
                     {selectedProduct ? (
@@ -81,7 +101,6 @@ export function AppShell() {
                 </AnimatePresence>
             </div>
 
-            {/* Tab bar - Thumb Zone */}
             <AnimatePresence>
                 {!selectedProduct && (
                     <motion.nav
@@ -118,17 +137,14 @@ export function AppShell() {
     );
 }
 
-function TabButton({
-    icon,
-    label,
-    isActive,
-    onClick,
-}: {
+interface TabButtonProps {
     icon: React.ReactNode;
     label: string;
     isActive: boolean;
     onClick: () => void;
-}) {
+}
+
+function TabButton({ icon, label, isActive, onClick }: TabButtonProps) {
     return (
         <button
             onClick={onClick}

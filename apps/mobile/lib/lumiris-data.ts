@@ -6,21 +6,26 @@
  *   - DPP & products → `@lumiris/mock-data`
  *   - 50/30/20 grade → `@lumiris/core`'s `computeScore`
  *
- * Anything visual (colours, labels) lives here because it is mobile-specific
- * UI dressing — there is no shared `GRADE_CONFIG` to re-export from
- * `@lumiris/scoring-ui` (the canonical mapping there is Tailwind tokens via
- * `GRADE_COLOR`, not raw hex strings used in inline `style={...}`).
+ * No grade → colour mapping lives here. Colours are sourced from
+ * `@lumiris/scoring-ui` (Tailwind tokens), never duplicated per-app.
  */
 
 import { computeScore } from '@lumiris/core/scoring';
 import { mockCertificates, mockProducts, type MockProduct } from '@lumiris/mock-data';
 import { mockDppById } from '@lumiris/mock-data/dpp';
+import type { DPPRecord, IrisGrade as IrisGradeLetter, ScoreBreakdown } from '@lumiris/types';
 
-export type ProductGrade = 'A' | 'B' | 'C' | 'D' | 'E';
-
-export interface Product extends MockProduct {
+export interface MobileProduct extends MockProduct {
     /** Letter grade derived from the canonical 50/30/20 algorithm. */
-    grade: ProductGrade;
+    grade: IrisGradeLetter;
+    /** Numeric 0–100 total — drives the wardrobe progress bar. */
+    score: number;
+    /** Per-axis sub-scores from `computeScore`. */
+    breakdown: ScoreBreakdown;
+    /** Reasons the score is below 100, surfaced in the reveal. */
+    reasons: readonly string[];
+    /** Anchor DPP — exposed for grade-aware components downstream. */
+    dpp: DPPRecord;
 }
 
 export interface DiscoveryItem {
@@ -28,40 +33,44 @@ export interface DiscoveryItem {
     title: string;
     subtitle: string;
     category: 'Trend' | 'Audit' | 'Regulation' | 'Lifestyle';
-    grade: ProductGrade;
+    grade: IrisGradeLetter;
     publishedAt: string;
 }
 
-export interface GradeConfigEntry {
-    /** CSS colour string used inline in mobile components. Do not duplicate; if
-     *  you need a Tailwind class, import `gradeColor()` from `@lumiris/scoring-ui`. */
-    color: string;
-    label: string;
+function enrich(product: MockProduct): MobileProduct {
+    const dpp = mockDppById(product.dppId);
+    if (!dpp) {
+        throw new Error(`MobileProduct ${product.id} references unknown DPP ${product.dppId}`);
+    }
+    const result = computeScore(dpp, { certificates: mockCertificates });
+    return {
+        ...product,
+        dpp,
+        grade: result.grade,
+        score: result.total,
+        breakdown: result.breakdown,
+        reasons: result.reasons,
+    };
 }
 
-export const GRADE_CONFIG: Record<ProductGrade, GradeConfigEntry> = {
-    A: { color: 'oklch(0.55 0.18 160)', label: 'Transparent' },
-    B: { color: 'oklch(0.60 0.13 195)', label: 'Trusted' },
-    C: { color: 'oklch(0.72 0.16 85)', label: 'Mixed' },
-    D: { color: 'oklch(0.65 0.18 50)', label: 'Opaque' },
-    E: { color: 'oklch(0.55 0.20 15)', label: 'Withheld' },
-};
+export const WARDROBE_ITEMS: readonly MobileProduct[] = mockProducts.map(enrich);
 
-function gradeFromDpp(dppId: string): ProductGrade {
-    const dpp = mockDppById(dppId);
-    if (!dpp) return 'E';
-    const { grade } = computeScore(dpp, { certificates: mockCertificates });
-    // mobile fixtures collapse A+ into A — there is no `+` row in GRADE_CONFIG
-    return grade === 'A+' ? 'A' : (grade as ProductGrade);
+const fallbackProduct = mockProducts[0];
+if (!fallbackProduct) {
+    throw new Error('mockProducts is empty — cannot derive SAMPLE_PRODUCT');
+}
+export const SAMPLE_PRODUCT: MobileProduct = WARDROBE_ITEMS[0] ?? enrich(fallbackProduct);
+
+/** Pick a random product for the simulated scan flow. */
+export function randomProduct(): MobileProduct {
+    if (WARDROBE_ITEMS.length === 0) {
+        return SAMPLE_PRODUCT;
+    }
+    const index = Math.floor(Math.random() * WARDROBE_ITEMS.length);
+    return WARDROBE_ITEMS[index] ?? SAMPLE_PRODUCT;
 }
 
-const enrich = (p: MockProduct): Product => ({ ...p, grade: gradeFromDpp(p.dppId) });
-
-export const WARDROBE_ITEMS: Product[] = mockProducts.map(enrich);
-
-export const SAMPLE_PRODUCT: Product = WARDROBE_ITEMS[0] ?? enrich(mockProducts[0]!);
-
-export const DISCOVERY_FEED: DiscoveryItem[] = [
+export const DISCOVERY_FEED: readonly DiscoveryItem[] = [
     {
         id: 'DSC-001',
         title: 'EU ESPR enters force in 2027 — what every brand must publish',
@@ -75,7 +84,7 @@ export const DISCOVERY_FEED: DiscoveryItem[] = [
         title: 'Inside the audit: how Verde Collective hit a 100% integrity score',
         subtitle: 'A close read of DPP-2024-003 and the supplier letters that made it possible.',
         category: 'Audit',
-        grade: 'A',
+        grade: 'A+',
         publishedAt: '2024-12-09T08:00:00Z',
     },
     {

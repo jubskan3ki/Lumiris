@@ -15,6 +15,8 @@ export default {
     versionGroups: [
         {
             label: 'Workspace siblings must use workspace:*',
+            // `local` excluded: it would rewrite each package's own `version` field.
+            dependencyTypes: ['dev', 'prod', 'peer'],
             dependencies: ['@lumiris/**'],
             pinVersion: 'workspace:*',
         },

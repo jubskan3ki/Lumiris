@@ -9,7 +9,7 @@ interface TopBarProps {
     onNavigate: (section: NavSection) => void;
 }
 
-const searchableItems: { label: string; section: NavSection; keywords: string }[] = [
+const searchableItems: Array<{ label: string; section: NavSection; keywords: string }> = [
     { label: 'Overview Dashboard', section: 'overview', keywords: 'home stats kpi metrics' },
     { label: 'Audit Factory', section: 'audit-factory', keywords: 'pipeline products audit' },
     { label: 'Certificate Vault', section: 'certificates', keywords: 'certs documents proof' },

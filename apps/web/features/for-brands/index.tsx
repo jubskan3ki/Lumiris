@@ -58,19 +58,19 @@ export function ForBrands() {
                         </p>
 
                         <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row">
-                            <a
-                                href="#"
+                            <button
+                                type="button"
                                 className="bg-foreground text-background inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-medium transition-opacity hover:opacity-90"
                             >
                                 Access the Audit Pipeline
                                 <ArrowRight className="h-4 w-4" />
-                            </a>
-                            <a
-                                href="#"
+                            </button>
+                            <button
+                                type="button"
                                 className="border-border text-foreground hover:bg-secondary inline-flex items-center gap-2 rounded-xl border px-6 py-3 text-sm font-medium transition-colors"
                             >
                                 Request a Demo
-                            </a>
+                            </button>
                         </div>
                     </motion.div>
 

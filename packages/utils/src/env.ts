@@ -11,10 +11,10 @@
  *   })
  */
 
-export type EnvSpecBase<TRequired extends boolean> = {
+export interface EnvSpecBase<TRequired extends boolean> {
     required?: TRequired;
     description?: string;
-};
+}
 
 export type StringSpec<R extends boolean> = EnvSpecBase<R> & {
     kind: 'string';

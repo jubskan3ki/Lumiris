@@ -3,11 +3,14 @@
 import { motion } from 'framer-motion';
 import { Shield, Leaf, Recycle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { LUMIRIS_WEIGHTS } from '@lumiris/core/constants';
+
+const formatWeight = (w: number) => `${Math.round(w * 100)}%`;
 
 const pillars = [
     {
         title: 'Transparency',
-        weight: '50%',
+        weight: formatWeight(LUMIRIS_WEIGHTS.integrity),
         icon: Shield,
         description: 'Full supply chain disclosure, certifications, and raw material provenance.',
         borderClass: 'border-grade-a/20',
@@ -16,7 +19,7 @@ const pillars = [
     },
     {
         title: 'Impact',
-        weight: '30%',
+        weight: formatWeight(LUMIRIS_WEIGHTS.trust),
         icon: Leaf,
         description: 'Environmental and social footprint analysis across the product lifecycle.',
         borderClass: 'border-grade-b/20',
@@ -25,7 +28,7 @@ const pillars = [
     },
     {
         title: 'Circularity',
-        weight: '20%',
+        weight: formatWeight(LUMIRIS_WEIGHTS.impact),
         icon: Recycle,
         description: 'End-of-life responsibility, recyclability, and material recoverability.',
         borderClass: 'border-grade-c/20',

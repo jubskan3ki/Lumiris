@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { ListChecks, ShieldCheck, BarChart3, FileEdit, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { computeScore } from '@lumiris/core';
 import { mockKpi as kpiData } from '@lumiris/mock-data/kpi';
@@ -11,7 +11,7 @@ import { mockTeamActivity as teamActivity } from '@lumiris/mock-data/team';
 import { mockJournalArticles as journalArticles } from '@lumiris/mock-data/journal';
 import { cn } from '@lumiris/ui/lib/cn';
 
-const containerAnim = {
+const containerAnim: Variants = {
     hidden: { opacity: 0 },
     show: {
         opacity: 1,
@@ -19,7 +19,7 @@ const containerAnim = {
     },
 };
 
-const itemAnim = {
+const itemAnim: Variants = {
     hidden: { opacity: 0, y: 16 },
     show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
 };

@@ -11,11 +11,11 @@ interface SidebarProps {
     onNavigate: (section: NavSection) => void;
 }
 
-const navItems: {
+const navItems: Array<{
     id: NavSection;
     label: string;
     icon: React.ComponentType<{ className?: string }>;
-}[] = [
+}> = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'audit-factory', label: 'Audit Factory', icon: Factory },
     { id: 'certificates', label: 'Certificate Vault', icon: ShieldCheck },

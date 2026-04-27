@@ -22,7 +22,7 @@ const item = {
 
 // Find cross-check discrepancies
 function getCrossCheckAlerts() {
-    const factoryMap = new Map<string, { brand: string; carbonScore: number | null; certId: string }[]>();
+    const factoryMap = new Map<string, Array<{ brand: string; carbonScore: number | null; certId: string }>>();
     certificates.forEach((cert) => {
         const existing = factoryMap.get(cert.factory) || [];
         existing.push({
@@ -33,10 +33,10 @@ function getCrossCheckAlerts() {
         factoryMap.set(cert.factory, existing);
     });
 
-    const alerts: {
+    const alerts: Array<{
         factory: string;
-        entries: { brand: string; carbonScore: number | null; certId: string }[];
-    }[] = [];
+        entries: Array<{ brand: string; carbonScore: number | null; certId: string }>;
+    }> = [];
 
     factoryMap.forEach((entries, factory) => {
         if (entries.length > 1) {

@@ -1,51 +1,52 @@
 @import 'tailwindcss';
+
 @plugin "tailwindcss-animate";
 
 @variant dark (&:is(.dark *));
 
 :root {
     /* LUMIRIS White — Clinical Minimalism */
-    --background: oklch(0.98 0.002 260);
-    --foreground: oklch(0.15 0.01 260);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.15 0.01 260);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.15 0.01 260);
-    --primary: oklch(0.55 0.18 160);
-    --primary-foreground: oklch(1 0 0);
-    --secondary: oklch(0.97 0.002 260);
-    --secondary-foreground: oklch(0.4 0.01 260);
-    --muted: oklch(0.96 0.002 260);
-    --muted-foreground: oklch(0.5 0.01 260);
-    --accent: oklch(0.97 0.002 260);
-    --accent-foreground: oklch(0.15 0.01 260);
-    --destructive: oklch(0.55 0.22 25);
-    --destructive-foreground: oklch(1 0 0);
-    --border: oklch(0.9 0.002 260);
-    --input: oklch(0.92 0.002 260);
-    --ring: oklch(0.55 0.18 160);
-    --chart-1: oklch(0.55 0.18 160);
-    --chart-2: oklch(0.65 0.15 195);
-    --chart-3: oklch(0.72 0.16 85);
-    --chart-4: oklch(0.55 0.22 25);
-    --chart-5: oklch(0.6 0.12 260);
+    --background: oklch(98% 0.002 260deg);
+    --foreground: oklch(15% 0.01 260deg);
+    --card: oklch(100% 0 0deg);
+    --card-foreground: oklch(15% 0.01 260deg);
+    --popover: oklch(100% 0 0deg);
+    --popover-foreground: oklch(15% 0.01 260deg);
+    --primary: oklch(55% 0.18 160deg);
+    --primary-foreground: oklch(100% 0 0deg);
+    --secondary: oklch(97% 0.002 260deg);
+    --secondary-foreground: oklch(40% 0.01 260deg);
+    --muted: oklch(96% 0.002 260deg);
+    --muted-foreground: oklch(50% 0.01 260deg);
+    --accent: oklch(97% 0.002 260deg);
+    --accent-foreground: oklch(15% 0.01 260deg);
+    --destructive: oklch(55% 0.22 25deg);
+    --destructive-foreground: oklch(100% 0 0deg);
+    --border: oklch(90% 0.002 260deg);
+    --input: oklch(92% 0.002 260deg);
+    --ring: oklch(55% 0.18 160deg);
+    --chart-1: oklch(55% 0.18 160deg);
+    --chart-2: oklch(65% 0.15 195deg);
+    --chart-3: oklch(72% 0.16 85deg);
+    --chart-4: oklch(55% 0.22 25deg);
+    --chart-5: oklch(60% 0.12 260deg);
     --radius: 0.625rem;
-    --sidebar: oklch(1 0 0);
-    --sidebar-foreground: oklch(0.4 0.01 260);
-    --sidebar-primary: oklch(0.55 0.18 160);
-    --sidebar-primary-foreground: oklch(1 0 0);
-    --sidebar-accent: oklch(0.96 0.01 160);
-    --sidebar-accent-foreground: oklch(0.15 0.01 260);
-    --sidebar-border: oklch(0.92 0.002 260);
-    --sidebar-ring: oklch(0.55 0.18 160);
+    --sidebar: oklch(100% 0 0deg);
+    --sidebar-foreground: oklch(40% 0.01 260deg);
+    --sidebar-primary: oklch(55% 0.18 160deg);
+    --sidebar-primary-foreground: oklch(100% 0 0deg);
+    --sidebar-accent: oklch(96% 0.01 160deg);
+    --sidebar-accent-foreground: oklch(15% 0.01 260deg);
+    --sidebar-border: oklch(92% 0.002 260deg);
+    --sidebar-ring: oklch(55% 0.18 160deg);
 
     /* Iris accent palette */
-    --lumiris-emerald: oklch(0.55 0.18 160);
-    --lumiris-cyan: oklch(0.6 0.13 195);
-    --lumiris-amber: oklch(0.72 0.16 85);
-    --lumiris-rose: oklch(0.55 0.2 15);
-    --lumiris-surface: oklch(1 0 0);
-    --lumiris-surface-raised: oklch(0.98 0.002 260);
+    --lumiris-emerald: oklch(55% 0.18 160deg);
+    --lumiris-cyan: oklch(60% 0.13 195deg);
+    --lumiris-amber: oklch(72% 0.16 85deg);
+    --lumiris-rose: oklch(55% 0.2 15deg);
+    --lumiris-surface: oklch(100% 0 0deg);
+    --lumiris-surface-raised: oklch(98% 0.002 260deg);
 
     /*
    * Iris Grade colour scale — the ONLY place a grade letter is mapped to
@@ -53,12 +54,12 @@
    * `bg-grade-*` and `border-grade-*` utilities (or the IrisGrade
    * component in @lumiris/scoring-ui), never via inline literals.
    */
-    --grade-a-plus: oklch(0.55 0.18 160);
-    --grade-a: oklch(0.55 0.18 160);
-    --grade-b: oklch(0.6 0.13 195);
-    --grade-c: oklch(0.72 0.16 85);
-    --grade-d: oklch(0.62 0.18 50);
-    --grade-e: oklch(0.55 0.2 15);
+    --grade-a-plus: oklch(55% 0.18 160deg);
+    --grade-a: oklch(55% 0.18 160deg);
+    --grade-b: oklch(60% 0.13 195deg);
+    --grade-c: oklch(72% 0.16 85deg);
+    --grade-d: oklch(62% 0.18 50deg);
+    --grade-e: oklch(55% 0.2 15deg);
 }
 
 @theme {
@@ -112,13 +113,14 @@
     --color-grade-c: var(--grade-c);
     --color-grade-d: var(--grade-d);
     --color-grade-e: var(--grade-e);
-    --color-glass: oklch(1 0 0 / 0.7);
+    --color-glass: oklch(100% 0 0deg / 70%);
 }
 
 @layer base {
     * {
         @apply border-border outline-ring/50;
     }
+
     body {
         @apply bg-background text-foreground;
     }
@@ -127,14 +129,14 @@
 /* Opal shadow utility */
 .opal-shadow {
     box-shadow:
-        0 1px 3px oklch(0.5 0.01 260 / 0.04),
-        0 4px 12px oklch(0.5 0.01 260 / 0.03);
+        0 1px 3px oklch(50% 0.01 260deg / 4%),
+        0 4px 12px oklch(50% 0.01 260deg / 3%);
 }
 
 .opal-shadow-lg {
     box-shadow:
-        0 2px 6px oklch(0.5 0.01 260 / 0.05),
-        0 8px 24px oklch(0.5 0.01 260 / 0.06);
+        0 2px 6px oklch(50% 0.01 260deg / 5%),
+        0 8px 24px oklch(50% 0.01 260deg / 6%);
 }
 
 /* Clean scrollbar for light theme */
@@ -142,26 +144,31 @@
     width: 5px;
     height: 5px;
 }
+
 ::-webkit-scrollbar-track {
     background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-    background: oklch(0.85 0.002 260);
+    background: oklch(85% 0.002 260deg);
     border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-    background: oklch(0.75 0.002 260);
+    background: oklch(75% 0.002 260deg);
 }
 
 /* Toast styles */
 .toast-enter {
     animation: toast-slide-in 0.3s ease-out;
 }
+
 @keyframes toast-slide-in {
     from {
         opacity: 0;
         transform: translateY(8px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -172,10 +179,10 @@
 .prismatic-bg {
     background: linear-gradient(135deg, var(--lumiris-emerald) 0%, var(--lumiris-cyan) 50%, var(--lumiris-amber) 100%);
 }
+
 .prismatic-text {
     background: linear-gradient(135deg, var(--lumiris-emerald), var(--lumiris-cyan), var(--lumiris-amber));
     background-clip: text;
-    -webkit-background-clip: text;
     color: transparent;
 }
 
@@ -183,10 +190,12 @@
 .ticker-scroll {
     animation: ticker-scroll-frames 40s linear infinite;
 }
+
 @keyframes ticker-scroll-frames {
     from {
         transform: translateX(0);
     }
+
     to {
         transform: translateX(-50%);
     }
@@ -198,16 +207,19 @@
     100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.015);
     }
 }
+
 @keyframes grade-a-glow {
     0%,
     100% {
-        box-shadow: 0 0 0 0 oklch(0.55 0.18 160 / 0);
+        box-shadow: 0 0 0 0 oklch(55% 0.18 160deg / 0%);
     }
+
     50% {
-        box-shadow: 0 0 16px 0 oklch(0.55 0.18 160 / 0.18);
+        box-shadow: 0 0 16px 0 oklch(55% 0.18 160deg / 18%);
     }
 }

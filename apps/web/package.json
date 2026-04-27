@@ -7,7 +7,7 @@
         "dev": "next dev --port 3000",
         "build": "next build",
         "start": "next start --port 3000",
-        "lint": "next lint",
+        "lint": "eslint .",
         "typecheck": "tsc --noEmit",
         "clean": "rimraf .next .turbo"
     },
@@ -31,7 +31,7 @@
     "devDependencies": {
         "@lumiris/config": "workspace:*",
         "@tailwindcss/postcss": "^4.2.0",
-        "@types/node": "^22",
+        "@types/node": "^22.10.0",
         "@types/react": "^19",
         "@types/react-dom": "^19",
         "autoprefixer": "^10.4.20",
