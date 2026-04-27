@@ -4,7 +4,7 @@
  * (or when running outside Next).
  *
  * Exporter:
- *   - dev → ConsoleSpanExporter (no network)
+ *   - dev → silent (set OTEL_DEV_CONSOLE=1 to dump spans to console)
  *   - prod → OTLP/HTTP to OTEL_EXPORTER_OTLP_ENDPOINT (default: Tempo)
  *
  * Sampling:
@@ -58,7 +58,11 @@ export function initOtel(options: InitOtelOptions): NodeSDK | null {
         diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
     }
 
-    const traceExporter = isProd ? new OTLPTraceExporter({ url: `${endpoint}/v1/traces` }) : new ConsoleSpanExporter();
+    const traceExporter = isProd
+        ? new OTLPTraceExporter({ url: `${endpoint}/v1/traces` })
+        : process.env.OTEL_DEV_CONSOLE === '1'
+          ? new ConsoleSpanExporter()
+          : undefined;
 
     const metricReader = isProd
         ? new PeriodicExportingMetricReader({

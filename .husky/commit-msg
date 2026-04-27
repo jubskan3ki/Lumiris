@@ -1,2 +1,5 @@
 #!/usr/bin/env sh
+# Ensure bun is on PATH (Windows: git hooks may miss the user PATH).
+[ -d "$HOME/.bun/bin" ] && export PATH="$HOME/.bun/bin:$PATH"
+
 bunx --no-install commitlint --edit "$1"

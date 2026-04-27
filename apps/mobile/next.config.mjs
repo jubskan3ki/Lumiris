@@ -3,6 +3,10 @@
  * the future Tauri shell (static export to `out/`).
  * Toggle via `BUILD_TARGET=tauri bun run build:tauri`.
  */
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isTauri = process.env.BUILD_TARGET === 'tauri';
 
 /** @type {import('next').NextConfig} */
@@ -26,7 +30,7 @@ const nextConfig = {
     }),
     ...(!isTauri && {
         output: 'standalone',
-        outputFileTracingRoot: new URL('../../', import.meta.url).pathname,
+        outputFileTracingRoot: path.resolve(__dirname, '../..'),
         images: { unoptimized: true },
     }),
 };

@@ -1,4 +1,9 @@
+ifeq ($(OS),Windows_NT)
+SHELL := sh.exe
+.SHELLFLAGS := -c
+else
 SHELL := /bin/bash
+endif
 .DEFAULT_GOAL := help
 
 ifneq (,$(wildcard .env))

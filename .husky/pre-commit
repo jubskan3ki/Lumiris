@@ -2,6 +2,9 @@
 # LUMIRIS pre-commit guardrails — keep the codebase Clinical & Transparent.
 set -e
 
+# Ensure bun is on PATH (Windows: git hooks may miss the user PATH).
+[ -d "$HOME/.bun/bin" ] && export PATH="$HOME/.bun/bin:$PATH"
+
 # 1. Lint + format only what's staged.
 bunx lint-staged
 
