@@ -1,7 +1,4 @@
-/**
- * Digital Product Passport — the canonical record audited by LUMIRIS.
- * Mirrors EU ESPR mandatory fields for textile & footwear.
- */
+// Mirrors EU ESPR mandatory fields for textile & footwear.
 
 export type AuditStatus = 'Draft' | 'Audit_Pending' | 'Flagged_Anomalies' | 'Published_Live' | 'Grade_E';
 

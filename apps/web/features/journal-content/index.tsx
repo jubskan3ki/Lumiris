@@ -179,7 +179,6 @@ export function JournalContent() {
 
     return (
         <div className="pb-20 pt-28">
-            {/* Page header */}
             <section className="mx-auto mb-16 max-w-5xl px-6">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -198,7 +197,6 @@ export function JournalContent() {
                 </motion.div>
             </section>
 
-            {/* Featured articles */}
             <section className="mx-auto mb-20 max-w-5xl px-6">
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                     {featured.map((article) => (
@@ -207,7 +205,6 @@ export function JournalContent() {
                 </div>
             </section>
 
-            {/* Category filter + article list */}
             <section className="mx-auto max-w-5xl px-6">
                 <div className="mb-8 flex flex-wrap items-center gap-2">
                     {categories.map((cat) => (

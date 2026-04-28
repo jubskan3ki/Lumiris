@@ -1,16 +1,7 @@
 import type { DPPRecord } from '@lumiris/types';
 import { IMPACT_BASELINE } from '../constants';
 
-/**
- * Impact axis (20%) — environmental footprint as a 0–100 number.
- * Three sub-components, equally weighted:
- *
- * - carbon  (33⅓%): linear inverse of carbon_footprint_kg vs ceiling
- * - water   (33⅓%): linear inverse of water_usage_liters vs ceiling
- * - circular (33⅓%): recycled_content_percentage vs target
- *
- * Missing data scores 0 on its sub-component and is listed as a reason.
- */
+// Impact axis (20%): three sub-scores equally weighted (carbon, water, circular); missing data scores 0 on its sub.
 export function scoreImpact(dpp: DPPRecord): { score: number; reasons: string[] } {
     const raw = (dpp.rawData ?? {}) as Record<string, unknown>;
     const reasons: string[] = [];

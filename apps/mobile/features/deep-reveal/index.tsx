@@ -19,8 +19,42 @@ import {
     Minus,
     BadgeCheck,
 } from 'lucide-react';
-import { IrisGrade, ScoreBreakdown, ScoreReasonsList } from '@lumiris/scoring-ui';
+import { GRADE_LABEL, ScoreBreakdown, ScoreReasonsList } from '@lumiris/scoring-ui';
 import type { MobileProduct } from '@/lib/lumiris-data';
+
+// Static class maps so Tailwind v4 can scan every variant we render.
+const TEXT: Record<MobileProduct['grade'], string> = {
+    'A+': 'text-lumiris-emerald',
+    A: 'text-lumiris-emerald',
+    B: 'text-lumiris-cyan',
+    C: 'text-lumiris-amber',
+    D: 'text-lumiris-amber',
+    E: 'text-lumiris-rose',
+};
+const BG: Record<MobileProduct['grade'], string> = {
+    'A+': 'bg-lumiris-emerald',
+    A: 'bg-lumiris-emerald',
+    B: 'bg-lumiris-cyan',
+    C: 'bg-lumiris-amber',
+    D: 'bg-lumiris-amber',
+    E: 'bg-lumiris-rose',
+};
+const BG_FAINT: Record<MobileProduct['grade'], string> = {
+    'A+': 'bg-lumiris-emerald/30',
+    A: 'bg-lumiris-emerald/30',
+    B: 'bg-lumiris-cyan/30',
+    C: 'bg-lumiris-amber/30',
+    D: 'bg-lumiris-amber/30',
+    E: 'bg-lumiris-rose/30',
+};
+const BORDER: Record<MobileProduct['grade'], string> = {
+    'A+': 'border-lumiris-emerald',
+    A: 'border-lumiris-emerald',
+    B: 'border-lumiris-cyan',
+    C: 'border-lumiris-amber',
+    D: 'border-lumiris-amber',
+    E: 'border-lumiris-rose',
+};
 
 interface DeepRevealProps {
     product: MobileProduct;
@@ -29,16 +63,42 @@ interface DeepRevealProps {
 
 const ENV_ICONS = [Leaf, Droplets, Zap] as const;
 
+type RatioTone = 'emerald' | 'amber' | 'rose';
+
+const RATIO_TONE: Record<MobileProduct['priceGradeRatio'], RatioTone> = {
+    'Great Deal': 'emerald',
+    Fair: 'amber',
+    Overpriced: 'rose',
+};
+
+const RATIO_TEXT: Record<RatioTone, string> = {
+    emerald: 'text-lumiris-emerald',
+    amber: 'text-lumiris-amber',
+    rose: 'text-lumiris-rose',
+};
+
+const RATIO_BG: Record<RatioTone, string> = {
+    emerald: 'bg-lumiris-emerald/10',
+    amber: 'bg-lumiris-amber/10',
+    rose: 'bg-lumiris-rose/10',
+};
+
 export function DeepReveal({ product, onClose }: DeepRevealProps) {
     const isOpaque = product.grade === 'E';
+    const isGradeA = product.grade === 'A' || product.grade === 'A+';
+    const gradeTextClass = TEXT[product.grade];
+    const gradeBgClass = BG[product.grade];
+    const gradeBorderClass = BORDER[product.grade];
+    const gradeBgFaintClass = BG_FAINT[product.grade];
+    const ratioTone = RATIO_TONE[product.priceGradeRatio];
 
     const ratioIcon =
-        product.priceGradeRatio === 'Great Deal' ? (
-            <TrendingUp className="text-lumiris-emerald h-3.5 w-3.5" />
-        ) : product.priceGradeRatio === 'Overpriced' ? (
-            <TrendingDown className="text-lumiris-rose h-3.5 w-3.5" />
+        ratioTone === 'emerald' ? (
+            <TrendingUp className={`${RATIO_TEXT[ratioTone]} h-3.5 w-3.5`} />
+        ) : ratioTone === 'rose' ? (
+            <TrendingDown className={`${RATIO_TEXT[ratioTone]} h-3.5 w-3.5`} />
         ) : (
-            <Minus className="text-lumiris-amber h-3.5 w-3.5" />
+            <Minus className={`${RATIO_TEXT[ratioTone]} h-3.5 w-3.5`} />
         );
 
     return (
@@ -54,12 +114,19 @@ export function DeepReveal({ product, onClose }: DeepRevealProps) {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
             >
+                <div
+                    aria-hidden
+                    className={`absolute top-10 h-32 w-32 rounded-full opacity-20 blur-[50px] ${gradeBgClass}`}
+                />
+
                 <motion.div
+                    className={`bg-glass relative flex h-28 w-28 items-center justify-center rounded-full border-2 backdrop-blur-2xl ${gradeBorderClass}`}
+                    style={isGradeA ? { animation: 'grade-a-glow 3s ease-in-out infinite' } : undefined}
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: 'spring', stiffness: 180, damping: 14, delay: 0.15 }}
                 >
-                    <IrisGrade grade={product.grade} size="lg" className="h-28 w-28 text-5xl" />
+                    <span className={`${gradeTextClass} text-5xl font-bold`}>{product.grade}</span>
                 </motion.div>
 
                 <motion.div
@@ -68,7 +135,12 @@ export function DeepReveal({ product, onClose }: DeepRevealProps) {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4 }}
                 >
-                    <span className="text-foreground font-mono text-xs">{Math.round(product.score)} / 100</span>
+                    <span className={`${gradeTextClass} text-[11px] font-bold uppercase tracking-[0.15em]`}>
+                        {GRADE_LABEL[product.grade]}
+                    </span>
+                    <span className="text-muted-foreground font-mono text-[10px]">
+                        {Math.round(product.score)} / 100
+                    </span>
                     <h2 className="text-foreground mt-1 text-center text-lg font-bold leading-tight">{product.name}</h2>
                     <p className="text-muted-foreground text-sm">{product.brand}</p>
                 </motion.div>
@@ -110,14 +182,18 @@ export function DeepReveal({ product, onClose }: DeepRevealProps) {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.45 }}
                         >
-                            <div className="bg-secondary flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+                            <div
+                                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${RATIO_BG[ratioTone]}`}
+                            >
                                 {ratioIcon}
                             </div>
                             <div className="flex-1">
                                 <p className="text-muted-foreground text-xs font-medium uppercase">
                                     Price / Grade Ratio
                                 </p>
-                                <p className="text-foreground text-sm font-bold">{product.priceGradeRatio}</p>
+                                <p className={`${RATIO_TEXT[ratioTone]} text-sm font-bold`}>
+                                    {product.priceGradeRatio}
+                                </p>
                             </div>
                         </motion.div>
                     </div>
@@ -207,7 +283,7 @@ export function DeepReveal({ product, onClose }: DeepRevealProps) {
 
                 <LayerSection title="The Journey" subtitle="Supply Chain Timeline" delay={0.75}>
                     <div className="relative ml-3">
-                        <div className="bg-border/40 absolute bottom-2 left-0 top-2 w-px" />
+                        <div className={`absolute bottom-2 left-0 top-2 w-px ${gradeBgFaintClass}`} />
 
                         {product.journey.map((step, i) => (
                             <motion.div
@@ -217,7 +293,7 @@ export function DeepReveal({ product, onClose }: DeepRevealProps) {
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.8 + i * 0.1 }}
                             >
-                                <div className="bg-foreground absolute left-0 top-3 -ml-1 h-2 w-2 rounded-full" />
+                                <div className={`absolute left-0 top-3 -ml-1 h-2 w-2 rounded-full ${gradeBgClass}`} />
 
                                 <div className="border-border/60 bg-card flex-1 rounded-2xl border p-3.5">
                                     <div className="flex items-center justify-between">

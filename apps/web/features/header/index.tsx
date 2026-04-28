@@ -38,7 +38,6 @@ export function Header() {
             }`}
         >
             <nav className="flex items-center justify-between px-6 py-3">
-                {/* Logo */}
                 <Link href="/" className="group flex items-center gap-2.5">
                     <div className="relative h-7 w-7">
                         <div className="prismatic-bg absolute inset-0 rounded-lg opacity-90" />
@@ -49,7 +48,6 @@ export function Header() {
                     <span className="text-foreground text-base font-semibold tracking-tight">LUMIRIS</span>
                 </Link>
 
-                {/* Desktop nav */}
                 <ul className="hidden items-center gap-1 md:flex">
                     {navLinks.map((link) => {
                         const isActive = pathname === link.href;
@@ -78,7 +76,6 @@ export function Header() {
                     })}
                 </ul>
 
-                {/* CTA */}
                 <div className="hidden items-center gap-3 md:flex">
                     <Link
                         href="#"
@@ -89,7 +86,6 @@ export function Header() {
                     </Link>
                 </div>
 
-                {/* Mobile toggle */}
                 <button
                     onClick={() => setMobileOpen(!mobileOpen)}
                     className="text-foreground md:hidden"
@@ -99,7 +95,6 @@ export function Header() {
                 </button>
             </nav>
 
-            {/* Mobile menu */}
             <AnimatePresence>
                 {mobileOpen && (
                     <motion.div

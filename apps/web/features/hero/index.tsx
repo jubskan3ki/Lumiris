@@ -8,11 +8,9 @@ import Link from 'next/link';
 function ProductCard({ isRevealed }: { isRevealed: boolean }) {
     return (
         <div className="relative aspect-[3/4] w-60 sm:w-72">
-            {/* Prismatic glow */}
             <div className="prismatic-bg absolute -inset-6 rounded-3xl opacity-15 blur-3xl" />
 
             <div className="border-border relative h-full w-full overflow-hidden rounded-2xl border shadow-sm">
-                {/* Front -- product */}
                 <div
                     className={`absolute inset-0 transition-opacity duration-700 ${
                         isRevealed ? 'opacity-0' : 'opacity-100'
@@ -36,7 +34,6 @@ function ProductCard({ isRevealed }: { isRevealed: boolean }) {
                     </div>
                 </div>
 
-                {/* Revealed -- transparency view */}
                 <div
                     className={`absolute inset-0 transition-opacity duration-700 ${
                         isRevealed ? 'opacity-100' : 'opacity-0'
@@ -107,13 +104,11 @@ export function Hero() {
 
     return (
         <section className="relative flex min-h-screen items-center justify-center overflow-hidden pb-16 pt-24">
-            {/* Ambient blurs */}
             <div className="bg-grade-a/[0.04] absolute right-1/4 top-20 h-80 w-80 rounded-full blur-3xl" />
             <div className="bg-grade-b/[0.04] absolute bottom-20 left-1/4 h-72 w-72 rounded-full blur-3xl" />
 
             <div className="relative z-10 mx-auto w-full max-w-6xl px-6">
                 <div className="flex flex-col items-center gap-16 lg:flex-row lg:gap-20">
-                    {/* Text */}
                     <div className="flex-1 text-center lg:text-left">
                         <motion.p
                             initial={{ opacity: 0, y: 20 }}
@@ -168,7 +163,6 @@ export function Hero() {
                         </motion.div>
                     </div>
 
-                    {/* Product card */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}

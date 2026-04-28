@@ -1,18 +1,13 @@
 import type { ScoreWeights } from '@lumiris/types';
 
-/**
- * The LUMIRIS 50/30/20 rule — the immutable spine of the transparency score.
- * Changing these weights means changing the brand promise; do not edit lightly.
- */
+// 50/30/20 is the LUMIRIS brand promise — changing these weights changes the brand.
 export const LUMIRIS_WEIGHTS: ScoreWeights = {
     integrity: 0.5,
     trust: 0.3,
     impact: 0.2,
 } as const;
 
-/**
- * EU ESPR mandatory fields. A missing field linearly degrades the integrity axis.
- */
+// EU ESPR mandatory fields — each missing one linearly degrades the integrity axis.
 export const MANDATORY_DPP_FIELDS = [
     'product_name',
     'material_composition',
@@ -28,15 +23,12 @@ export const MANDATORY_DPP_FIELDS = [
 
 export type MandatoryField = (typeof MANDATORY_DPP_FIELDS)[number];
 
-/**
- * Reference baseline used to normalise environmental impact (per garment).
- * These targets reflect the median of GOTS/Bluesign-certified textile lines.
- */
+// Per-garment baselines calibrated against the median of GOTS/Bluesign-certified textile lines.
 export const IMPACT_BASELINE = {
-    /** Worst-case carbon footprint in kg CO₂e — anything above scores 0. */
+    /** kg CO₂e — anything at or above scores 0. */
     carbonCeilingKg: 12,
-    /** Worst-case water usage in litres — anything above scores 0. */
+    /** Litres — anything at or above scores 0. */
     waterCeilingLiters: 3000,
-    /** Recycled content target percentage — at or above scores full marks. */
+    /** Recycled content % — at or above scores full marks. */
     recycledTargetPct: 50,
 } as const;

@@ -1,8 +1,4 @@
-/**
- * Ambient module declarations for ESLint config plugins that ship without
- * their own type definitions. Keeps `tsc --noEmit` happy when `checkJs` walks
- * the flat-config files in `eslint/`.
- */
+// Ambient declarations for ESLint plugins that ship without their own types — needed when checkJs walks flat-config files.
 
 declare module 'eslint-config-prettier';
 declare module 'eslint-plugin-react';

@@ -14,7 +14,6 @@ import {
     Zap,
 } from 'lucide-react';
 
-/* ---------- FEATURES ---------- */
 const features = [
     {
         icon: FileSearch,
@@ -42,7 +41,6 @@ const features = [
     },
 ];
 
-/* ---------- STATS ---------- */
 const stats = [
     { value: '2,400+', label: 'Products audited', icon: FileSearch },
     { value: '180', label: 'Brands evaluated', icon: Users },
@@ -50,7 +48,6 @@ const stats = [
     { value: '47', label: 'Evaluation criteria', icon: Zap },
 ];
 
-/* ---------- ANIMATION HELPER ---------- */
 function Reveal({
     children,
     delay = 0,
@@ -76,7 +73,6 @@ function Reveal({
 export function BusinessContent() {
     return (
         <div className="pb-20 pt-28">
-            {/* Hero */}
             <section className="mx-auto mb-24 max-w-5xl px-6">
                 <div className="flex flex-col items-start gap-14 lg:flex-row">
                     <Reveal className="flex-1">
@@ -108,7 +104,6 @@ export function BusinessContent() {
                         </div>
                     </Reveal>
 
-                    {/* Stats */}
                     <Reveal delay={0.2} className="w-full flex-1">
                         <div className="grid grid-cols-2 gap-4">
                             {stats.map((stat) => {
@@ -129,7 +124,6 @@ export function BusinessContent() {
                 </div>
             </section>
 
-            {/* Features */}
             <section className="mx-auto mb-28 max-w-5xl px-6">
                 <Reveal className="mb-14">
                     <p className="text-muted-foreground mb-3 text-xs font-medium uppercase tracking-[0.25em]">
@@ -160,17 +154,13 @@ export function BusinessContent() {
                 </div>
             </section>
 
-            {/* Trust Badge Showcase */}
             <section className="bg-foreground overflow-hidden py-28">
                 <div className="mx-auto max-w-5xl px-6">
                     <div className="flex flex-col items-center gap-16 lg:flex-row">
-                        {/* Badge visual */}
                         <Reveal className="flex-shrink-0">
                             <div className="relative">
-                                {/* Outer glow */}
                                 <div className="prismatic-bg absolute -inset-8 rounded-full opacity-15 blur-2xl" />
 
-                                {/* Badge A */}
                                 <div className="bg-primary-foreground/[0.04] border-primary-foreground/10 relative flex h-52 w-52 flex-col items-center justify-center rounded-3xl border">
                                     <div className="prismatic-bg mb-4 flex h-20 w-20 items-center justify-center rounded-2xl shadow-lg">
                                         <ShieldCheck className="text-card h-10 w-10" />
@@ -186,7 +176,6 @@ export function BusinessContent() {
                             </div>
                         </Reveal>
 
-                        {/* Text */}
                         <Reveal delay={0.2} className="flex-1 text-center lg:text-left">
                             <p className="text-primary-foreground/35 mb-4 text-xs font-medium uppercase tracking-[0.25em]">
                                 The Trust Label
@@ -235,7 +224,6 @@ export function BusinessContent() {
                 </div>
             </section>
 
-            {/* CTA */}
             <section className="mx-auto max-w-3xl px-6 py-28 text-center">
                 <Reveal>
                     <h2 className="text-foreground text-balance text-3xl font-bold sm:text-4xl">

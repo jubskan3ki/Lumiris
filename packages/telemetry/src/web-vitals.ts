@@ -1,15 +1,5 @@
-/**
- * Browser-side Web Vitals collector. Mounted by each Next app via the
- * App Router `useReportWebVitals` hook (see `app/web-vitals.tsx` per app).
- *
- * Posts a JSON payload to the LUMIRIS API `/telemetry/web-vitals` endpoint
- * using `navigator.sendBeacon` when available so vitals survive page
- * unload. Sampling is gated on `NEXT_PUBLIC_WEB_VITALS_SAMPLE_RATE`.
- *
- * Important — PII contract:
- *   - sessionId is a per-tab random uuid, NEVER tied to a user identity
- *   - route is the templated path (e.g. `/dpp/[id]`), not the raw URL
- */
+// PII contract: sessionId is a per-tab random uuid (never tied to identity); route is the templated path, not the raw URL.
+// Uses navigator.sendBeacon when available so vitals survive page unload.
 
 import type { Metric } from 'web-vitals';
 
@@ -19,9 +9,9 @@ import type { ServiceName, WebVitalName, WebVitalPayload } from './types';
 export interface InitWebVitalsOptions {
     endpoint: string;
     app: ServiceName;
-    /** App-router pathname template (e.g. `/dpp/[id]`). */
+    /** Templated path (e.g. `/dpp/[id]`). */
     route: string;
-    /** 0..1. Defaults to dev=1.0 / prod=0.1 from NEXT_PUBLIC_WEB_VITALS_SAMPLE_RATE. */
+    /** 0..1; defaults to dev=1.0 / prod=0.1 from NEXT_PUBLIC_WEB_VITALS_SAMPLE_RATE. */
     sampleRate?: number;
 }
 
@@ -54,14 +44,11 @@ function send(endpoint: string, payload: WebVitalPayload): void {
         headers: { 'content-type': 'application/json' },
         keepalive: true,
     }).catch(() => {
-        /* swallow — telemetry must never break UX */
+        // Telemetry must never break UX.
     });
 }
 
-/**
- * Convert a `web-vitals` Metric to our wire payload.
- * Exposed so callers can pre-filter or batch.
- */
+// Exported so callers can pre-filter or batch before shipping.
 export function toPayload(metric: Metric, app: ServiceName, route: string, sessionId: string): WebVitalPayload {
     return {
         name: metric.name as WebVitalName,
@@ -75,11 +62,6 @@ export function toPayload(metric: Metric, app: ServiceName, route: string, sessi
     };
 }
 
-/**
- * Returns a callback to plug into Next's `useReportWebVitals(cb)`.
- * The hook fires once per metric per page; the callback decides whether
- * to ship based on the sample rate.
- */
 export function initWebVitals(options: InitWebVitalsOptions): (metric: Metric) => void {
     const isProd = process.env.NODE_ENV === 'production';
     const fallback = isProd ? LUMIRIS_SAMPLE_RATE_PROD : LUMIRIS_SAMPLE_RATE_DEV;

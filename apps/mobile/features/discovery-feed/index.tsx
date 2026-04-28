@@ -31,7 +31,12 @@ export function DiscoveryFeed() {
                                 style={isOpaque ? { filter: 'saturate(0.4) brightness(0.95)' } : {}}
                             >
                                 <div className="flex items-start gap-3">
-                                    <IrisGrade grade={item.grade} size="md" className="mt-0.5 shrink-0" />
+                                    <IrisGrade
+                                        grade={item.grade}
+                                        size="md"
+                                        tone="solid"
+                                        className="mt-0.5 shrink-0 rounded-xl"
+                                    />
                                     <div className="flex-1">
                                         <h3 className="text-foreground text-sm font-semibold leading-snug">
                                             {item.title}

@@ -1,9 +1,6 @@
 import type { IrisGrade } from '@lumiris/types';
 
-/**
- * Map a 0–100 score into the LUMIRIS Iris Grade letter scale.
- * Boundaries are calibrated against the EU ESPR thresholds.
- */
+// Boundaries are calibrated against EU ESPR thresholds.
 export function toIrisGrade(total: number): IrisGrade {
     if (total >= 90) return 'A+';
     if (total >= 80) return 'A';

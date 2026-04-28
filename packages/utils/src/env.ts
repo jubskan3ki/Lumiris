@@ -1,15 +1,4 @@
-/**
- * Tiny zero-dep env validator. Crash-early when a required variable is missing or
- * fails its parser; never silently coerce. Each schema entry declares its parser
- * (`string`, `number`, `boolean`, `enum<T>`) and whether it is required.
- *
- * Usage:
- *   const env = parseEnv({
- *     NEXT_PUBLIC_API_BASE_URL: { kind: 'string', required: true },
- *     NEXT_PUBLIC_WEB_VITALS_SAMPLE_RATE: { kind: 'number', required: false, default: 1 },
- *     NODE_ENV: { kind: 'enum', values: ['development', 'production', 'test'] as const },
- *   })
- */
+// Crash-early env validator: never silently coerce — required-but-missing or parse failure throws EnvValidationError.
 
 export interface EnvSpecBase<TRequired extends boolean> {
     required?: TRequired;

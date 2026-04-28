@@ -3,13 +3,16 @@
 import type { HTMLAttributes } from 'react';
 import type { IrisGrade as IrisGradeLetter } from '@lumiris/types';
 import { cn } from '@lumiris/ui/lib/cn';
-import { gradeBackground, gradeBorder, gradeColor } from '../theme/grade-color';
+import { gradeBackground, gradeBackgroundSolid, gradeBorder, gradeColor } from '../theme/grade-color';
 
 export type IrisGradeSize = 'sm' | 'md' | 'lg';
+export type IrisGradeTone = 'soft' | 'solid';
 
 export interface IrisGradeProps extends HTMLAttributes<HTMLDivElement> {
     grade: IrisGradeLetter;
     size?: IrisGradeSize;
+    /** `soft` for dense surfaces, `solid` (full fill, white letter) for cards that need to pop. */
+    tone?: IrisGradeTone;
 }
 
 const SIZE: Record<IrisGradeSize, string> = {
@@ -18,11 +21,13 @@ const SIZE: Record<IrisGradeSize, string> = {
     lg: 'h-14 w-14 text-xl',
 };
 
-/**
- * Pastille A+/A/.../E rendered with the canonical grade palette. Pure visual
- * — never derives the grade itself; pass it in (computed by `@lumiris/core`).
- */
-export function IrisGrade({ grade, size = 'md', className, ...rest }: IrisGradeProps) {
+// Never derives the grade — caller passes it in (computed by `@lumiris/core`).
+export function IrisGrade({ grade, size = 'md', tone = 'soft', className, ...rest }: IrisGradeProps) {
+    const toneClasses =
+        tone === 'solid'
+            ? cn(gradeBackgroundSolid(grade), 'text-primary-foreground border-transparent')
+            : cn(gradeColor(grade), gradeBackground(grade), gradeBorder(grade));
+
     return (
         <div
             role="img"
@@ -30,9 +35,7 @@ export function IrisGrade({ grade, size = 'md', className, ...rest }: IrisGradeP
             className={cn(
                 'inline-flex items-center justify-center rounded-full border font-mono font-semibold tracking-tight',
                 SIZE[size],
-                gradeColor(grade),
-                gradeBackground(grade),
-                gradeBorder(grade),
+                toneClasses,
                 className,
             )}
             {...rest}

@@ -15,13 +15,11 @@ export function IrisScanner({ onProductScanned }: IrisScannerProps) {
     const simulateScan = useCallback(() => {
         if (isScanning) return;
         setIsScanning(true);
-        // Breathing builds, then contracts to "Focus"
         setTimeout(() => {
             setIsFocused(true);
             if (typeof navigator !== 'undefined' && navigator.vibrate) {
                 navigator.vibrate(100);
             }
-            // Expand to reveal result
             setTimeout(() => {
                 onProductScanned();
                 setIsScanning(false);
@@ -32,7 +30,6 @@ export function IrisScanner({ onProductScanned }: IrisScannerProps) {
 
     return (
         <div className="bg-background relative flex h-full flex-col items-center justify-center overflow-hidden">
-            {/* Soft iridescent ambient light */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
                 <motion.div
                     className="absolute -right-32 -top-32 h-[50vh] w-[50vh] rounded-full opacity-[0.07] blur-[100px]"
@@ -52,7 +49,6 @@ export function IrisScanner({ onProductScanned }: IrisScannerProps) {
                 />
             </div>
 
-            {/* Header - within safe area */}
             <motion.div
                 className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between px-6 pb-4 pt-14"
                 initial={{ opacity: 0, y: -20 }}
@@ -69,9 +65,7 @@ export function IrisScanner({ onProductScanned }: IrisScannerProps) {
                 </div>
             </motion.div>
 
-            {/* The Iris - perfect circle, centered */}
             <div className="relative flex items-center justify-center">
-                {/* Outer prismatic ring (slow rotate) */}
                 <motion.div
                     className="absolute h-[272px] w-[272px] rounded-full"
                     style={{
@@ -82,7 +76,6 @@ export function IrisScanner({ onProductScanned }: IrisScannerProps) {
                     transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
                 />
 
-                {/* Main Iris circle with breathing animation */}
                 <motion.div
                     className="border-border/50 bg-glass relative flex h-64 w-64 items-center justify-center rounded-full border backdrop-blur-2xl"
                     style={{
@@ -101,12 +94,10 @@ export function IrisScanner({ onProductScanned }: IrisScannerProps) {
                             : { duration: 2.5, repeat: Infinity, ease: 'easeInOut' }
                     }
                 >
-                    {/* Concentric rings */}
                     <div className="border-border/25 absolute h-52 w-52 rounded-full border" />
                     <div className="border-border/15 absolute h-40 w-40 rounded-full border" />
                     <div className="border-border/10 absolute h-28 w-28 rounded-full border" />
 
-                    {/* Scanline sweep */}
                     <AnimatePresence>
                         {isScanning && (
                             <motion.div
@@ -133,7 +124,6 @@ export function IrisScanner({ onProductScanned }: IrisScannerProps) {
                         )}
                     </AnimatePresence>
 
-                    {/* Center content */}
                     <div className="relative z-10 flex flex-col items-center gap-2">
                         <AnimatePresence mode="wait">
                             {isFocused ? (
@@ -195,7 +185,6 @@ export function IrisScanner({ onProductScanned }: IrisScannerProps) {
                         </AnimatePresence>
                     </div>
 
-                    {/* Corner brackets */}
                     <svg className="absolute inset-0 h-full w-full" viewBox="0 0 256 256">
                         <motion.path
                             d="M 40 8 L 8 8 L 8 40"
@@ -229,7 +218,6 @@ export function IrisScanner({ onProductScanned }: IrisScannerProps) {
                 </motion.div>
             </div>
 
-            {/* Bottom action area - Thumb Zone */}
             <motion.div
                 className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-3 px-6 pb-24"
                 initial={{ opacity: 0, y: 20 }}

@@ -63,8 +63,8 @@
 }
 
 @theme {
-    --font-sans: 'Inter', 'Geist', 'Geist Fallback', system-ui, sans-serif;
-    --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
+    --font-sans: var(--font-inter), 'Inter', 'Geist', 'Geist Fallback', system-ui, sans-serif;
+    --font-mono: var(--font-geist-mono), 'Geist Mono', 'Geist Mono Fallback', monospace;
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-card: var(--card);
@@ -175,15 +175,65 @@
     }
 }
 
-/* Prismatic gradient — shared brand surface used in mobile/web hero spots. */
+/* Prismatic gradient — shared brand surface used in mobile/web hero spots.
+ * The animated shimmer is the original web treatment; admin/mobile inherit it
+ * harmlessly since the gradient still resolves to the same colors at rest. */
 .prismatic-bg {
-    background: linear-gradient(135deg, var(--lumiris-emerald) 0%, var(--lumiris-cyan) 50%, var(--lumiris-amber) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--lumiris-emerald),
+        var(--lumiris-cyan),
+        var(--lumiris-amber),
+        var(--lumiris-emerald)
+    );
+    background-size: 300% 300%;
+    animation: prismatic-shift 8s ease-in-out infinite;
 }
 
 .prismatic-text {
     background: linear-gradient(135deg, var(--lumiris-emerald), var(--lumiris-cyan), var(--lumiris-amber));
+    background-size: 200% 200%;
+    animation: prismatic-shift 6s ease-in-out infinite;
     background-clip: text;
     color: transparent;
+}
+
+@keyframes prismatic-shift {
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* Frosted-glass surface — used by the marketing header pill on web. */
+.glass {
+    background: oklch(100% 0 0deg / 72%);
+    backdrop-filter: blur(20px) saturate(1.8);
+    border: 1px solid oklch(91.8% 0.005 264deg / 60%);
+}
+
+/* Gentle float — used by the hero product card on web. */
+.float-animation {
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 /* Marketing ticker — used by RecentScans on web. */
@@ -201,14 +251,22 @@
     }
 }
 
-/* Mobile scanner: gentle iris breathing pulse + grade-A wardrobe halo. */
+/* Mobile scanner: gentle iris breathing pulse with iridescent halo + grade-A wardrobe halo. */
 @keyframes iris-breathe {
     0%,
     100% {
+        box-shadow:
+            0 4px 24px oklch(60% 0.13 195deg / 12%),
+            0 8px 48px oklch(55% 0.18 160deg / 6%),
+            inset 0 0 24px oklch(100% 0 0deg / 15%);
         transform: scale(1);
     }
 
     50% {
+        box-shadow:
+            0 8px 40px oklch(60% 0.13 195deg / 20%),
+            0 12px 72px oklch(55% 0.18 160deg / 10%),
+            inset 0 0 40px oklch(100% 0 0deg / 20%);
         transform: scale(1.015);
     }
 }

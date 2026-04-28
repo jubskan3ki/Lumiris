@@ -1,8 +1,4 @@
-/**
- * Mobile app — same Next codebase serves the web port (3002) AND
- * the future Tauri shell (static export to `out/`).
- * Toggle via `BUILD_TARGET=tauri bun run build:tauri`.
- */
+// Same Next codebase serves the web port and the Tauri static export, switched via BUILD_TARGET=tauri.
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 

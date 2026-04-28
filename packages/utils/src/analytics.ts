@@ -1,34 +1,22 @@
-/**
- * Vendor-agnostic analytics interface. Apps inject the concrete client (Vercel
- * Analytics, PostHog, OTel, ...) and library code only ever depends on this
- * interface — so swapping vendors is a single-file change.
- */
+// Vendor-agnostic interface so swapping the concrete client (Vercel, PostHog, OTel, ...) is a single-file change.
 
 export type AnalyticsProperties = Record<string, string | number | boolean | null | undefined>;
 
 export interface AnalyticsClient {
-    /** Fire-and-forget event, e.g. `track('dpp_published', { id })`. */
     track(name: string, properties?: AnalyticsProperties): void;
-    /** Bind subsequent events to a user (or anonymise if null). */
+    /** Pass `null` to anonymise subsequent events. */
     identify(userId: string | null, traits?: AnalyticsProperties): void;
-    /** Synthetic page view. Frameworks that auto-track can ignore. */
+    /** Frameworks with built-in page tracking can ignore. */
     page(name?: string, properties?: AnalyticsProperties): void;
 }
 
-/**
- * No-op stub. Use everywhere by default so tests, CI, and local dev never need
- * a network round-trip. The real implementation is injected at the app entry.
- */
+// Default everywhere so tests/CI/local dev never hit the network; production client is injected at boot.
 export const noopAnalytics: AnalyticsClient = {
     track: () => {},
     identify: () => {},
     page: () => {},
 };
 
-/**
- * Branch on environment without leaking the production stub into bundles. Most
- * apps will call this once at boot and re-export the client.
- */
 export function createAnalytics(isProduction: boolean, prodClient: () => AnalyticsClient): AnalyticsClient {
     return isProduction ? prodClient() : noopAnalytics;
 }

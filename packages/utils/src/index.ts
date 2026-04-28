@@ -1,7 +1,4 @@
-/**
- * LUMIRIS Utils — runtime helpers shared across admin, web, and mobile.
- * Pure logic only. No JSX, no DOM-coupled code beyond what the entry advertises.
- */
+// Pure logic only — no JSX, no DOM-coupled code beyond what each entry advertises.
 
 export * from './env';
 export * from './web-vitals';

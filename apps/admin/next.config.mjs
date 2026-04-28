@@ -8,7 +8,7 @@ const nextConfig = {
     reactStrictMode: true,
     output: 'standalone',
     outputFileTracingRoot: path.resolve(__dirname, '../..'),
-    transpilePackages: ['@lumiris/ui', '@lumiris/core', '@lumiris/types', '@lumiris/telemetry'],
+    transpilePackages: ['@lumiris/ui', '@lumiris/scoring-ui', '@lumiris/core', '@lumiris/types', '@lumiris/telemetry'],
     serverExternalPackages: [
         '@opentelemetry/sdk-node',
         '@opentelemetry/auto-instrumentations-node',

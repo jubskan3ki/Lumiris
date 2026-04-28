@@ -10,9 +10,8 @@ export interface WebVitalPayload {
     rating: 'good' | 'needs-improvement' | 'poor';
     /** Anonymous, non-PII identifier scoped to a single browser session. */
     sessionId: string;
-    /** App emitting the vital. */
     app: ServiceName;
-    /** Page route as captured by Next router (template form, e.g. `/dpp/[id]`). */
+    /** Templated path (e.g. `/dpp/[id]`), never the raw URL. */
     route: string;
     navigationType?: string;
     /** Wall-clock ms — never tied to identifying user data. */

@@ -1,16 +1,13 @@
-/**
- * LUMIRIS Iris Grade — the aggregate transparency score derived from
- * the 50/30/20 weighted rule (see @lumiris/core).
- */
+// Aggregate transparency score derived from the 50/30/20 weighted rule (see @lumiris/core).
 
 export type IrisGrade = 'A+' | 'A' | 'B' | 'C' | 'D' | 'E';
 
 export interface ScoreWeights {
-    /** Mandatory EU ESPR field completeness (default 0.5). */
+    /** EU ESPR mandatory field completeness (default 0.5). */
     integrity: number;
-    /** Sourcing & certification trust score (default 0.3). */
+    /** Sourcing & certification trust (default 0.3). */
     trust: number;
-    /** Environmental impact score: carbon, water, recycled content (default 0.2). */
+    /** Carbon, water, recycled content (default 0.2). */
     impact: number;
 }
 
@@ -21,13 +18,12 @@ export interface ScoreBreakdown {
 }
 
 export interface ScoreResult {
-    /** Final 0–100 weighted score. */
+    /** 0–100 weighted total. */
     total: number;
-    /** Letter grade derived from `total`. */
     grade: IrisGrade;
-    /** Sub-scores per axis (0–100 each). */
+    /** Sub-scores per axis, 0–100 each. */
     breakdown: ScoreBreakdown;
-    /** Effective weights used at compute time. */
+    /** Weights actually used at compute time. */
     weights: ScoreWeights;
     /** Human-readable list of issues that lowered the score. */
     reasons: string[];

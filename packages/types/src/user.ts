@@ -1,7 +1,3 @@
-/**
- * Identity model shared by admin, web, and mobile.
- */
-
 export type UserRole = 'auditor' | 'lead_auditor' | 'content_manager' | 'admin' | 'consumer';
 
 export interface User {

@@ -1,14 +1,5 @@
-/**
- * Sentry init for Next.js apps. Call from `instrumentation.ts`
- * `register()` (server) and from a client-side init script.
- *
- * Each app gets its own DSN. Errors are tagged with `service` so a single
- * Sentry org can host all four projects without cross-talk.
- *
- * `beforeSend`/`beforeBreadcrumb` strip PII (email/JWT/Bearer) defensively;
- * primary mitigation is at the source (don't put PII in logs/spans), this
- * is the safety net.
- */
+// Each app gets its own DSN, tagged by `service` so one Sentry org hosts all four projects without cross-talk.
+// beforeSend/beforeBreadcrumb are the PII safety net — primary mitigation is keeping PII out of logs/spans at the source.
 
 import * as Sentry from '@sentry/nextjs';
 
@@ -17,11 +8,11 @@ import { redactString } from './redact';
 import type { ServiceName, TelemetryEnv } from './types';
 
 export interface InitSentryOptions {
-    /** Required. App-specific DSN. Pull from per-app env var (e.g. `SENTRY_DSN_ADMIN`). */
+    /** App-specific DSN — pull from per-app env var (e.g. `SENTRY_DSN_ADMIN`). */
     dsn: string | undefined;
     service: ServiceName;
     env?: TelemetryEnv;
-    /** Trace sample rate. Defaults to dev=1.0 / prod=0.1. */
+    /** Defaults to dev=1.0 / prod=0.1. */
     sampleRate?: number;
     release?: string;
 }

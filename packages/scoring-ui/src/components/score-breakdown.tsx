@@ -17,11 +17,7 @@ const AXES: Array<{ key: keyof ScoreBreakdownData; label: string; tone: string }
     { key: 'impact', label: 'Impact', tone: 'bg-lumiris-amber' },
 ];
 
-/**
- * Three horizontal bars — Integrity / Trust / Impact — sized against the
- * 50/30/20 weight cap. Bar width is `score * weight%`, so the three bars
- * compose visually into the total.
- */
+// Bar widths are score × weight, so the three axes compose visually into the total.
 export function ScoreBreakdown({ breakdown, weights = LUMIRIS_WEIGHTS, className, ...rest }: ScoreBreakdownProps) {
     return (
         <div className={cn('space-y-2', className)} {...rest}>

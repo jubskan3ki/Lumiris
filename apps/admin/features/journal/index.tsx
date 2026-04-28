@@ -29,7 +29,6 @@ const categoryColors: Record<string, string> = {
     Sustainability: 'bg-lumiris-emerald/6 text-lumiris-emerald border-lumiris-emerald/15',
 };
 
-// Editor toolbar button
 function ToolbarButton({ icon: Icon, label }: { icon: React.ComponentType<{ className?: string }>; label: string }) {
     return (
         <button
@@ -41,7 +40,6 @@ function ToolbarButton({ icon: Icon, label }: { icon: React.ComponentType<{ clas
     );
 }
 
-// Article editor view
 function ArticleEditor({ article, onBack }: { article: JournalArticle | null; onBack: () => void }) {
     const [showToast, setShowToast] = useState(false);
 
@@ -57,7 +55,6 @@ function ArticleEditor({ article, onBack }: { article: JournalArticle | null; on
             exit={{ opacity: 0, y: -12 }}
             className="space-y-5"
         >
-            {/* Back + Actions */}
             <div className="flex items-center justify-between">
                 <button
                     onClick={onBack}
@@ -80,12 +77,11 @@ function ArticleEditor({ article, onBack }: { article: JournalArticle | null; on
                 </div>
             </div>
 
-            {/* Editor card */}
             <div className="opal-shadow border-border bg-card rounded-xl border">
-                {/* Title */}
                 <div className="border-border border-b px-6 py-5">
                     <input
                         type="text"
+                        aria-label="Article title"
                         defaultValue={article?.title ?? ''}
                         placeholder="Article title..."
                         className="text-foreground placeholder-muted-foreground/40 w-full bg-transparent text-xl font-semibold outline-none"
@@ -116,7 +112,6 @@ function ArticleEditor({ article, onBack }: { article: JournalArticle | null; on
                     </div>
                 </div>
 
-                {/* Toolbar */}
                 <div className="border-border flex items-center gap-0.5 border-b px-4 py-1.5">
                     <ToolbarButton icon={Heading1} label="Heading" />
                     <ToolbarButton icon={Bold} label="Bold" />
@@ -127,9 +122,9 @@ function ArticleEditor({ article, onBack }: { article: JournalArticle | null; on
                     <ToolbarButton icon={Image} label="Image" />
                 </div>
 
-                {/* Content area */}
                 <div className="min-h-[400px] px-6 py-5">
                     <textarea
+                        aria-label="Article body"
                         defaultValue={article?.excerpt ?? ''}
                         placeholder="Start writing your article..."
                         className="text-foreground placeholder-muted-foreground/40 min-h-[380px] w-full resize-none bg-transparent text-sm leading-relaxed outline-none"
@@ -137,7 +132,6 @@ function ArticleEditor({ article, onBack }: { article: JournalArticle | null; on
                 </div>
             </div>
 
-            {/* Toast */}
             <AnimatePresence>
                 {showToast && (
                     <motion.div
@@ -172,7 +166,6 @@ function JournalComponent() {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
                     <h2 className="text-foreground text-xl font-semibold">LUMIRIS Journal</h2>
@@ -189,9 +182,7 @@ function JournalComponent() {
                 </button>
             </div>
 
-            {/* Article List */}
             <div className="opal-shadow border-border bg-card overflow-hidden rounded-xl border">
-                {/* Table Header */}
                 <div className="border-border grid grid-cols-[2fr_0.8fr_0.6fr_0.8fr_0.5fr] items-center gap-4 border-b px-5 py-3">
                     <span className="text-muted-foreground text-[11px] font-medium">Article Title</span>
                     <span className="text-muted-foreground text-[11px] font-medium">Category</span>
@@ -200,7 +191,6 @@ function JournalComponent() {
                     <span className="text-muted-foreground text-[11px] font-medium">Updated</span>
                 </div>
 
-                {/* Rows */}
                 {journalArticles.map((article) => (
                     <button
                         key={article.id}

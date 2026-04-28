@@ -11,11 +11,7 @@ export interface MissingFieldsBadgeProps extends HTMLAttributes<HTMLSpanElement>
     showWhenComplete?: boolean;
 }
 
-/**
- * Counts EU ESPR mandatory fields missing from the DPP raw payload — derived
- * from the canonical `MANDATORY_DPP_FIELDS` list, never from the DPP's own
- * `missingFields` array (which can drift).
- */
+// Derives the count from MANDATORY_DPP_FIELDS, not from dpp.missingFields (which can drift).
 export function MissingFieldsBadge({ dpp, showWhenComplete = false, className, ...rest }: MissingFieldsBadgeProps) {
     const { missing, total } = useMemo(() => computeMissing(dpp), [dpp]);
 

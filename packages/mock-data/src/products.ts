@@ -1,8 +1,4 @@
-/**
- * Rich consumer-facing product fixtures used by the mobile reveal. Every entry
- * is anchored to a real DPP (`dppId`) so `computeScore(mockDppById(p.dppId), …)`
- * is the canonical grade — there is no `grade` field stored here.
- */
+// Each product anchors to a real DPP (`dppId`) so the canonical grade is `computeScore(mockDppById(p.dppId), …)` — no grade is stored here.
 
 import type { DPPRecord } from '@lumiris/types';
 import { mockDppById } from './dpp';
@@ -41,7 +37,7 @@ export interface ProductCertificate {
 }
 
 export interface MockProduct {
-    /** Stable id used for navigation; distinct from dppId to allow stable URLs. */
+    /** Distinct from dppId so URLs stay stable when DPP records are renumbered. */
     id: string;
     /** Anchor into the canonical DPP fixture — drives the score. */
     dppId: string;
@@ -254,5 +250,4 @@ export function mockProductDpp(product: MockProduct): DPPRecord | undefined {
     return mockDppById(product.dppId);
 }
 
-/** Default highlight reel — wardrobe and feed both consume from the same head. */
-export const sampleProduct: MockProduct = mockProducts[0]!;
+export const sampleProduct: MockProduct = mockProducts[0] as MockProduct;

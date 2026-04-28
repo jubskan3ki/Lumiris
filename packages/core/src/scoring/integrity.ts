@@ -1,10 +1,7 @@
 import type { DPPRecord } from '@lumiris/types';
 import { MANDATORY_DPP_FIELDS } from '../constants';
 
-/**
- * Integrity axis (50%) — share of EU ESPR mandatory fields that are present
- * and non-null in the DPP raw payload. Missing fields are listed as reasons.
- */
+// Integrity axis (50%): share of EU ESPR mandatory fields present and non-null in the DPP raw payload.
 export function scoreIntegrity(dpp: DPPRecord): { score: number; reasons: string[] } {
     const raw = (dpp.rawData ?? {}) as Record<string, unknown>;
     const missing: string[] = [];

@@ -26,7 +26,6 @@ const navItems: Array<{
 function SidebarComponent({ activeSection, onNavigate }: SidebarProps) {
     return (
         <aside className="border-border bg-card fixed left-0 top-0 z-40 flex h-screen w-60 flex-col border-r">
-            {/* Logo */}
             <div className="flex items-center gap-3 px-5 py-6">
                 <div className="bg-lumiris-emerald flex h-8 w-8 items-center justify-center rounded-lg">
                     <div className="bg-primary-foreground h-3 w-3 rounded-sm" />
@@ -37,7 +36,6 @@ function SidebarComponent({ activeSection, onNavigate }: SidebarProps) {
                 </div>
             </div>
 
-            {/* Navigation */}
             <nav className="flex-1 px-3 py-2">
                 <div className="space-y-0.5">
                     {navItems.map((item) => {
@@ -53,7 +51,6 @@ function SidebarComponent({ activeSection, onNavigate }: SidebarProps) {
                                         : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                                 )}
                             >
-                                {/* Active indicator — solid emerald left border */}
                                 {isActive && (
                                     <span className="bg-lumiris-emerald absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full" />
                                 )}
@@ -70,7 +67,6 @@ function SidebarComponent({ activeSection, onNavigate }: SidebarProps) {
                 </div>
             </nav>
 
-            {/* Footer */}
             <div className="border-border border-t px-4 py-3">
                 <div className="flex items-center gap-2">
                     <FileText className="text-muted-foreground/50 h-3.5 w-3.5" />

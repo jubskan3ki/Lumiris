@@ -10,11 +10,7 @@ export interface ScoreReasonsListProps extends HTMLAttributes<HTMLUListElement> 
     emptyLabel?: string;
 }
 
-/**
- * Plain explanatory list — each `reason` is a string already produced by
- * `@lumiris/core/scoring`. No I18n in this package: callers translate before
- * passing in.
- */
+// No I18n here — callers translate `reasons` before passing in.
 export function ScoreReasonsList({
     reasons,
     limit,

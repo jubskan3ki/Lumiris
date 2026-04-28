@@ -20,7 +20,6 @@ const item = {
     show: { opacity: 1, y: 0 },
 };
 
-// Find cross-check discrepancies
 function getCrossCheckAlerts() {
     const factoryMap = new Map<string, Array<{ brand: string; carbonScore: number | null; certId: string }>>();
     certificates.forEach((cert) => {
@@ -67,7 +66,6 @@ function CertificateVaultComponent() {
                 </p>
             </div>
 
-            {/* Cross-Check Alerts */}
             {crossCheckAlerts.length > 0 && (
                 <div className="border-lumiris-rose/20 bg-lumiris-rose/4 rounded-xl border p-5">
                     <div className="mb-3 flex items-center gap-2">
@@ -110,7 +108,6 @@ function CertificateVaultComponent() {
                 </div>
             )}
 
-            {/* Certificate List */}
             <motion.div variants={container} initial="hidden" animate="show" className="space-y-3">
                 {certificates.map((cert) => (
                     <motion.div

@@ -1,8 +1,4 @@
-/**
- * Sentry init for the Bun/Node API (Hono). Distinct from `./sentry-next`
- * because `@sentry/nextjs` ships React/Next-specific integrations that
- * pull in JSX.
- */
+// Distinct from ./sentry-next because @sentry/nextjs ships React/Next integrations that pull in JSX.
 
 import * as Sentry from '@sentry/node';
 

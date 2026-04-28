@@ -1,8 +1,4 @@
-/**
- * Cross-app formatters. Locale-stable defaults (en-US) so admin dashboards,
- * the public web journal, and the mobile reveal all render the same string
- * for the same input.
- */
+// Locale-stable defaults so admin, web, and mobile render the same string for the same input.
 
 import type { IrisGrade, ScoreBreakdown } from '@lumiris/types';
 
@@ -12,7 +8,6 @@ export interface FormatOptions {
     locale?: string;
 }
 
-/** ISO date (YYYY-MM-DD or full ISO) → "Dec 14, 2024". */
 export function formatDate(value: string | Date, options: FormatOptions = {}): string {
     const date = value instanceof Date ? value : new Date(value);
     if (Number.isNaN(date.getTime())) return '—';
@@ -23,7 +18,6 @@ export function formatDate(value: string | Date, options: FormatOptions = {}): s
     }).format(date);
 }
 
-/** Compact relative date for activity feeds — "2 days ago", "in 3 weeks". */
 export function formatRelativeDate(
     value: string | Date,
     reference: Date = new Date(),
@@ -48,11 +42,7 @@ export function formatRelativeDate(
     return rtf.format(0, 'second');
 }
 
-/**
- * Percent formatter. `value` is treated as 0–100 (matching ScoreBreakdown axes
- * and DPP integrity values), not 0–1. Use `fromUnit: true` when you actually
- * pass 0–1 fractions.
- */
+/** `value` is treated as 0–100 (matching ScoreBreakdown axes), not 0–1 — pass `fromUnit: true` for fractions. */
 export function formatPercent(
     value: number,
     options: FormatOptions & { fromUnit?: boolean; digits?: number } = {},
@@ -66,16 +56,11 @@ export function formatPercent(
     }).format(ratio);
 }
 
-/** "78.4 / 100" — the clinical Lumiris style for a total score. */
 export function formatScoreTotal(total: number): string {
     if (!Number.isFinite(total)) return '— / 100';
     return `${roundTo(total, 1)} / 100`;
 }
 
-/**
- * Sub-axis label, e.g. `formatScoreAxis('integrity', breakdown)` →
- * "Integrity · 92.0 / 50" (axis × weight cap).
- */
 export function formatScoreAxis(
     axis: keyof ScoreBreakdown,
     breakdown: ScoreBreakdown,
@@ -87,7 +72,7 @@ export function formatScoreAxis(
     return `${capitalize(axis)} · ${weighted} / ${cap}`;
 }
 
-/** "A+", "B" — passthrough today, but exists so callers route through one helper. */
+/** Passthrough today; exists so callers route through one helper if formatting evolves. */
 export function formatGrade(grade: IrisGrade | null | undefined): string {
     return grade ?? '—';
 }

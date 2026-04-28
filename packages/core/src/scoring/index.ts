@@ -10,11 +10,7 @@ export interface ScoreOptions {
     weights?: Partial<ScoreWeights>;
 }
 
-/**
- * The LUMIRIS Scoring Algorithm — applies the 50/30/20 weighted rule across
- * Integrity, Trust, and Impact. Pure & deterministic: identical output on
- * the admin dashboard, the public web, and the mobile vision.
- */
+// Pure and deterministic — admin, web, and mobile MUST produce identical totals for the same input.
 export function computeScore(dpp: DPPRecord, options: ScoreOptions = {}): ScoreResult {
     const weights = normalizeWeights({ ...LUMIRIS_WEIGHTS, ...(options.weights ?? {}) });
     const certificates = options.certificates ?? [];
@@ -40,10 +36,7 @@ export function computeScore(dpp: DPPRecord, options: ScoreOptions = {}): ScoreR
     };
 }
 
-/**
- * Re-normalise partial weight overrides so they always sum to 1. This keeps
- * the score on a 0–100 scale even if a caller supplies non-default weights.
- */
+// Renormalise so weights always sum to 1, keeping totals on a 0–100 scale regardless of caller overrides.
 function normalizeWeights(w: ScoreWeights): ScoreWeights {
     const sum = w.integrity + w.trust + w.impact;
     if (sum === 0) return LUMIRIS_WEIGHTS;

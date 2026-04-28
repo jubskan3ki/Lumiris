@@ -1,14 +1,6 @@
 import type { Certificate, DPPRecord } from '@lumiris/types';
 
-/**
- * Trust axis (30%) — combines auditor sign-off, supplier identification,
- * and cross-checked certificates valid at audit time.
- *
- * - 40 pts: assigned auditor
- * - 20 pts: supplier factory is named (not "Unknown")
- * - 40 pts: at least one Valid certificate covering the supplier factory,
- *           proportional to coverage (capped at 1.0)
- */
+// Trust axis (30%): 40 pts auditor + 20 pts named supplier + 40 pts cert coverage (≥2 = full); -10 if any cert is cross-check flagged.
 export function scoreTrust(
     dpp: DPPRecord,
     certificates: readonly Certificate[] = [],

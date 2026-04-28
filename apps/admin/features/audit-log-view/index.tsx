@@ -40,14 +40,12 @@ function AuditLogViewComponent() {
                 </p>
             </div>
 
-            {/* Log Feed */}
             <motion.div
                 variants={container}
                 initial="hidden"
                 animate="show"
                 className="opal-shadow border-border bg-card rounded-xl border"
             >
-                {/* Header */}
                 <div className="border-border flex items-center gap-2 border-b px-5 py-3.5">
                     <Terminal className="text-muted-foreground h-4 w-4" />
                     <span className="text-muted-foreground text-xs font-medium">Immutable Audit Trail</span>
@@ -60,7 +58,6 @@ function AuditLogViewComponent() {
                 <div className="divide-border/60 divide-y">
                     {auditLog.map((entry, idx) => (
                         <motion.div key={idx} variants={item} className="hover:bg-muted/30 px-5 py-4 transition-colors">
-                            {/* Signature Line */}
                             <div className="flex flex-wrap items-center gap-2 text-xs">
                                 <Clock className="text-muted-foreground/50 h-3 w-3" />
                                 <span className="text-muted-foreground/60 font-mono">
@@ -81,7 +78,6 @@ function AuditLogViewComponent() {
                                     {entry.action}
                                 </span>
                             </div>
-                            {/* Details */}
                             <div className="mt-1.5 flex items-start gap-2 text-xs">
                                 <FileText className="text-muted-foreground/30 mt-0.5 h-3 w-3 flex-shrink-0" />
                                 <span className="text-muted-foreground leading-relaxed">

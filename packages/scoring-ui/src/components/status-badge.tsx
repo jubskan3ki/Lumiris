@@ -19,7 +19,6 @@ interface StatusConfig {
 }
 
 const STATUS_CONFIG: Record<string, StatusConfig> = {
-    // Audit pipeline
     Draft: { label: 'Draft', tone: 'bg-muted text-muted-foreground border-border' },
     Audit_Pending: {
         label: 'Pending',
@@ -37,8 +36,6 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
         label: 'Grade E',
         tone: 'border-lumiris-rose/25 bg-lumiris-rose/10 text-lumiris-rose',
     },
-
-    // Certificate
     Valid: {
         label: 'Valid',
         tone: 'border-lumiris-emerald/20 bg-lumiris-emerald/8 text-lumiris-emerald',
@@ -48,8 +45,6 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
         label: 'Review',
         tone: 'border-lumiris-amber/25 bg-lumiris-amber/10 text-lumiris-amber',
     },
-
-    // Regulatory + Journal
     Active: {
         label: 'Active',
         tone: 'border-lumiris-emerald/20 bg-lumiris-emerald/8 text-lumiris-emerald',
@@ -78,11 +73,7 @@ const SIZE: Record<StatusBadgeSize, string> = {
     md: 'px-2.5 py-1 text-xs',
 };
 
-/**
- * Single tone-mapping for every "status" surface in the platform — audit
- * pipeline, certificate validity, journal & regulatory items. Apps must
- * never reproduce this mapping locally.
- */
+// Canonical status → tone mapping for every status surface — apps must never reproduce this locally.
 export function StatusBadge({ status, size = 'sm', className, ...rest }: StatusBadgeProps) {
     const config = STATUS_CONFIG[status] ?? { ...FALLBACK, label: String(status) };
     return (

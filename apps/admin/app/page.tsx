@@ -45,7 +45,6 @@ export default function LumirisCommand() {
             <Sidebar activeSection={activeSection} onNavigate={handleNavigate} />
             <TopBar onNavigate={handleNavigate} />
 
-            {/* Main Content */}
             <main className="ml-60 pt-14">
                 <div className="p-6 lg:p-8">
                     <AnimatePresence mode="wait">

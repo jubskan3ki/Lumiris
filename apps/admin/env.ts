@@ -1,9 +1,4 @@
-/**
- * Validated, typed entry point for env vars consumed by `@lumiris/admin`.
- * Components must read from this file — never `process.env.NEXT_PUBLIC_*`
- * directly — so missing/invalid values fail at boot, not at render time.
- */
-
+// Read env via this module (never process.env directly) so invalid values fail at boot, not at render.
 import { parseEnv } from '@lumiris/utils/env';
 
 export const env = parseEnv({

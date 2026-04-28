@@ -1,14 +1,5 @@
-/**
- * Last-line-of-defence PII scrubber for span attributes, Sentry events,
- * and Web Vitals payloads. The contract is: traces NEVER carry email,
- * JWT, or real client SKU. We strip aggressively — false positives are
- * acceptable, leaks are not.
- *
- * Keep patterns conservative: anchor on shape (jwt.jwt.jwt), known prefixes
- * (`Bearer `), and structural hints (`@` + TLD). Do not try to pattern-match
- * SKUs by content; instead, allow callers to mark a key as "client SKU"
- * by routing it through `redactValue('sku.client', value)`.
- */
+// Last-line-of-defence PII scrubber: traces NEVER carry email/JWT/client SKU — strip aggressively, false positives acceptable, leaks are not.
+// Anchor on shape (jwt.jwt.jwt, Bearer prefix, @+TLD); SKUs aren't pattern-matched — callers route them via redactValue('sku.client', value).
 
 const EMAIL_RE = /[\w.+-]+@[\w-]+\.[\w.-]+/g;
 const JWT_RE = /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g;

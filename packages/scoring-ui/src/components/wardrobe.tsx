@@ -4,7 +4,7 @@ import { type CSSProperties, type HTMLAttributes, type ReactNode } from 'react';
 import { Shirt } from 'lucide-react';
 import type { IrisGrade as IrisGradeLetter } from '@lumiris/types';
 import { cn } from '@lumiris/ui/lib/cn';
-import { gradeBackground, gradeBorder, gradeColor } from '../theme/grade-color';
+import { gradeBackgroundSolid, gradeColor } from '../theme/grade-color';
 
 export interface WardrobeItem {
     id: string;
@@ -34,12 +34,7 @@ const DENSITY_GRID: Record<NonNullable<WardrobeProps['density']>, string> = {
     cozy: 'grid grid-cols-2 gap-3',
 };
 
-/**
- * The unified Vault card grid. The mobile app uses it directly; the web
- * marketing Wardrobe wraps it inside a phone mockup. Per-grade colour comes
- * from the canonical Tailwind tokens in @lumiris/scoring-ui's grade-color
- * helper — there is no per-app GRADE_CONFIG.
- */
+// Per-grade colour comes from the canonical grade-color helper — no per-app GRADE_CONFIG.
 export function Wardrobe({
     items,
     density = 'cozy',
@@ -98,10 +93,8 @@ function WardrobeCard({ item, isSelected, onSelect }: WardrobeCardProps) {
                 <Shirt className="text-muted-foreground/25 h-7 w-7" aria-hidden />
                 <div
                     className={cn(
-                        'absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full border font-mono text-[11px] font-bold',
-                        gradeBackground(item.grade),
-                        gradeBorder(item.grade),
-                        gradeColor(item.grade),
+                        'text-primary-foreground absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full font-mono text-[11px] font-bold',
+                        gradeBackgroundSolid(item.grade),
                     )}
                     aria-label={`Iris grade ${item.grade}`}
                 >

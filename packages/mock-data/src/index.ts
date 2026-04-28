@@ -1,8 +1,4 @@
-/**
- * LUMIRIS Mock Data — pure fixtures, typed against `@lumiris/types`.
- * Admin demos, web journals, and the mobile reveal share the same SKUs so the
- * cross-surface story stays consistent.
- */
+// Admin, web, and mobile share the same SKUs so the cross-surface story stays consistent.
 
 export { mockDpps, mockDppById, mockDppBySku } from './dpp';
 export { mockCertificates, mockCertificatesByFactory } from './certificates';

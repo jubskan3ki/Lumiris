@@ -16,6 +16,15 @@ interface ScanRow {
     score: number;
 }
 
+const GRADE_BAR: Record<IrisGradeLetter, string> = {
+    'A+': 'bg-grade-a-plus',
+    A: 'bg-grade-a',
+    B: 'bg-grade-b',
+    C: 'bg-grade-c',
+    D: 'bg-grade-d',
+    E: 'bg-grade-e',
+};
+
 function ScanCard({ product, brand, grade, score }: ScanRow) {
     return (
         <div className="border-border bg-card w-56 flex-shrink-0 rounded-xl border p-4 shadow-sm">
@@ -29,7 +38,7 @@ function ScanCard({ product, brand, grade, score }: ScanRow) {
             <div className="flex items-center gap-2">
                 <div className="bg-secondary h-1 flex-1 overflow-hidden rounded-full">
                     <div
-                        className="bg-lumiris-emerald h-full rounded-full"
+                        className={`${GRADE_BAR[grade]} h-full rounded-full`}
                         style={{ width: `${Math.max(0, Math.min(100, score))}%` }}
                     />
                 </div>
@@ -78,10 +87,7 @@ export function RecentScans() {
                     <span className="text-grade-a font-mono text-[11px] font-medium">LIVE</span>
                 </div>
                 <h2 className="text-foreground text-balance text-2xl font-bold sm:text-3xl">Recent Scans</h2>
-                <p className="text-muted-foreground mt-2 text-sm">
-                    Real DPPs from our pipeline, scored live by{' '}
-                    <span className="text-foreground font-mono">computeScore</span>.
-                </p>
+                <p className="text-muted-foreground mt-2 text-sm">Products recently verified by the LUMIRIS team.</p>
             </motion.div>
 
             <div className="relative">

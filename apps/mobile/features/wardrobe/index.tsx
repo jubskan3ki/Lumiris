@@ -3,8 +3,28 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, GitCompareArrows, X } from 'lucide-react';
-import { Wardrobe as VaultGrid, IrisGrade, type WardrobeItem } from '@lumiris/scoring-ui';
+import type { IrisGrade as IrisGradeLetter } from '@lumiris/types';
+import { GRADE_LABEL, IrisGrade, Wardrobe as VaultGrid, type WardrobeItem } from '@lumiris/scoring-ui';
 import { WARDROBE_ITEMS, type MobileProduct } from '@/lib/lumiris-data';
+
+// CSS-var stroke per grade so the SVG gauge stays on the canonical palette at runtime.
+const GAUGE_STROKE: Record<IrisGradeLetter, string> = {
+    'A+': 'var(--lumiris-emerald)',
+    A: 'var(--lumiris-emerald)',
+    B: 'var(--lumiris-cyan)',
+    C: 'var(--lumiris-amber)',
+    D: 'var(--lumiris-amber)',
+    E: 'var(--lumiris-rose)',
+};
+
+const CHIP_TEXT: Record<IrisGradeLetter, string> = {
+    'A+': 'text-lumiris-emerald',
+    A: 'text-lumiris-emerald',
+    B: 'text-lumiris-cyan',
+    C: 'text-lumiris-amber',
+    D: 'text-lumiris-amber',
+    E: 'text-lumiris-rose',
+};
 
 interface WardrobeProps {
     onSelectProduct: (product: MobileProduct) => void;
@@ -112,11 +132,37 @@ export function Wardrobe({ onSelectProduct }: WardrobeProps) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                 >
-                    <IrisGrade grade={overall.grade} size="lg" />
+                    <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
+                        <svg className="h-full w-full -rotate-90" viewBox="0 0 80 80">
+                            <circle cx="40" cy="40" r="34" fill="none" strokeWidth="4" className="stroke-secondary" />
+                            <motion.circle
+                                cx="40"
+                                cy="40"
+                                r="34"
+                                fill="none"
+                                strokeWidth="4"
+                                strokeLinecap="round"
+                                stroke={GAUGE_STROKE[overall.grade]}
+                                strokeDasharray={`${2 * Math.PI * 34}`}
+                                initial={{ strokeDashoffset: 2 * Math.PI * 34 }}
+                                animate={{
+                                    strokeDashoffset: 2 * Math.PI * 34 * (1 - overall.percentage / 100),
+                                }}
+                                transition={{ delay: 0.3, duration: 1.2, ease: 'easeOut' }}
+                            />
+                        </svg>
+                        <span
+                            className="absolute font-mono text-2xl font-bold"
+                            style={{ color: GAUGE_STROKE[overall.grade] }}
+                        >
+                            {overall.grade}
+                        </span>
+                    </div>
+
                     <div className="flex-1">
                         <h3 className="text-foreground text-sm font-bold">Wardrobe Health</h3>
-                        <p className="text-muted-foreground mt-0.5 text-xs">
-                            Average score {Math.round(overall.percentage)} / 100
+                        <p className={`${CHIP_TEXT[overall.grade]} mt-0.5 text-xs font-semibold`}>
+                            {GRADE_LABEL[overall.grade]}
                         </p>
                         <div className="bg-lumiris-emerald/10 mt-2.5 flex items-center gap-1.5 rounded-xl px-2.5 py-1.5">
                             <TrendingUp className="text-lumiris-emerald h-3 w-3" />
@@ -134,10 +180,12 @@ export function Wardrobe({ onSelectProduct }: WardrobeProps) {
                     {(['A', 'B', 'C', 'D', 'E'] as const).map((grade) => (
                         <div
                             key={grade}
-                            className="border-border/40 bg-card flex flex-1 flex-col items-center gap-1 rounded-xl border py-2.5"
+                            className="border-border/40 bg-card flex flex-1 flex-col items-center gap-0.5 rounded-xl border py-2.5"
                         >
-                            <span className="text-foreground text-base font-bold">{distribution[grade] ?? 0}</span>
-                            <IrisGrade grade={grade} size="sm" />
+                            <span className={`${CHIP_TEXT[grade]} text-base font-bold`}>
+                                {distribution[grade] ?? 0}
+                            </span>
+                            <span className={`${CHIP_TEXT[grade]} text-[10px] font-bold`}>{grade}</span>
                         </div>
                     ))}
                 </motion.div>

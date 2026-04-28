@@ -47,7 +47,6 @@ export function Footer() {
         <footer className="border-border bg-card relative border-t">
             <div className="mx-auto max-w-6xl px-6 py-14">
                 <div className="flex flex-col gap-12 lg:flex-row lg:gap-16">
-                    {/* Brand column */}
                     <motion.div
                         initial={{ opacity: 0, y: 16 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -69,7 +68,6 @@ export function Footer() {
                         </p>
                     </motion.div>
 
-                    {/* Link columns */}
                     <div className="grid flex-1 grid-cols-2 gap-8 sm:grid-cols-4">
                         {footerLinks.map((group, i) => (
                             <motion.div
@@ -99,7 +97,6 @@ export function Footer() {
                     </div>
                 </div>
 
-                {/* Bottom bar */}
                 <div className="border-border mt-14 flex flex-col items-center justify-between gap-3 border-t pt-6 sm:flex-row">
                     <p className="text-muted-foreground text-xs">2026 LUMIRIS. All rights reserved.</p>
                     <p className="text-muted-foreground text-xs">Built with radical transparency.</p>

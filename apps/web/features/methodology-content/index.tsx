@@ -7,7 +7,6 @@ import { LUMIRIS_WEIGHTS } from '@lumiris/core/constants';
 
 const formatWeight = (w: number) => `${Math.round(w * 100)}%`;
 
-/* ---------- PILLAR DATA ---------- */
 const pillars = [
     {
         title: 'Transparency',
@@ -38,7 +37,6 @@ const pillars = [
     },
 ];
 
-/* ---------- GRADE DATA ---------- */
 const grades = [
     {
         letter: 'A',
@@ -81,7 +79,6 @@ const grades = [
     },
 ];
 
-/* ---------- AUDIT PROCESS ---------- */
 const auditSteps = [
     {
         icon: FileSearch,
@@ -103,7 +100,6 @@ const auditSteps = [
     },
 ];
 
-/* ---------- PRISMATIC REVEAL HELPER ---------- */
 function PrismaticReveal({
     children,
     delay = 0,
@@ -131,7 +127,6 @@ export function MethodologyContent() {
 
     return (
         <div className="pb-20 pt-28">
-            {/* Page header */}
             <section className="mx-auto mb-24 max-w-4xl px-6 text-center">
                 <PrismaticReveal>
                     <p className="text-muted-foreground mb-4 text-xs font-medium uppercase tracking-[0.25em]">
@@ -149,7 +144,6 @@ export function MethodologyContent() {
                 </PrismaticReveal>
             </section>
 
-            {/* ---------- THE 3 PILLARS ---------- */}
             <section className="mx-auto mb-28 max-w-6xl px-6">
                 <PrismaticReveal className="mb-14 text-center">
                     <h2 className="text-foreground text-2xl font-bold sm:text-3xl">The 50 / 30 / 20 Rule</h2>
@@ -196,7 +190,6 @@ export function MethodologyContent() {
                     })}
                 </div>
 
-                {/* Golden Rule */}
                 <PrismaticReveal delay={0.3} className="mx-auto mt-12 max-w-3xl">
                     <div className="border-grade-e/20 bg-grade-e/[0.04] flex flex-col items-start gap-4 rounded-2xl border p-7 sm:flex-row">
                         <div className="bg-grade-e/10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl">
@@ -213,9 +206,7 @@ export function MethodologyContent() {
                 </PrismaticReveal>
             </section>
 
-            {/* ---------- THE IRIS GRADE SCALE ---------- */}
             <section className="bg-foreground overflow-hidden py-28">
-                {/* Grid overlay */}
                 <div
                     className="absolute inset-0 opacity-[0.025]"
                     style={{
@@ -239,7 +230,6 @@ export function MethodologyContent() {
                     </PrismaticReveal>
 
                     <div className="flex flex-col items-start gap-10 lg:flex-row lg:gap-16">
-                        {/* Grade buttons */}
                         <div className="flex w-full flex-1 flex-col gap-1.5">
                             {grades.map((grade, i) => (
                                 <button
@@ -292,7 +282,6 @@ export function MethodologyContent() {
                             ))}
                         </div>
 
-                        {/* Detail panel */}
                         <div className="w-full flex-1">
                             <AnimatePresence mode="wait">
                                 {(() => {
@@ -340,7 +329,6 @@ export function MethodologyContent() {
                 </div>
             </section>
 
-            {/* ---------- THE AUDIT PROCESS ---------- */}
             <section className="mx-auto max-w-5xl px-6 py-28">
                 <PrismaticReveal className="mb-16 text-center">
                     <p className="text-muted-foreground mb-3 text-xs font-medium uppercase tracking-[0.25em]">
@@ -355,7 +343,6 @@ export function MethodologyContent() {
                 </PrismaticReveal>
 
                 <div className="relative">
-                    {/* Connecting line */}
                     <div className="bg-border absolute bottom-0 left-1/2 top-0 hidden w-px -translate-x-1/2 md:block" />
 
                     <div className="flex flex-col gap-12 md:gap-0">
@@ -374,7 +361,6 @@ export function MethodologyContent() {
                                             </p>
                                         </div>
 
-                                        {/* Circle node */}
                                         <div className="relative flex-shrink-0">
                                             <div className="bg-card border-border relative z-10 flex h-12 w-12 items-center justify-center rounded-full border shadow-sm">
                                                 <Icon className="text-foreground h-5 w-5" />

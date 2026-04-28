@@ -1,6 +1,4 @@
-/**
- * LUMIRIS Journal — long-form content shared between admin (CMS) and web (public).
- */
+// Long-form content shared between admin (CMS) and web (public).
 
 export type JournalStatus = 'Draft' | 'Published' | 'Scheduled';
 export type JournalCategory = 'Regulation' | 'Lifestyle' | 'Audit' | 'Sustainability';

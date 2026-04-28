@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useCallback, useEffect } from 'react';
+import { memo, useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, Command, CheckCircle2, Bell } from 'lucide-react';
 import type { NavSection } from '../sidebar';
@@ -20,6 +20,7 @@ const searchableItems: Array<{ label: string; section: NavSection; keywords: str
 function TopBarComponent({ onNavigate }: TopBarProps) {
     const [searchOpen, setSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const filteredItems = searchableItems.filter(
         (item) =>
@@ -51,10 +52,13 @@ function TopBarComponent({ onNavigate }: TopBarProps) {
         return () => window.removeEventListener('keydown', handler);
     }, []);
 
+    useEffect(() => {
+        if (searchOpen) inputRef.current?.focus();
+    }, [searchOpen]);
+
     return (
         <>
             <header className="border-border bg-card/80 fixed left-60 right-0 top-0 z-30 flex h-14 items-center justify-between border-b px-6 backdrop-blur-sm">
-                {/* Search Trigger */}
                 <button
                     onClick={() => setSearchOpen(true)}
                     className="border-border bg-background text-muted-foreground hover:border-lumiris-emerald/40 hover:text-foreground flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition-colors"
@@ -66,15 +70,12 @@ function TopBarComponent({ onNavigate }: TopBarProps) {
                     </kbd>
                 </button>
 
-                {/* Right side */}
                 <div className="flex items-center gap-3">
-                    {/* Notification bell */}
                     <button className="text-muted-foreground hover:bg-muted hover:text-foreground relative rounded-lg p-2 transition-colors">
                         <Bell className="h-4 w-4" />
                         <span className="bg-lumiris-rose absolute right-1.5 top-1.5 h-2 w-2 rounded-full" />
                     </button>
 
-                    {/* System status */}
                     <div className="border-lumiris-emerald/20 bg-lumiris-emerald/5 flex items-center gap-2 rounded-lg border px-3 py-1.5">
                         <CheckCircle2 className="text-lumiris-emerald h-3.5 w-3.5" />
                         <span className="text-lumiris-emerald text-xs font-medium">All Systems Operational</span>
@@ -82,7 +83,6 @@ function TopBarComponent({ onNavigate }: TopBarProps) {
                 </div>
             </header>
 
-            {/* Command Search Modal */}
             <AnimatePresence>
                 {searchOpen && (
                     <>
@@ -106,7 +106,8 @@ function TopBarComponent({ onNavigate }: TopBarProps) {
                             <div className="border-border flex items-center gap-3 border-b px-4 py-3">
                                 <Search className="text-muted-foreground h-4 w-4" />
                                 <input
-                                    autoFocus
+                                    ref={inputRef}
+                                    aria-label="Search commands"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Search commands..."

@@ -18,9 +18,7 @@ export function AppShell() {
     const [selectedProduct, setSelectedProduct] = useState<MobileProduct | null>(null);
 
     const handleProductScanned = useCallback(() => {
-        // Live scan: pick a random anchored DPP, run computeScore against it,
-        // and stitch the canonical 50/30/20 result onto the existing product fixture
-        // for display. Direct call here is intentional — see CLAUDE.md scoring rule.
+        // Direct computeScore call is intentional — see CLAUDE.md scoring rule.
         const dpp = mockDpps[Math.floor(Math.random() * mockDpps.length)] ?? mockDpps[0];
         if (!dpp) {
             return;
