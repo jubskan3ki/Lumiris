@@ -1,13 +1,3 @@
-# LUMIRIS observability stack — guarded behind the `monitoring` profile so
-# `docker compose up` (without --profile monitoring) leaves these idle.
-#
-#   make monitoring-up   → Tempo + Prometheus + Loki + Grafana
-#   make monitoring-down → stops the stack, keeps the volumes
-#
-# Apps run on the host (admin:3001, web:3000, mobile:3002, api:4000).
-# Containers reach the host via host.docker.internal — works on Linux too
-# because the compose file maps the gateway explicitly.
-
 services:
     tempo:
         image: grafana/tempo:2.6.0

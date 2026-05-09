@@ -32,6 +32,26 @@ export type EnvSpec = StringSpec<boolean> | NumberSpec<boolean> | BooleanSpec<bo
 
 export type EnvSchema = Record<string, EnvSpec>;
 
+// fragment partagé Next.js (API base URL + web-vitals sample rate + NODE_ENV) — à étaler par app
+export const NEXT_APP_BASE_ENV_SCHEMA = {
+    NEXT_PUBLIC_API_BASE_URL: {
+        kind: 'string',
+        required: false,
+        default: 'http://localhost:4000',
+    },
+    NEXT_PUBLIC_WEB_VITALS_SAMPLE_RATE: {
+        kind: 'number',
+        required: false,
+        min: 0,
+        max: 1,
+    },
+    NODE_ENV: {
+        kind: 'enum',
+        values: ['development', 'production', 'test'] as const,
+        default: 'development',
+    },
+} as const satisfies EnvSchema;
+
 type Resolve<S extends EnvSpec> =
     S extends StringSpec<infer R>
         ? R extends true

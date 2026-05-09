@@ -8,7 +8,16 @@ const isTauri = process.env.BUILD_TARGET === 'tauri';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
-    transpilePackages: ['@lumiris/ui', '@lumiris/core', '@lumiris/types', '@lumiris/telemetry'],
+    transpilePackages: [
+        '@lumiris/ui',
+        '@lumiris/scoring-ui',
+        '@lumiris/core',
+        '@lumiris/types',
+        '@lumiris/mock-data',
+        '@lumiris/telemetry',
+        'react-leaflet',
+        '@react-leaflet/core',
+    ],
     serverExternalPackages: [
         '@opentelemetry/sdk-node',
         '@opentelemetry/auto-instrumentations-node',

@@ -12,6 +12,7 @@
         "./sentry-next": "./src/sentry-next.ts",
         "./sentry-node": "./src/sentry-node.ts",
         "./web-vitals": "./src/web-vitals.ts",
+        "./web-vitals-component": "./src/web-vitals-component.tsx",
         "./redact": "./src/redact.ts"
     },
     "scripts": {
@@ -36,8 +37,22 @@
     },
     "devDependencies": {
         "@lumiris/config": "workspace:*",
+        "@types/react": "^19",
         "eslint": "^9.17.0",
+        "next": "^16.2.4",
         "rimraf": "^6.0.1",
         "typescript": "^5.7.3"
+    },
+    "peerDependencies": {
+        "next": "^16.2.4",
+        "react": "^19"
+    },
+    "peerDependenciesMeta": {
+        "next": {
+            "optional": true
+        },
+        "react": {
+            "optional": true
+        }
     }
 }

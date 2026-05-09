@@ -2,19 +2,25 @@
 
 import { memo, useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Command, CheckCircle2, Bell } from 'lucide-react';
+import { Bell, CheckCircle2, Command, Search, X } from 'lucide-react';
 import type { NavSection } from '../sidebar';
+import { DevUserSwitcher } from '../_shared/dev-user-switcher';
 
 interface TopBarProps {
     onNavigate: (section: NavSection) => void;
 }
 
-const searchableItems: Array<{ label: string; section: NavSection; keywords: string }> = [
-    { label: 'Overview Dashboard', section: 'overview', keywords: 'home stats kpi metrics' },
-    { label: 'Audit Factory', section: 'audit-factory', keywords: 'pipeline products audit' },
-    { label: 'Certificate Vault', section: 'certificates', keywords: 'certs documents proof' },
-    { label: 'LUMIRIS Journal', section: 'journal', keywords: 'blog articles content cms' },
-    { label: 'User Feedback', section: 'feedback', keywords: 'reports community users' },
+const SEARCHABLE: ReadonlyArray<{ label: string; section: NavSection; keywords: string }> = [
+    { label: 'Overview', section: 'overview', keywords: 'home stats kpi metrics' },
+    { label: 'Passports — file de curation', section: 'passports', keywords: 'passport curate review queue' },
+    { label: 'Artisans', section: 'artisans', keywords: 'artisans atelier maison' },
+    { label: 'Repairers (LUMIRIS Local)', section: 'retoucheurs', keywords: 'retoucheur local annuaire' },
+    { label: 'Vision Users', section: 'vision-users', keywords: 'consumer scan vision rgpd' },
+    { label: 'Billing', section: 'billing', keywords: 'billing mrr abonnement dunning' },
+    { label: 'Affiliation', section: 'affiliation', keywords: 'affiliation payout commission' },
+    { label: 'Iris Workbench', section: 'iris-workbench', keywords: 'score override iris weights' },
+    { label: 'Blog', section: 'blog', keywords: 'journal articles cms blog' },
+    { label: 'Governance — audit log', section: 'governance', keywords: 'audit governance log rgpd' },
 ];
 
 function TopBarComponent({ onNavigate }: TopBarProps) {
@@ -22,7 +28,7 @@ function TopBarComponent({ onNavigate }: TopBarProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const filteredItems = searchableItems.filter(
+    const filteredItems = SEARCHABLE.filter(
         (item) =>
             item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.keywords.includes(searchQuery.toLowerCase()),
@@ -64,13 +70,15 @@ function TopBarComponent({ onNavigate }: TopBarProps) {
                     className="border-border bg-background text-muted-foreground hover:border-lumiris-emerald/40 hover:text-foreground flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition-colors"
                 >
                     <Search className="h-3.5 w-3.5" />
-                    <span>Search...</span>
+                    <span>Rechercher…</span>
                     <kbd className="border-border bg-muted text-muted-foreground ml-6 flex items-center gap-0.5 rounded border px-1.5 py-0.5 font-mono text-[10px]">
                         <Command className="h-2.5 w-2.5" />K
                     </kbd>
                 </button>
 
                 <div className="flex items-center gap-3">
+                    <DevUserSwitcher />
+
                     <button className="text-muted-foreground hover:bg-muted hover:text-foreground relative rounded-lg p-2 transition-colors">
                         <Bell className="h-4 w-4" />
                         <span className="bg-lumiris-rose absolute right-1.5 top-1.5 h-2 w-2 rounded-full" />
@@ -78,7 +86,7 @@ function TopBarComponent({ onNavigate }: TopBarProps) {
 
                     <div className="border-lumiris-emerald/20 bg-lumiris-emerald/5 flex items-center gap-2 rounded-lg border px-3 py-1.5">
                         <CheckCircle2 className="text-lumiris-emerald h-3.5 w-3.5" />
-                        <span className="text-lumiris-emerald text-xs font-medium">All Systems Operational</span>
+                        <span className="text-lumiris-emerald text-xs font-medium">Plateforme opérationnelle</span>
                     </div>
                 </div>
             </header>
@@ -110,7 +118,7 @@ function TopBarComponent({ onNavigate }: TopBarProps) {
                                     aria-label="Search commands"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Search commands..."
+                                    placeholder="Rechercher un module…"
                                     className="text-foreground placeholder-muted-foreground/60 flex-1 bg-transparent text-sm outline-none"
                                 />
                                 <button
@@ -132,13 +140,13 @@ function TopBarComponent({ onNavigate }: TopBarProps) {
                                     >
                                         <span>{item.label}</span>
                                         <span className="text-muted-foreground/50 ml-auto font-mono text-[10px]">
-                                            Go
+                                            Aller
                                         </span>
                                     </button>
                                 ))}
                                 {filteredItems.length === 0 && (
                                     <p className="text-muted-foreground px-3 py-6 text-center text-sm">
-                                        No results found.
+                                        Aucun résultat.
                                     </p>
                                 )}
                             </div>

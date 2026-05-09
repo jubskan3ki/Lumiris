@@ -1,20 +1,14 @@
 'use client';
 
-import { useReportWebVitals } from 'next/web-vitals';
-import { usePathname } from 'next/navigation';
-import { initWebVitals } from '@lumiris/telemetry/web-vitals';
+import { WebVitals as TelemetryWebVitals } from '@lumiris/telemetry/web-vitals-component';
 import { env } from '@/env';
 
-const ENDPOINT = `${env.NEXT_PUBLIC_API_BASE_URL}/telemetry/web-vitals`;
-
 export function WebVitals() {
-    const route = usePathname() ?? '/';
-    const reporter = initWebVitals({
-        endpoint: ENDPOINT,
-        app: 'lumiris-web',
-        route,
-        sampleRate: env.NEXT_PUBLIC_WEB_VITALS_SAMPLE_RATE,
-    });
-    useReportWebVitals(reporter);
-    return null;
+    return (
+        <TelemetryWebVitals
+            app="lumiris-web"
+            endpoint={`${env.NEXT_PUBLIC_API_BASE_URL}/telemetry/web-vitals`}
+            sampleRate={env.NEXT_PUBLIC_WEB_VITALS_SAMPLE_RATE}
+        />
+    );
 }

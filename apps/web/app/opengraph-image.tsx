@@ -1,0 +1,63 @@
+import { ImageResponse } from 'next/og';
+
+export const alt = 'LUMIRIS — Le passeport numérique du textile artisanal français';
+export const size = { width: 1200, height: 630 };
+export const contentType = 'image/png';
+
+export default function Image() {
+    return new ImageResponse(
+        <div
+            style={{
+                width: '100%',
+                height: '100%',
+                background: 'linear-gradient(135deg, #fafafa 0%, #f1f5f9 100%)',
+                color: '#0f172a',
+                display: 'flex',
+                flexDirection: 'column',
+                padding: 96,
+                fontFamily: 'sans-serif',
+                justifyContent: 'space-between',
+            }}
+        >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div
+                    style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 10,
+                        background: 'linear-gradient(135deg,#10b981,#06b6d4,#f59e0b)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 700,
+                        fontSize: 22,
+                        color: '#0b1014',
+                    }}
+                >
+                    L
+                </div>
+                <div style={{ display: 'flex', fontSize: 24, letterSpacing: 6, color: '#475569' }}>LUMIRIS</div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', maxWidth: 1000 }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        fontSize: 72,
+                        fontWeight: 700,
+                        lineHeight: 1.05,
+                        color: '#0f172a',
+                    }}
+                >
+                    Le passeport numérique du textile artisanal français.
+                </div>
+                <div style={{ display: 'flex', fontSize: 28, color: '#64748b', marginTop: 28 }}>
+                    Conforme ESPR / AGEC · Aucun acteur n’achète son score
+                </div>
+            </div>
+
+            <div style={{ display: 'flex', fontSize: 22, color: '#94a3b8' }}>lumiris.fr</div>
+        </div>,
+        size,
+    );
+}

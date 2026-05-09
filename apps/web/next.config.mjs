@@ -1,14 +1,27 @@
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import createMDX from '@next/mdx';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const withMDX = createMDX({
+    extension: /\.mdx?$/,
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
     output: 'standalone',
     outputFileTracingRoot: path.resolve(__dirname, '../..'),
-    transpilePackages: ['@lumiris/ui', '@lumiris/core', '@lumiris/types', '@lumiris/telemetry'],
+    pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
+    transpilePackages: [
+        '@lumiris/ui',
+        '@lumiris/core',
+        '@lumiris/types',
+        '@lumiris/telemetry',
+        'react-leaflet',
+        '@react-leaflet/core',
+    ],
     serverExternalPackages: [
         '@opentelemetry/sdk-node',
         '@opentelemetry/auto-instrumentations-node',
@@ -20,7 +33,8 @@ const nextConfig = {
     },
     images: {
         unoptimized: true,
+        remotePatterns: [{ protocol: 'https', hostname: 'placehold.co' }],
     },
 };
 
-export default nextConfig;
+export default withMDX(nextConfig);

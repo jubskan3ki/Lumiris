@@ -5,24 +5,33 @@ import type { IrisGrade as IrisGradeLetter } from '@lumiris/types';
 import { cn } from '@lumiris/ui/lib/cn';
 import { gradeBackground, gradeBackgroundSolid, gradeBorder, gradeColor } from '../theme/grade-color';
 
-export type IrisGradeSize = 'sm' | 'md' | 'lg';
+export type IrisGradeSize = 'sm' | 'md' | 'lg' | 'xl';
 export type IrisGradeTone = 'soft' | 'solid';
+export type IrisGradeShape = 'pill' | 'square';
 
 export interface IrisGradeProps extends HTMLAttributes<HTMLDivElement> {
     grade: IrisGradeLetter;
     size?: IrisGradeSize;
-    /** `soft` for dense surfaces, `solid` (full fill, white letter) for cards that need to pop. */
+    /** `soft` pour surfaces denses, `solid` (lettre blanche) pour cartes qui doivent ressortir. */
     tone?: IrisGradeTone;
+    /** `pill` (default, ronde) — `square` pour la grosse vignette de la fiche publique. */
+    shape?: IrisGradeShape;
 }
 
 const SIZE: Record<IrisGradeSize, string> = {
     sm: 'h-6 w-6 text-[11px]',
     md: 'h-9 w-9 text-sm',
     lg: 'h-14 w-14 text-xl',
+    xl: 'h-[5.625rem] w-[5.625rem] text-[64px] leading-none font-bold',
 };
 
-// Never derives the grade — caller passes it in (computed by `@lumiris/core`).
-export function IrisGrade({ grade, size = 'md', tone = 'soft', className, ...rest }: IrisGradeProps) {
+const SHAPE: Record<IrisGradeShape, string> = {
+    pill: 'rounded-full',
+    square: 'rounded-2xl',
+};
+
+// Ne calcule jamais le grade — il est passé en prop (calculé par @lumiris/core).
+export function IrisGrade({ grade, size = 'md', tone = 'soft', shape = 'pill', className, ...rest }: IrisGradeProps) {
     const toneClasses =
         tone === 'solid'
             ? cn(gradeBackgroundSolid(grade), 'text-primary-foreground border-transparent')
@@ -33,7 +42,8 @@ export function IrisGrade({ grade, size = 'md', tone = 'soft', className, ...res
             role="img"
             aria-label={`Iris grade ${grade}`}
             className={cn(
-                'inline-flex items-center justify-center rounded-full border font-mono font-semibold tracking-tight',
+                'inline-flex shrink-0 items-center justify-center border font-mono font-semibold tracking-tight',
+                SHAPE[shape],
                 SIZE[size],
                 toneClasses,
                 className,

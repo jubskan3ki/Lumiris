@@ -64,6 +64,22 @@ services:
         healthcheck:
             disable: true
 
+    client:
+        image: oven/bun:1.1.38-alpine
+        working_dir: /repo
+        command: ['bun', 'run', 'dev:client']
+        ports: ['3003:3003']
+        volumes:
+            - ./:/repo
+            - /repo/node_modules
+            - /repo/apps/client/.next
+        environment:
+            NODE_ENV: development
+            WATCHPACK_POLLING: 'true'
+            CHOKIDAR_USEPOLLING: 'true'
+        healthcheck:
+            disable: true
+
     api:
         image: oven/bun:1.1.38-alpine
         working_dir: /repo/apps/api

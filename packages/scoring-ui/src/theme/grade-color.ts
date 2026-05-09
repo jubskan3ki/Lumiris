@@ -1,15 +1,14 @@
-import type { IrisGrade } from '@lumiris/types';
+import type { IrisAxis, IrisGrade } from '@lumiris/types';
 
-// Single source of truth: every grade-aware surface MUST consume these tokens — they map to the --lumiris-* CSS variables in packages/ui's prismatic.css.
+// source unique des tokens grade/axis — mappés sur les vars --lumiris-* de @lumiris/ui prismatic.css
 
-export type GradeColorToken = 'lumiris-emerald' | 'lumiris-cyan' | 'lumiris-amber' | 'lumiris-rose';
+export type GradeColorToken = 'lumiris-emerald' | 'lumiris-cyan' | 'lumiris-amber' | 'lumiris-orange' | 'lumiris-rose';
 
 export const GRADE_COLOR: Record<IrisGrade, GradeColorToken> = {
-    'A+': 'lumiris-emerald',
     A: 'lumiris-emerald',
     B: 'lumiris-cyan',
     C: 'lumiris-amber',
-    D: 'lumiris-amber',
+    D: 'lumiris-orange',
     E: 'lumiris-rose',
 };
 
@@ -31,10 +30,24 @@ export function gradeBackgroundSolid(grade: IrisGrade): string {
 
 // Lives next to the colour tokens so admin/web/mobile stay in lock-step on the human-facing label.
 export const GRADE_LABEL: Record<IrisGrade, string> = {
-    'A+': 'Exemplary',
     A: 'Excellent',
-    B: 'Good',
-    C: 'Average',
-    D: 'Below Average',
+    B: 'Bon',
+    C: 'Moyen',
+    D: 'Insuffisant',
     E: 'Opaque',
+};
+
+// Per-axis colour mapping — drives the four-axis breakdown bar.
+export const AXIS_COLOR: Record<IrisAxis, GradeColorToken> = {
+    transparency: 'lumiris-emerald',
+    craftsmanship: 'lumiris-cyan',
+    impact: 'lumiris-amber',
+    repairability: 'lumiris-orange',
+};
+
+export const AXIS_LABEL: Record<IrisAxis, string> = {
+    transparency: 'Transparence',
+    craftsmanship: 'Savoir-faire',
+    impact: 'Impact',
+    repairability: 'Réparabilité',
 };

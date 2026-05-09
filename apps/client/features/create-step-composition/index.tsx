@@ -1,0 +1,264 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
+import type { Fiber, Material } from '@lumiris/types';
+import { mockCertificates, mockInvoices } from '@lumiris/mock-data';
+import { Alert, AlertDescription, AlertTitle } from '@lumiris/ui/components/alert';
+import { Badge } from '@lumiris/ui/components/badge';
+import { Button } from '@lumiris/ui/components/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@lumiris/ui/components/card';
+import { Checkbox } from '@lumiris/ui/components/checkbox';
+import { Input } from '@lumiris/ui/components/input';
+import { Label } from '@lumiris/ui/components/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@lumiris/ui/components/select';
+import { WizardShell } from '@/features/wizard-shell';
+import { useDraftStore } from '@/lib/draft-store';
+import { COUNTRIES } from '@/lib/countries';
+import { SUPPLIERS } from '@/lib/suppliers';
+
+const FIBERS: ReadonlyArray<{ value: Fiber; label: string }> = [
+    { value: 'wool', label: 'Laine' },
+    { value: 'linen', label: 'Lin' },
+    { value: 'cotton', label: 'Coton' },
+    { value: 'silk', label: 'Soie' },
+    { value: 'hemp', label: 'Chanvre' },
+    { value: 'leather', label: 'Cuir' },
+    { value: 'cashmere', label: 'Cachemire' },
+    { value: 'recycled-polyester', label: 'Polyester recyclé' },
+    { value: 'other', label: 'Autre' },
+];
+
+function newRow(): Material {
+    return {
+        fiber: 'linen',
+        percentage: 0,
+        supplierId: '',
+        originCountry: 'FR',
+        certifications: [],
+    };
+}
+
+export function CreateStepComposition({ draftId }: { draftId: string }) {
+    const router = useRouter();
+    const draft = useDraftStore((s) => s.drafts[draftId]);
+    const setMaterials = useDraftStore((s) => s.setMaterials);
+    const setLastStep = useDraftStore((s) => s.setLastStep);
+
+    const [rows, setRows] = useState<Material[]>(draft?.materials.length ? [...draft.materials] : [newRow()]);
+
+    useEffect(() => {
+        if (draft && draft.materials.length > 0) setRows([...draft.materials]);
+    }, [draft]);
+
+    const total = useMemo(() => rows.reduce((sum, r) => sum + (Number(r.percentage) || 0), 0), [rows]);
+    const sumValid = Math.abs(total - 100) < 1;
+
+    if (!draft) {
+        return (
+            <WizardShell draftId={draftId} step="composition">
+                {null}
+            </WizardShell>
+        );
+    }
+
+    const updateRow = (idx: number, patch: Partial<Material>) => {
+        setRows((rs) => rs.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+    };
+
+    const handleNext = () => {
+        if (!sumValid) return;
+        setMaterials(draftId, rows);
+        setLastStep(draftId, 'composition');
+        router.push(`/create/${draftId}/invoice`);
+    };
+
+    return (
+        <WizardShell
+            draftId={draftId}
+            step="composition"
+            onPrev={() => router.push(`/create/${draftId}/identification`)}
+            onNext={handleNext}
+            nextDisabled={!sumValid}
+        >
+            <Card>
+                <CardHeader>
+                    <CardTitle>Composition fibres</CardTitle>
+                    <p className="text-muted-foreground text-sm">
+                        La somme des pourcentages doit valoir 100. Chaque fibre référence un fournisseur et un pays.
+                    </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {!sumValid && (
+                        <Alert className="border-lumiris-amber/30 bg-lumiris-amber/5 text-lumiris-amber">
+                            <AlertTitle>Somme des pourcentages : {total.toFixed(0)}%</AlertTitle>
+                            <AlertDescription>
+                                Ajustez pour atteindre 100% avant de passer à l’étape suivante.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+
+                    <div className="space-y-3">
+                        {rows.map((row, idx) => (
+                            <FiberRow
+                                key={idx}
+                                row={row}
+                                idx={idx}
+                                onChange={(patch) => updateRow(idx, patch)}
+                                onRemove={() => setRows((rs) => rs.filter((_, i) => i !== idx))}
+                            />
+                        ))}
+                    </div>
+
+                    <Button variant="outline" size="sm" onClick={() => setRows((rs) => [...rs, newRow()])}>
+                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Ajouter une fibre
+                    </Button>
+                </CardContent>
+            </Card>
+        </WizardShell>
+    );
+}
+
+interface FiberRowProps {
+    row: Material;
+    idx: number;
+    onChange: (patch: Partial<Material>) => void;
+    onRemove: () => void;
+}
+
+function FiberRow({ row, idx, onChange, onRemove }: FiberRowProps) {
+    const linkedInvoices = mockInvoices.filter((i) => i.supplierId === row.supplierId);
+    const supplierMatchesFiber = SUPPLIERS.filter((s) => s.fibers.includes(row.fiber));
+
+    return (
+        <div className="border-border bg-muted/30 space-y-3 rounded-lg border p-4">
+            <div className="flex items-center justify-between">
+                <p className="text-foreground text-sm font-medium">Fibre #{idx + 1}</p>
+                <Button variant="ghost" size="icon" onClick={onRemove} aria-label="Supprimer">
+                    <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                <div className="space-y-1.5">
+                    <Label>Fibre</Label>
+                    <Select value={row.fiber} onValueChange={(v) => onChange({ fiber: v as Fiber })}>
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {FIBERS.map((f) => (
+                                <SelectItem key={f.value} value={f.value}>
+                                    {f.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-1.5">
+                    <Label>Pourcentage</Label>
+                    <div className="relative">
+                        <Input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={row.percentage || ''}
+                            onChange={(e) => onChange({ percentage: Number(e.target.value) || 0 })}
+                        />
+                        <span className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 text-xs">
+                            %
+                        </span>
+                    </div>
+                </div>
+                <div className="space-y-1.5">
+                    <Label>Fournisseur</Label>
+                    <Select
+                        value={row.supplierId || '__none'}
+                        onValueChange={(v) => onChange({ supplierId: v === '__none' ? '' : v })}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Choisir…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="__none">— Aucun</SelectItem>
+                            {(supplierMatchesFiber.length > 0 ? supplierMatchesFiber : SUPPLIERS).map((s) => (
+                                <SelectItem key={s.id} value={s.id}>
+                                    {s.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-1.5">
+                    <Label>Origine</Label>
+                    <Select value={row.originCountry} onValueChange={(v) => onChange({ originCountry: v })}>
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {COUNTRIES.map((c) => (
+                                <SelectItem key={c.code} value={c.code}>
+                                    {c.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-1.5">
+                    <Label>Certifications fibre</Label>
+                    <div className="bg-card space-y-1.5 rounded-md border p-2">
+                        {mockCertificates.slice(0, 6).map((c) => {
+                            const checked = row.certifications.some((rc) => rc.id === c.id);
+                            return (
+                                <label key={c.id} className="flex items-center gap-2 text-xs">
+                                    <Checkbox
+                                        checked={checked}
+                                        onCheckedChange={(v) => {
+                                            const next = v
+                                                ? [...row.certifications, c]
+                                                : row.certifications.filter((rc) => rc.id !== c.id);
+                                            onChange({ certifications: next });
+                                        }}
+                                    />
+                                    <span className="text-foreground">{c.kind}</span>
+                                    <span className="text-muted-foreground truncate">— {c.scope ?? c.issuer}</span>
+                                </label>
+                            );
+                        })}
+                    </div>
+                </div>
+                <div className="space-y-1.5">
+                    <Label>Facture liée (optionnel)</Label>
+                    <Select
+                        value={row.invoiceRef ?? '__none'}
+                        onValueChange={(v) => onChange({ invoiceRef: v === '__none' ? undefined : v })}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Aucune" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="__none">— Aucune</SelectItem>
+                            {linkedInvoices.map((i) => (
+                                <SelectItem key={i.id} value={i.id}>
+                                    {i.id} {i.ocrExtracted ? `· ${i.ocrExtracted.supplierName}` : ''}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {row.certifications.length > 0 && (
+                        <div className="flex flex-wrap gap-1 pt-1">
+                            {row.certifications.map((c) => (
+                                <Badge key={c.id} variant="secondary" className="text-[10px]">
+                                    {c.kind}
+                                </Badge>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}

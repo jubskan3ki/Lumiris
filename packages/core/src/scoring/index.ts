@@ -1,54 +1,114 @@
-import type { Certificate, DPPRecord, ScoreResult, ScoreWeights } from '@lumiris/types';
-import { LUMIRIS_WEIGHTS } from '../constants';
-import { toIrisGrade } from './grade';
-import { scoreImpact } from './impact';
-import { scoreIntegrity } from './integrity';
-import { scoreTrust } from './trust';
+// scoring 40/25/25/10 — pur, déterministe, `now` toujours injecté ; identique admin/web/vision/atelier/Tauri
 
-export interface ScoreOptions {
-    certificates?: readonly Certificate[];
+import type {
+    Artisan,
+    Passport,
+    CertificationRef,
+    IrisAxisBreakdown,
+    Repairer,
+    ScoreCap,
+    ScoreReason,
+    ScoreResult,
+    ScoreWeights,
+} from '@lumiris/types';
+import { LUMIRIS_WEIGHTS } from './constants';
+import { checkCaps } from './caps';
+import { toIrisGrade } from './grade';
+import { scoreCraftsmanship } from './craftsmanship';
+import { scoreImpact } from './impact';
+import { scoreRepairability } from './repairability';
+import { scoreTransparency } from './transparency';
+
+export * from './constants';
+export { toIrisGrade, IRIS_THRESHOLDS } from './grade';
+export { checkCaps } from './caps';
+export { scoreTransparency } from './transparency';
+export { scoreCraftsmanship } from './craftsmanship';
+export { scoreImpact } from './impact';
+export { scoreRepairability } from './repairability';
+
+export interface ComputeScoreOptions {
+    /** Catalogue plat des certifications connues (artisan + composition + passport). */
+    certificates: readonly CertificationRef[];
+    /** Annuaire local des retoucheurs — alimente le sous-score `repairability`. */
+    retoucheurs?: readonly Repairer[];
+    artisan?: Artisan;
+    /** Toujours requis — pas de `Date.now()` implicite, le scoring reste déterministe. */
+    now: Date;
+    /** Surcharge partielle des poids ; renormalisée à 1. */
     weights?: Partial<ScoreWeights>;
 }
 
-// Pure and deterministic — admin, web, and mobile MUST produce identical totals for the same input.
-export function computeScore(dpp: DPPRecord, options: ScoreOptions = {}): ScoreResult {
+export function computeScore(passport: Passport, options: ComputeScoreOptions): ScoreResult {
     const weights = normalizeWeights({ ...LUMIRIS_WEIGHTS, ...(options.weights ?? {}) });
-    const certificates = options.certificates ?? [];
 
-    const integrity = scoreIntegrity(dpp);
-    const trust = scoreTrust(dpp, certificates);
-    const impact = scoreImpact(dpp);
+    const capDecision = checkCaps(passport);
 
-    const total = integrity.score * weights.integrity + trust.score * weights.trust + impact.score * weights.impact;
+    const transparency = scoreTransparency(passport, options.now);
+    const craftsmanship = scoreCraftsmanship(passport, {
+        artisan: options.artisan,
+        certificates: options.certificates,
+        now: options.now,
+    });
+    const impact = scoreImpact(passport);
+    const repairability = scoreRepairability(passport, {
+        artisan: options.artisan,
+        retoucheurs: options.retoucheurs,
+    });
 
-    const rounded = Math.round(total * 10) / 10;
+    const breakdown: IrisAxisBreakdown = {
+        transparency: transparency.score,
+        craftsmanship: craftsmanship.score,
+        impact: impact.score,
+        repairability: repairability.score,
+    };
+
+    const rawTotal =
+        breakdown.transparency * weights.transparency +
+        breakdown.craftsmanship * weights.craftsmanship +
+        breakdown.impact * weights.impact +
+        breakdown.repairability * weights.repairability;
+    const total = round(rawTotal);
+
+    const grade = toIrisGrade(total, capDecision.capped ? 'D' : undefined);
+
+    const reasons: ScoreReason[] = [
+        ...transparency.reasons,
+        ...craftsmanship.reasons,
+        ...impact.reasons,
+        ...repairability.reasons,
+    ];
+    if (capDecision.capped) {
+        reasons.push({
+            axis: 'transparency',
+            message: `Score plafonné à D — ${capDecision.reason ?? 'champ obligatoire manquant'}.`,
+            severity: 'error',
+        });
+    }
+
+    const cap: ScoreCap = capDecision.capped ? { applied: true, reason: capDecision.reason } : { applied: false };
 
     return {
-        total: rounded,
-        grade: toIrisGrade(rounded),
-        breakdown: {
-            integrity: round1(integrity.score),
-            trust: round1(trust.score),
-            impact: round1(impact.score),
-        },
+        total,
+        grade,
+        breakdown,
         weights,
-        reasons: [...integrity.reasons, ...trust.reasons, ...impact.reasons],
+        reasons,
+        cap,
     };
 }
 
-// Renormalise so weights always sum to 1, keeping totals on a 0–100 scale regardless of caller overrides.
 function normalizeWeights(w: ScoreWeights): ScoreWeights {
-    const sum = w.integrity + w.trust + w.impact;
+    const sum = w.transparency + w.craftsmanship + w.impact + w.repairability;
     if (sum === 0) return LUMIRIS_WEIGHTS;
     return {
-        integrity: w.integrity / sum,
-        trust: w.trust / sum,
+        transparency: w.transparency / sum,
+        craftsmanship: w.craftsmanship / sum,
         impact: w.impact / sum,
+        repairability: w.repairability / sum,
     };
 }
 
-function round1(n: number): number {
+function round(n: number): number {
     return Math.round(n * 10) / 10;
 }
-
-export { scoreImpact, scoreIntegrity, scoreTrust, toIrisGrade };

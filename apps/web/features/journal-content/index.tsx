@@ -1,237 +1,157 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Clock, ArrowRight } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Clock } from 'lucide-react';
+import type { JournalCategory } from '@lumiris/types';
+import { JOURNAL_CATEGORY_LABEL } from '@lumiris/types';
+import { Tabs, TabsList, TabsTrigger } from '@lumiris/ui/components/tabs';
+import type { ArticleMeta } from '@/lib/journal';
 
-const categories = ['All', 'EU Regulations', 'Audit Stories', 'Greenwashing Alerts'];
+const CATEGORY_LABEL = JOURNAL_CATEGORY_LABEL;
 
-const articles = [
-    {
-        slug: 'eu-espr-regulation-2026',
-        title: 'The EU ESPR Regulation: What It Means for Every Brand Selling in Europe',
-        excerpt:
-            'The European Sustainable Products Regulation is reshaping how companies disclose product data. Here is what changes in 2026 and why LUMIRIS is already aligned.',
-        category: 'EU Regulations',
-        readTime: '8 min read',
-        date: 'April 12, 2026',
-        image: '/images/journal-eu-regulation.jpg',
-        featured: true,
-    },
-    {
-        slug: 'anatomy-of-greenwashing',
-        title: 'Anatomy of a Greenwash: How We Caught a Major Brand Faking Organic Claims',
-        excerpt:
-            "A deep dive into LUMIRIS Audit Case #0047. What we found when we traced a 'certified organic' label back to its source -- and what the data actually showed.",
-        category: 'Greenwashing Alerts',
-        readTime: '12 min read',
-        date: 'March 28, 2026',
-        image: '/images/journal-greenwashing.jpg',
-        featured: true,
-    },
-    {
-        slug: 'supply-chain-transparency-report',
-        title: '2026 Supply Chain Transparency Report: The State of Fashion',
-        excerpt:
-            'Our annual analysis of 2,400 products across 180 brands reveals troubling patterns -- and a handful of companies leading the way.',
-        category: 'Audit Stories',
-        readTime: '15 min read',
-        date: 'March 15, 2026',
-        image: '/images/journal-supply-chain.jpg',
-        featured: false,
-    },
-    {
-        slug: 'grade-e-meaning',
-        title: 'What a Grade E Really Means (And Why Silence Is the Problem)',
-        excerpt:
-            'An in-depth look at the Golden Rule: why LUMIRIS scores missing data as an automatic E, and how brands can fix it.',
-        category: 'Audit Stories',
-        readTime: '6 min read',
-        date: 'February 22, 2026',
-        image: '/images/journal-hero.jpg',
-        featured: false,
-    },
-    {
-        slug: 'eu-digital-product-passport',
-        title: 'Digital Product Passport: The Technology Behind Traceable Fashion',
-        excerpt:
-            'The EU is mandating digital passports for products. We explain the tech stack, the timeline, and how LUMIRIS integrates with DPP standards.',
-        category: 'EU Regulations',
-        readTime: '10 min read',
-        date: 'February 10, 2026',
-        image: '/images/journal-eu-regulation.jpg',
-        featured: false,
-    },
-    {
-        slug: 'fast-fashion-carbon-lie',
-        title: "The Carbon Neutral Lie: Why Fast Fashion's Climate Claims Don't Hold Up",
-        excerpt:
-            'We audited the carbon offset claims of five major fast-fashion brands. The results were startling: not a single one met third-party verification standards.',
-        category: 'Greenwashing Alerts',
-        readTime: '9 min read',
-        date: 'January 30, 2026',
-        image: '/images/journal-greenwashing.jpg',
-        featured: false,
-    },
-];
+const CATEGORY_TONE: Record<JournalCategory, string> = {
+    reglementation: 'text-grade-a bg-grade-a/8 border-grade-a/15',
+    'portrait-artisan': 'text-grade-d bg-grade-d/8 border-grade-d/15',
+    'savoir-faire': 'text-grade-c bg-grade-c/8 border-grade-c/15',
+    entretien: 'text-grade-b bg-grade-b/8 border-grade-b/15',
+};
 
-function CategoryBadge({ category }: { category: string }) {
-    const colorMap: Record<string, string> = {
-        'EU Regulations': 'text-grade-b bg-grade-b/8 border-grade-b/15',
-        'Audit Stories': 'text-grade-a bg-grade-a/8 border-grade-a/15',
-        'Greenwashing Alerts': 'text-grade-e bg-grade-e/8 border-grade-e/15',
-    };
+const PUBLIC_CATEGORIES: readonly JournalCategory[] = [
+    'reglementation',
+    'portrait-artisan',
+    'savoir-faire',
+    'entretien',
+] as const;
+
+type FilterValue = 'all' | JournalCategory;
+
+const DATE_FMT = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+function CategoryBadge({ category }: { category: JournalCategory }) {
     return (
-        <span
-            className={`rounded-md border px-2 py-0.5 text-[11px] font-medium ${colorMap[category] || 'text-muted-foreground bg-muted border-border'}`}
-        >
-            {category}
+        <span className={`rounded-md border px-2 py-0.5 text-[11px] font-medium ${CATEGORY_TONE[category]}`}>
+            {CATEGORY_LABEL[category]}
         </span>
     );
 }
 
-function FeaturedCard({ article }: { article: (typeof articles)[0] }) {
+function ArticleCard({ article, index, featured }: { article: ArticleMeta; index: number; featured?: boolean }) {
+    const date = DATE_FMT.format(new Date(article.publishedAt));
     return (
         <motion.article
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 18 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="group cursor-pointer"
+            viewport={{ once: true, margin: '-30px' }}
+            transition={{ duration: 0.4, delay: index * 0.05 }}
+            className="border-border bg-card group flex h-full flex-col overflow-hidden rounded-2xl border shadow-sm transition-shadow hover:shadow-md"
         >
-            <div className="border-border relative mb-5 aspect-[16/9] overflow-hidden rounded-2xl border shadow-sm">
-                <Image
-                    src={article.image}
-                    alt={article.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                />
-                <div className="from-foreground/30 absolute inset-0 bg-gradient-to-t to-transparent" />
-                <div className="absolute bottom-4 left-4">
-                    <CategoryBadge category={article.category} />
+            <Link href={`/journal/${article.slug}`} className="flex h-full flex-col">
+                {article.coverImage ? (
+                    <div
+                        className={`bg-muted relative w-full overflow-hidden ${featured ? 'aspect-16/8' : 'aspect-video'}`}
+                    >
+                        <Image
+                            src={article.coverImage}
+                            alt=""
+                            fill
+                            sizes={featured ? '(max-width: 768px) 100vw, 1024px' : '(max-width: 768px) 100vw, 50vw'}
+                            className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                        />
+                    </div>
+                ) : null}
+                <div className={`flex flex-1 flex-col p-6 ${featured ? 'sm:p-8' : ''}`}>
+                    <div className="mb-3 flex flex-wrap items-center gap-2">
+                        <CategoryBadge category={article.category} />
+                        <span className="text-muted-foreground font-mono text-[11px]">{date}</span>
+                    </div>
+                    <h3
+                        className={`text-foreground group-hover:text-grade-a text-balance font-semibold leading-snug transition-colors ${featured ? 'text-2xl sm:text-3xl' : 'text-base'}`}
+                    >
+                        {article.title}
+                    </h3>
+                    <p className="text-muted-foreground mt-3 line-clamp-3 flex-1 text-sm leading-relaxed">
+                        {article.excerpt}
+                    </p>
+                    <div className="text-muted-foreground mt-5 flex items-center justify-between text-[11px]">
+                        <span className="inline-flex items-center gap-1.5">
+                            <Clock className="h-3 w-3" />
+                            {article.readingTime} min
+                        </span>
+                        <span>par {article.author}</span>
+                    </div>
                 </div>
-            </div>
-            <div className="text-muted-foreground mb-2 flex items-center gap-3 text-[11px]">
-                <span className="font-mono">{article.date}</span>
-                <span>--</span>
-                <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {article.readTime}
-                </span>
-            </div>
-            <h2 className="text-foreground group-hover:text-grade-a text-balance text-xl font-semibold leading-snug transition-colors duration-200">
-                {article.title}
-            </h2>
-            <p className="text-muted-foreground mt-2 line-clamp-2 text-sm leading-relaxed">{article.excerpt}</p>
-            <div className="text-foreground group-hover:text-grade-a mt-3 inline-flex items-center gap-1.5 text-sm font-medium transition-colors">
-                Read article
-                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-            </div>
+            </Link>
         </motion.article>
     );
 }
 
-function ArticleCard({ article, index }: { article: (typeof articles)[0]; index: number }) {
-    return (
-        <motion.article
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.5, delay: index * 0.08 }}
-            className="border-border group flex cursor-pointer flex-col gap-5 border-b py-6 last:border-0 sm:flex-row"
-        >
-            <div className="border-border relative aspect-[16/10] w-full flex-shrink-0 overflow-hidden rounded-xl border sm:aspect-[4/3] sm:w-48">
-                <Image
-                    src={article.image}
-                    alt={article.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                    sizes="(max-width: 640px) 100vw, 192px"
-                />
-            </div>
-            <div className="flex flex-1 flex-col justify-center">
-                <div className="mb-2 flex items-center gap-3">
-                    <CategoryBadge category={article.category} />
-                    <span className="text-muted-foreground font-mono text-[11px]">{article.date}</span>
-                </div>
-                <h3 className="text-foreground group-hover:text-grade-a text-balance text-base font-semibold leading-snug transition-colors duration-200">
-                    {article.title}
-                </h3>
-                <p className="text-muted-foreground mt-1.5 line-clamp-2 text-sm leading-relaxed">{article.excerpt}</p>
-                <span className="text-muted-foreground mt-2 flex items-center gap-1 text-[11px]">
-                    <Clock className="h-3 w-3" />
-                    {article.readTime}
-                </span>
-            </div>
-        </motion.article>
-    );
+interface Props {
+    articles: readonly ArticleMeta[];
 }
 
-export function JournalContent() {
-    const [activeCategory, setActiveCategory] = useState('All');
+export function JournalContent({ articles }: Props) {
+    const [filter, setFilter] = useState<FilterValue>('all');
 
-    const featured = articles.filter((a) => a.featured);
-    const rest = articles.filter((a) => !a.featured);
+    const visible = useMemo(
+        () => (filter === 'all' ? articles : articles.filter((a) => a.category === filter)),
+        [filter, articles],
+    );
 
-    const filteredRest = activeCategory === 'All' ? rest : rest.filter((a) => a.category === activeCategory);
+    const featured = visible[0];
+    const rest = visible.slice(1);
 
     return (
         <div className="pb-20 pt-28">
-            <section className="mx-auto mb-16 max-w-5xl px-6">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                >
-                    <p className="text-muted-foreground mb-4 text-xs font-medium uppercase tracking-[0.25em]">
-                        Editorial
-                    </p>
-                    <h1 className="text-foreground text-balance text-4xl font-bold tracking-tight sm:text-5xl">
-                        The LUMIRIS Journal
-                    </h1>
-                    <p className="text-muted-foreground mt-4 max-w-lg text-pretty text-base leading-relaxed">
-                        In-depth reporting on product transparency, EU regulation, and the fight against greenwashing.
-                    </p>
-                </motion.div>
-            </section>
+            <header className="mx-auto mb-10 max-w-5xl px-6">
+                <p className="text-muted-foreground mb-4 text-xs font-medium uppercase tracking-[0.25em]">Journal</p>
+                <h1 className="text-foreground text-balance text-4xl font-bold tracking-tight sm:text-5xl">
+                    Le journal LUMIRIS
+                </h1>
+                <p className="text-muted-foreground mt-4 max-w-xl text-pretty text-base leading-relaxed">
+                    Décryptages réglementaires (DPP, ESPR, AGEC), portraits d’artisans, savoir-faire et entretien des
+                    pièces. Pour comprendre la filière textile française avant la loi.
+                </p>
+            </header>
 
-            <section className="mx-auto mb-20 max-w-5xl px-6">
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                    {featured.map((article) => (
-                        <FeaturedCard key={article.slug} article={article} />
-                    ))}
-                </div>
+            <section className="mx-auto mb-10 max-w-5xl px-6">
+                <Tabs
+                    value={filter}
+                    onValueChange={(v) => setFilter(v as FilterValue)}
+                    aria-label="Catégories du journal"
+                >
+                    <TabsList className="flex h-auto w-full flex-wrap justify-start">
+                        <TabsTrigger value="all">Tous</TabsTrigger>
+                        {PUBLIC_CATEGORIES.map((cat) => (
+                            <TabsTrigger key={cat} value={cat}>
+                                {CATEGORY_LABEL[cat]}
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+                </Tabs>
             </section>
 
             <section className="mx-auto max-w-5xl px-6">
-                <div className="mb-8 flex flex-wrap items-center gap-2">
-                    {categories.map((cat) => (
-                        <button
-                            key={cat}
-                            onClick={() => setActiveCategory(cat)}
-                            className={`rounded-lg px-3.5 py-1.5 text-sm transition-colors duration-200 ${
-                                activeCategory === cat
-                                    ? 'bg-foreground text-background font-medium'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                            }`}
-                        >
-                            {cat}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="flex flex-col">
-                    {filteredRest.length === 0 && (
-                        <p className="text-muted-foreground py-8 text-center text-sm">
-                            No articles in this category yet.
-                        </p>
-                    )}
-                    {filteredRest.map((article, i) => (
-                        <ArticleCard key={article.slug} article={article} index={i} />
-                    ))}
-                </div>
+                {visible.length === 0 ? (
+                    <p className="text-muted-foreground py-12 text-center text-sm">
+                        Aucun article dans cette catégorie pour l’instant.
+                    </p>
+                ) : (
+                    <>
+                        {featured ? (
+                            <div className="mb-8">
+                                <ArticleCard article={featured} index={0} featured />
+                            </div>
+                        ) : null}
+                        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                            {rest.map((article, i) => (
+                                <ArticleCard key={article.slug} article={article} index={i + 1} />
+                            ))}
+                        </div>
+                    </>
+                )}
             </section>
         </div>
     );

@@ -1,0 +1,215 @@
+import type { ConsumerProfile } from '@lumiris/types';
+
+// vision users — Garde-Robe + Iris Scanner ; admin ne voit jamais les anon individuellement (RGPD)
+
+export interface MockRgpdRequest {
+    /** Type RGPD attendu côté DPO. */
+    kind: 'export' | 'erase';
+    requestedAt: string;
+    status: 'pending' | 'completed';
+}
+
+export interface MockVisionUser extends ConsumerProfile {
+    /** Optionnelle — uniquement quand le user accepte de partager sa ville. */
+    city?: string;
+    rgpdRequests?: readonly MockRgpdRequest[];
+    /** Marqueur d'anonymisation post-effacement RGPD. */
+    erased?: boolean;
+}
+
+export const mockVisionUsers: readonly MockVisionUser[] = [
+    {
+        id: 'VIS-001',
+        role: 'consumer',
+        email: 'juliette.brunel@gmail.com',
+        name: 'Juliette',
+        anon: false,
+        createdAt: '2025-09-12T08:00:00Z',
+        lastSeenAt: '2026-04-29T19:30:00Z',
+        wardrobePassportIds: ['pass-marie-001', 'pass-claire-001', 'pass-amelie-001'],
+        scansCount: 14,
+        consentNewsletter: true,
+        consentAffiliation: true,
+        city: 'Paris',
+    },
+    {
+        id: 'VIS-002',
+        role: 'consumer',
+        email: 'antoine.daviau@protonmail.com',
+        name: 'Antoine',
+        anon: false,
+        createdAt: '2025-11-04T08:00:00Z',
+        lastSeenAt: '2026-04-30T08:12:00Z',
+        wardrobePassportIds: ['pass-paul-001', 'pass-theo-001'],
+        scansCount: 7,
+        consentNewsletter: false,
+        consentAffiliation: true,
+        city: 'Lyon',
+    },
+    {
+        id: 'VIS-003',
+        role: 'consumer',
+        email: 'sami.larbi@hotmail.fr',
+        name: 'Sami',
+        anon: false,
+        createdAt: '2026-01-22T08:00:00Z',
+        lastSeenAt: '2026-04-28T22:45:00Z',
+        wardrobePassportIds: ['pass-leila-001'],
+        scansCount: 3,
+        consentNewsletter: true,
+        consentAffiliation: false,
+        city: 'Marseille',
+    },
+    {
+        id: 'VIS-007',
+        role: 'consumer',
+        email: 'erased-vis-007@anon.lumiris',
+        name: 'Anonymisé',
+        anon: false,
+        createdAt: '2025-04-08T08:00:00Z',
+        lastSeenAt: '2026-04-12T09:00:00Z',
+        wardrobePassportIds: [],
+        scansCount: 0,
+        consentNewsletter: false,
+        consentAffiliation: false,
+        erased: true,
+        rgpdRequests: [{ kind: 'erase', requestedAt: '2026-04-12T09:00:00Z', status: 'completed' }],
+    },
+    {
+        id: 'VIS-014',
+        role: 'consumer',
+        email: 'anais.rouzeau@gmail.com',
+        name: 'Anaïs',
+        anon: false,
+        createdAt: '2025-12-10T08:00:00Z',
+        lastSeenAt: '2026-04-25T12:00:00Z',
+        wardrobePassportIds: ['pass-marie-001', 'pass-marie-002', 'pass-jules-001', 'pass-romain-001'],
+        scansCount: 21,
+        consentNewsletter: true,
+        consentAffiliation: true,
+        city: 'Bordeaux',
+        rgpdRequests: [{ kind: 'export', requestedAt: '2026-04-26T10:00:00Z', status: 'pending' }],
+    },
+    {
+        id: 'VIS-022',
+        role: 'consumer',
+        email: 'bruno.lacombe@orange.fr',
+        name: 'Bruno',
+        anon: false,
+        createdAt: '2025-07-18T08:00:00Z',
+        lastSeenAt: '2026-04-30T07:00:00Z',
+        wardrobePassportIds: ['pass-paul-001', 'pass-laurens-001'],
+        scansCount: 11,
+        consentNewsletter: false,
+        consentAffiliation: true,
+        city: 'Paris',
+    },
+    {
+        id: 'VIS-031',
+        role: 'consumer',
+        email: 'lina.martin@laposte.net',
+        name: 'Lina',
+        anon: false,
+        createdAt: '2026-02-04T08:00:00Z',
+        lastSeenAt: '2026-04-29T20:15:00Z',
+        wardrobePassportIds: ['pass-claire-001'],
+        scansCount: 5,
+        consentNewsletter: true,
+        consentAffiliation: true,
+        city: 'Lille',
+    },
+    {
+        id: 'VIS-039',
+        role: 'consumer',
+        email: 'hugo.bertrand@yahoo.fr',
+        name: 'Hugo',
+        anon: false,
+        createdAt: '2025-10-30T08:00:00Z',
+        lastSeenAt: '2026-04-30T08:50:00Z',
+        wardrobePassportIds: ['pass-theo-002', 'pass-paul-001', 'pass-amelie-001'],
+        scansCount: 18,
+        consentNewsletter: true,
+        consentAffiliation: true,
+        city: 'Lyon',
+        rgpdRequests: [{ kind: 'export', requestedAt: '2026-04-29T11:18:00Z', status: 'completed' }],
+    },
+    {
+        id: 'VIS-051',
+        role: 'consumer',
+        email: 'eva.gosselin@gmail.com',
+        name: 'Eva',
+        anon: false,
+        createdAt: '2026-03-15T08:00:00Z',
+        lastSeenAt: '2026-04-28T14:00:00Z',
+        wardrobePassportIds: ['pass-jules-001'],
+        scansCount: 2,
+        consentNewsletter: false,
+        consentAffiliation: false,
+        city: 'Quimper',
+    },
+    {
+        id: 'VIS-064',
+        role: 'consumer',
+        email: 'samir.adda@gmail.com',
+        name: 'Samir',
+        anon: false,
+        createdAt: '2025-06-04T08:00:00Z',
+        lastSeenAt: '2026-04-30T06:32:00Z',
+        wardrobePassportIds: ['pass-marie-001', 'pass-pauline-001', 'pass-leila-001', 'pass-claire-001'],
+        scansCount: 27,
+        consentNewsletter: true,
+        consentAffiliation: true,
+        city: 'Paris',
+    },
+
+    // anon — jamais listés individuellement (RGPD)
+    {
+        id: 'VIS-A-001',
+        role: 'consumer',
+        anon: true,
+        createdAt: '2026-04-29T18:00:00Z',
+        lastSeenAt: '2026-04-29T18:14:00Z',
+        wardrobePassportIds: [],
+        scansCount: 1,
+        consentAffiliation: false,
+    },
+    {
+        id: 'VIS-A-002',
+        role: 'consumer',
+        anon: true,
+        createdAt: '2026-04-30T07:00:00Z',
+        lastSeenAt: '2026-04-30T07:08:00Z',
+        wardrobePassportIds: [],
+        scansCount: 1,
+        consentAffiliation: false,
+    },
+    {
+        id: 'VIS-A-003',
+        role: 'consumer',
+        anon: true,
+        createdAt: '2026-04-29T22:00:00Z',
+        lastSeenAt: '2026-04-29T22:01:00Z',
+        wardrobePassportIds: [],
+        scansCount: 1,
+        consentAffiliation: false,
+    },
+    {
+        id: 'VIS-A-004',
+        role: 'consumer',
+        anon: true,
+        createdAt: '2026-04-30T08:30:00Z',
+        lastSeenAt: '2026-04-30T08:32:00Z',
+        wardrobePassportIds: [],
+        scansCount: 1,
+        consentAffiliation: false,
+    },
+];
+
+export function mockVisionUserById(id: string): MockVisionUser | undefined {
+    return mockVisionUsers.find((u) => u.id === id);
+}
+
+/** Compte d'utilisateurs avec compte (anon=false). Sert au panel agrégé du module Vision Users. */
+export function visionUsersWithAccount(): readonly MockVisionUser[] {
+    return mockVisionUsers.filter((u) => !u.anon);
+}

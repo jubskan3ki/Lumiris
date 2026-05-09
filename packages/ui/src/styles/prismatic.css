@@ -44,22 +44,17 @@
     --lumiris-emerald: oklch(55% 0.18 160deg);
     --lumiris-cyan: oklch(60% 0.13 195deg);
     --lumiris-amber: oklch(72% 0.16 85deg);
+    --lumiris-orange: oklch(62% 0.18 50deg);
     --lumiris-rose: oklch(55% 0.2 15deg);
     --lumiris-surface: oklch(100% 0 0deg);
     --lumiris-surface-raised: oklch(98% 0.002 260deg);
 
-    /*
-   * Iris Grade colour scale — the ONLY place a grade letter is mapped to
-   * a colour. Apps must reach for these via Tailwind's `text-grade-*`,
-   * `bg-grade-*` and `border-grade-*` utilities (or the IrisGrade
-   * component in @lumiris/scoring-ui), never via inline literals.
-   */
-    --grade-a-plus: oklch(55% 0.18 160deg);
-    --grade-a: oklch(55% 0.18 160deg);
-    --grade-b: oklch(60% 0.13 195deg);
-    --grade-c: oklch(72% 0.16 85deg);
-    --grade-d: oklch(62% 0.18 50deg);
-    --grade-e: oklch(55% 0.2 15deg);
+    /* Iris Grade A→E — accès via <IrisGrade>/<ScoreBreakdown> ou utilitaires `text-iris-grade-*` */
+    --iris-grade-a: oklch(55% 0.18 160deg);
+    --iris-grade-b: oklch(60% 0.13 195deg);
+    --iris-grade-c: oklch(72% 0.16 85deg);
+    --iris-grade-d: oklch(62% 0.18 50deg);
+    --iris-grade-e: oklch(55% 0.2 15deg);
 }
 
 @theme {
@@ -104,15 +99,15 @@
     --color-lumiris-emerald: var(--lumiris-emerald);
     --color-lumiris-cyan: var(--lumiris-cyan);
     --color-lumiris-amber: var(--lumiris-amber);
+    --color-lumiris-orange: var(--lumiris-orange);
     --color-lumiris-rose: var(--lumiris-rose);
     --color-lumiris-surface: var(--lumiris-surface);
     --color-lumiris-surface-raised: var(--lumiris-surface-raised);
-    --color-grade-a-plus: var(--grade-a-plus);
-    --color-grade-a: var(--grade-a);
-    --color-grade-b: var(--grade-b);
-    --color-grade-c: var(--grade-c);
-    --color-grade-d: var(--grade-d);
-    --color-grade-e: var(--grade-e);
+    --color-iris-grade-a: var(--iris-grade-a);
+    --color-iris-grade-b: var(--iris-grade-b);
+    --color-iris-grade-c: var(--iris-grade-c);
+    --color-iris-grade-d: var(--iris-grade-d);
+    --color-iris-grade-e: var(--iris-grade-e);
     --color-glass: oklch(100% 0 0deg / 70%);
 }
 
@@ -175,9 +170,7 @@
     }
 }
 
-/* Prismatic gradient — shared brand surface used in mobile/web hero spots.
- * The animated shimmer is the original web treatment; admin/mobile inherit it
- * harmlessly since the gradient still resolves to the same colors at rest. */
+/* Prismatic gradient — surface brand partagée mobile/web ; shimmer hérité par admin/mobile sans dommage */
 .prismatic-bg {
     background: linear-gradient(
         135deg,
@@ -271,7 +264,7 @@ html {
     }
 }
 
-@keyframes grade-a-glow {
+@keyframes iris-grade-a-glow {
     0%,
     100% {
         box-shadow: 0 0 0 0 oklch(55% 0.18 160deg / 0%);

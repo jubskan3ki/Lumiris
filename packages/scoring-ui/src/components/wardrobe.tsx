@@ -6,25 +6,25 @@ import type { IrisGrade as IrisGradeLetter } from '@lumiris/types';
 import { cn } from '@lumiris/ui/lib/cn';
 import { gradeBackgroundSolid, gradeColor } from '../theme/grade-color';
 
-export interface WardrobeItem {
+/** Item Garde-Robe — projection Passport ou fallback manuel injecté par le caller. */
+export interface WardrobeCardItem {
     id: string;
     name: string;
     brand: string;
     grade: IrisGradeLetter;
-    /** 0–100. Drives the secondary copy and the bar fill. */
+    /** 0–100 — drives the bar fill. */
     score: number;
-    /** Optional metadata rendered when present. */
     price?: number;
     currencySymbol?: string;
+    /** Présent quand l'item provient d'un Passport. */
+    passportId?: string;
 }
 
 export interface WardrobeProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onSelect'> {
-    items: readonly WardrobeItem[];
-    /** Single-row marketing variant — mobile vault uses the default 2-col grid. */
+    items: readonly WardrobeCardItem[];
+    /** `compact` = ligne marketing horizontale, `cozy` = grille 2 colonnes (default). */
     density?: 'compact' | 'cozy';
-    /** When set, an item click reports back. */
-    onSelect?: (item: WardrobeItem) => void;
-    /** Compare-mode plumbing — selection is owned by the caller. */
+    onSelect?: (item: WardrobeCardItem) => void;
     selectedIds?: readonly string[];
     selectionLabel?: ReactNode;
 }
@@ -34,7 +34,6 @@ const DENSITY_GRID: Record<NonNullable<WardrobeProps['density']>, string> = {
     cozy: 'grid grid-cols-2 gap-3',
 };
 
-// Per-grade colour comes from the canonical grade-color helper — no per-app GRADE_CONFIG.
 export function Wardrobe({
     items,
     density = 'cozy',
@@ -63,9 +62,9 @@ export function Wardrobe({
 }
 
 interface WardrobeCardProps {
-    item: WardrobeItem;
+    item: WardrobeCardItem;
     isSelected: boolean;
-    onSelect?: (item: WardrobeItem) => void;
+    onSelect?: (item: WardrobeCardItem) => void;
 }
 
 function WardrobeCard({ item, isSelected, onSelect }: WardrobeCardProps) {
@@ -73,8 +72,8 @@ function WardrobeCard({ item, isSelected, onSelect }: WardrobeCardProps) {
     const Tag = selectable ? 'button' : 'div';
 
     const animation: CSSProperties =
-        item.grade === 'A' || item.grade === 'A+'
-            ? { animation: 'grade-a-glow 3s ease-in-out infinite' }
+        item.grade === 'A'
+            ? { animation: 'iris-grade-a-glow 3s ease-in-out infinite' }
             : item.grade === 'E'
               ? { filter: 'saturate(0.4) brightness(0.95)' }
               : {};

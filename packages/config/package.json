@@ -37,6 +37,14 @@
         "stylelint-config-tailwindcss": "^1.0.0",
         "typescript-eslint": "^8.59.0"
     },
+    "peerDependencies": {
+        "next": "^16.2.4"
+    },
+    "peerDependenciesMeta": {
+        "next": {
+            "optional": true
+        }
+    },
     "devDependencies": {
         "typescript": "^5.7.3"
     }

@@ -1,22 +1,33 @@
-export type UserRole = 'auditor' | 'lead_auditor' | 'content_manager' | 'admin' | 'consumer';
+// identités côté consumer — back-office utilise AdminUserRole (cf. admin-rbac.ts)
+
+export type UserRole = 'consumer' | 'artisan' | 'admin';
 
 export interface User {
     id: string;
-    email: string;
-    name: string;
+    /** Optionnel pour les consumers anonymes (Vision pré-auth). */
+    email?: string;
     role: UserRole;
+    name?: string;
     avatar?: string;
+    anon?: boolean;
     createdAt: string;
     lastSeenAt?: string;
 }
 
-export interface AuditorProfile extends User {
-    role: 'auditor' | 'lead_auditor';
-    verifiedDPPs: number;
-    flaggedAnomalies: number;
-}
-
 export interface ConsumerProfile extends User {
     role: 'consumer';
-    scannedProducts: string[];
+    /** Garde-Robe : IDs des passeports scannés / sauvegardés. */
+    wardrobePassportIds: readonly string[];
+    scansCount: number;
+    consentNewsletter?: boolean;
+    consentAffiliation?: boolean;
+}
+
+export interface ArtisanProfile extends User {
+    role: 'artisan';
+    artisanId: string;
+}
+
+export interface AdminProfile extends User {
+    role: 'admin';
 }

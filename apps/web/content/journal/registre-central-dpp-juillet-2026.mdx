@@ -1,0 +1,49 @@
+export const meta = {
+    slug: 'registre-central-dpp-juillet-2026',
+    title: 'Registre central DPP : ce qui se passe le 19 juillet 2026',
+    category: 'reglementation',
+    author: 'Claire Dubois',
+    publishedAt: '2026-04-18',
+    readingTime: 6,
+    excerpt:
+        'Le 19 juillet 2026, la Commission européenne ouvre le registre central des Digital Product Passports. Détail du fonctionnement et des obligations qu’il crée.',
+    coverImage: 'https://placehold.co/1200x630/png?text=Registre+DPP+UE',
+};
+
+# Registre central DPP : 19 juillet 2026
+
+Le registre central DPP, prévu par l’article 9 de l’ESPR, est l’infrastructure qui rendra interopérables tous les passeports numériques européens. Il ouvre le **19 juillet 2026**.
+
+## À quoi sert le registre
+
+Il publie l’URL canonique d’un passeport — quel que soit l’émetteur — sous une identité GS1 unique. Trois fonctions principales :
+
+- **Index** : tout passeport DPP doit y déclarer son URL canonique
+- **Vérification** : un consommateur, un revendeur ou une autorité peut interroger le registre pour confirmer qu’un QR code pointe vers une source légitime
+- **Archivage** : sept ans minimum après la dernière mise à jour
+
+## Ce que ça change pour les artisans
+
+Pas grand-chose, en réalité. Le registre est alimenté **automatiquement** par les plateformes émettrices de passeports — LUMIRIS y déclare vos passeports dès qu’ils passent en `Published`. Vous n’avez aucune action manuelle à effectuer.
+
+En revanche, il devient possible pour un acheteur professionnel de filtrer ses fournisseurs potentiels sur la **présence** d’un passeport au registre — ce qui rend la publication anticipée commercialement utile.
+
+## Le format GS1 Digital Link
+
+Chaque passeport est identifié par un GS1 Digital Link composé de :
+
+- **GTIN-14** — l’identifiant produit
+- **Numéro de lot ou de série**
+- **URL de vérification** — résolue par le registre
+
+Le QR code que LUMIRIS imprime sur l’étiquette de la pièce encode directement ce Digital Link. Il fonctionne dans toutes les apps de scan compatibles GS1, y compris celles de la grande distribution.
+
+## L’interopérabilité, en pratique
+
+Un passeport LUMIRIS pourra être affiché tel quel par :
+
+- une marque revendeur (sur sa propre fiche produit)
+- un acteur du seconde main (Vinted, Le Bon Coin, Vestiaire Collective)
+- une plateforme d’éco-organisme (Refashion)
+
+Sans renégocier ni reformuler. C’est l’intérêt d’un format ouvert, déclaré au registre central.

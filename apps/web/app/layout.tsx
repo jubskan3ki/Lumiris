@@ -15,13 +15,34 @@ const geistMono = Geist_Mono({
     variable: '--font-geist-mono',
 });
 
+const SITE_URL = 'https://lumiris.fr';
+const TITLE_DEFAULT = 'LUMIRIS — Le passeport numérique du textile artisanal français';
+const DESCRIPTION =
+    "LUMIRIS publie le passeport numérique de chaque pièce d'artisan textile français : matières, étapes, lieu, score Iris. Aucun acteur n'achète son score.";
+
 export const metadata: Metadata = {
+    metadataBase: new URL(SITE_URL),
     title: {
-        default: 'LUMIRIS — Product Transparency, Reimagined',
-        template: '%s | LUMIRIS',
+        default: TITLE_DEFAULT,
+        template: '%s · LUMIRIS',
     },
-    description:
-        "LUMIRIS audits product data to give you an independent transparency score from A to E. Don't believe the label. See the truth.",
+    description: DESCRIPTION,
+    alternates: {
+        canonical: '/',
+    },
+    openGraph: {
+        type: 'website',
+        locale: 'fr_FR',
+        url: SITE_URL,
+        siteName: 'LUMIRIS',
+        title: TITLE_DEFAULT,
+        description: DESCRIPTION,
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: TITLE_DEFAULT,
+        description: DESCRIPTION,
+    },
 };
 
 export const viewport: Viewport = {
@@ -36,7 +57,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" className={`${inter.variable} ${geistMono.variable} bg-background`}>
+        <html lang="fr" className={`${inter.variable} ${geistMono.variable} bg-background`}>
             <body className="font-sans antialiased">
                 <WebVitals />
                 <Header />

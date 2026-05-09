@@ -1,19 +1,24 @@
 'use client';
 
 import { useMemo, type HTMLAttributes } from 'react';
-import { MANDATORY_DPP_FIELDS } from '@lumiris/core/constants';
-import type { DPPRecord } from '@lumiris/types';
+import { AGEC_REQUIRED_FIELDS, ESPR_REQUIRED_FIELDS, checkCaps } from '@lumiris/core/scoring';
+import type { Passport } from '@lumiris/types';
 import { cn } from '@lumiris/ui/lib/cn';
 
 export interface MissingFieldsBadgeProps extends HTMLAttributes<HTMLSpanElement> {
-    dpp: DPPRecord;
+    passport: Passport;
     /** When true, renders the 0/N counter even at zero missing — useful in tables. */
     showWhenComplete?: boolean;
 }
 
-// Derives the count from MANDATORY_DPP_FIELDS, not from dpp.missingFields (which can drift).
-export function MissingFieldsBadge({ dpp, showWhenComplete = false, className, ...rest }: MissingFieldsBadgeProps) {
-    const { missing, total } = useMemo(() => computeMissing(dpp), [dpp]);
+// compteur dérivé du même checkCaps que le scoring — badge lock-step avec le grade
+export function MissingFieldsBadge({
+    passport,
+    showWhenComplete = false,
+    className,
+    ...rest
+}: MissingFieldsBadgeProps) {
+    const { missing, total } = useMemo(() => computeMissing(passport), [passport]);
 
     if (missing === 0 && !showWhenComplete) return null;
 
@@ -33,8 +38,8 @@ export function MissingFieldsBadge({ dpp, showWhenComplete = false, className, .
             )}
             title={
                 missing === 0
-                    ? 'All EU ESPR mandatory fields present'
-                    : `${missing} mandatory field${missing > 1 ? 's' : ''} missing`
+                    ? 'Tous les champs ESPR / AGEC obligatoires sont renseignés'
+                    : `${missing} champ${missing > 1 ? 's' : ''} obligatoire${missing > 1 ? 's' : ''} manquant${missing > 1 ? 's' : ''}`
             }
             {...rest}
         >
@@ -43,12 +48,8 @@ export function MissingFieldsBadge({ dpp, showWhenComplete = false, className, .
     );
 }
 
-function computeMissing(dpp: DPPRecord): { missing: number; total: number } {
-    const raw = (dpp.rawData ?? {}) as Record<string, unknown>;
-    let missing = 0;
-    for (const field of MANDATORY_DPP_FIELDS) {
-        const value = raw[field];
-        if (value === null || value === undefined || value === '') missing += 1;
-    }
-    return { missing, total: MANDATORY_DPP_FIELDS.length };
+function computeMissing(passport: Passport): { missing: number; total: number } {
+    const decision = checkCaps(passport);
+    const total = ESPR_REQUIRED_FIELDS.length + AGEC_REQUIRED_FIELDS.length;
+    return { missing: decision.missingFields.length, total };
 }

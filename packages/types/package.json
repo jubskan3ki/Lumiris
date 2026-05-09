@@ -2,17 +2,25 @@
     "name": "@lumiris/types",
     "version": "0.1.0",
     "private": true,
-    "description": "Unified TypeScript definitions for DPP, Scores, Users, and the LUMIRIS audit domain.",
+    "description": "Types canoniques LUMIRIS : ArtisanPassport, IrisScore (40/25/25/10), Artisan, Retoucheur, Certification, SupplierInvoice, User, Journal, Regulatory.",
     "type": "module",
     "main": "./src/index.ts",
     "types": "./src/index.ts",
     "exports": {
         ".": "./src/index.ts",
-        "./dpp": "./src/dpp.ts",
+        "./passport": "./src/passport.ts",
+        "./artisan": "./src/artisan.ts",
+        "./retoucheur": "./src/retoucheur.ts",
+        "./certificate": "./src/certificate.ts",
+        "./invoice": "./src/invoice.ts",
         "./score": "./src/score.ts",
         "./user": "./src/user.ts",
+        "./wardrobe": "./src/wardrobe.ts",
         "./journal": "./src/journal.ts",
-        "./regulatory": "./src/regulatory.ts"
+        "./regulatory": "./src/regulatory.ts",
+        "./pricing": "./src/pricing.ts",
+        "./iris-display": "./src/iris-display.ts",
+        "./admin-rbac": "./src/admin-rbac.ts"
     },
     "scripts": {
         "lint": "eslint src",

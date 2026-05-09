@@ -1,20 +1,34 @@
 'use client';
 
-import type { HTMLAttributes } from 'react';
+import type { ComponentType, HTMLAttributes } from 'react';
+import { AlertCircle, AlertTriangle, Info } from 'lucide-react';
+import type { ScoreReason } from '@lumiris/types';
 import { cn } from '@lumiris/ui/lib/cn';
+import { AXIS_COLOR, AXIS_LABEL } from '../theme/grade-color';
 
 export interface ScoreReasonsListProps extends HTMLAttributes<HTMLUListElement> {
-    reasons: readonly string[];
-    /** Optional cap on rendered items; remainder collapsed into a counter. */
+    reasons: readonly ScoreReason[];
+    /** Cap on rendered items; remainder collapsed into a counter. */
     limit?: number;
     emptyLabel?: string;
 }
 
-// No I18n here — callers translate `reasons` before passing in.
+const SEVERITY_ICON: Record<ScoreReason['severity'], ComponentType<{ className?: string }>> = {
+    info: Info,
+    warn: AlertTriangle,
+    error: AlertCircle,
+};
+
+const SEVERITY_TEXT_CLASS: Record<ScoreReason['severity'], string> = {
+    info: 'text-muted-foreground',
+    warn: 'text-lumiris-amber',
+    error: 'text-lumiris-rose',
+};
+
 export function ScoreReasonsList({
     reasons,
     limit,
-    emptyLabel = 'No issues detected.',
+    emptyLabel = 'Aucun motif détecté.',
     className,
     ...rest
 }: ScoreReasonsListProps) {
@@ -26,14 +40,26 @@ export function ScoreReasonsList({
     const overflow = limit ? Math.max(0, reasons.length - limit) : 0;
 
     return (
-        <ul className={cn('text-muted-foreground space-y-1 text-sm', className)} {...rest}>
-            {visible.map((reason, i) => (
-                <li key={`${i}-${reason}`} className="flex gap-2">
-                    <span aria-hidden className="bg-lumiris-amber mt-1 h-1 w-1 shrink-0 rounded-full" />
-                    <span>{reason}</span>
-                </li>
-            ))}
-            {overflow > 0 ? <li className="pl-3 text-xs italic">+ {overflow} more</li> : null}
+        <ul className={cn('space-y-1.5 text-sm', className)} {...rest}>
+            {visible.map((reason, i) => {
+                const Icon = SEVERITY_ICON[reason.severity];
+                const axisColor = `text-${AXIS_COLOR[reason.axis]}`;
+                return (
+                    <li key={`${i}-${reason.axis}-${reason.message}`} className="flex items-start gap-2">
+                        <Icon
+                            className={cn('mt-0.5 h-3.5 w-3.5 shrink-0', SEVERITY_TEXT_CLASS[reason.severity])}
+                            aria-hidden
+                        />
+                        <div className="min-w-0 flex-1">
+                            <span className={cn('mr-2 text-[10px] font-semibold uppercase tracking-wider', axisColor)}>
+                                {AXIS_LABEL[reason.axis]}
+                            </span>
+                            <span className="text-foreground">{reason.message}</span>
+                        </div>
+                    </li>
+                );
+            })}
+            {overflow > 0 ? <li className="text-muted-foreground pl-5 text-xs italic">+ {overflow} de plus</li> : null}
         </ul>
     );
 }

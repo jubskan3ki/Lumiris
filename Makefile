@@ -3,6 +3,20 @@ SHELL := sh.exe
 .SHELLFLAGS := -c
 else
 SHELL := /bin/bash
+# Make spawns non-interactive shells that don't source ~/.zshrc / ~/.bashrc,
+# so the Bun installer's PATH export is invisible to recipes. Resolve a dir
+# containing a real `bun` binary in this order: BUN_INSTALL override > the
+# Bun installer default ($HOME/.bun) > nothing (rely on ambient PATH, e.g.
+# system-wide install). Then prepend it so every target sees it.
+BUN_INSTALL ?= $(HOME)/.bun
+ifneq (,$(wildcard $(BUN_INSTALL)/bin/bun))
+BUN_BINDIR := $(BUN_INSTALL)/bin
+else ifneq (,$(wildcard $(HOME)/.bun/bin/bun))
+BUN_BINDIR := $(HOME)/.bun/bin
+endif
+ifdef BUN_BINDIR
+export PATH := $(BUN_BINDIR):$(PATH)
+endif
 endif
 .DEFAULT_GOAL := help
 
@@ -12,15 +26,29 @@ export
 endif
 
 ENV         ?= dev
-BUN         ?= bun
+# Resolve BUN: a user override is honored only if it's actually executable,
+# otherwise we fall back to BUN_BINDIR/bun (resolved above) or plain `bun`
+# from the ambient PATH. Stops `BUN=/wrong/path make lint` from blowing up.
+ifdef BUN_BINDIR
+BUN_FALLBACK := $(BUN_BINDIR)/bun
+else
+BUN_FALLBACK := bun
+endif
+ifndef BUN
+BUN := $(BUN_FALLBACK)
+else ifeq (,$(shell command -v $(BUN) 2>/dev/null))
+$(warning [make] BUN=$(BUN) introuvable — fallback sur $(BUN_FALLBACK))
+override BUN := $(BUN_FALLBACK)
+endif
 TURBO       ?= $(BUN) x turbo
 NODE_ENV    ?= development
 
-ADMIN_DIR   := apps/admin
-WEB_DIR     := apps/web
-MOBILE_DIR  := apps/mobile
-UI_DIR      := packages/ui
-CORE_DIR    := packages/core
+ADMIN_DIR    := apps/admin
+CLIENT_DIR   := apps/client
+WEB_DIR      := apps/web
+MOBILE_DIR   := apps/mobile
+UI_DIR       := packages/ui
+CORE_DIR     := packages/core
 
 ##@ Help
 
@@ -64,6 +92,10 @@ dev-web: ## Site public uniquement (port 3000)
 dev-mobile: ## Vue mobile uniquement (port 3002)
 	$(BUN) run dev:mobile
 
+.PHONY: dev-client
+dev-client: ## Workspace artisan B2B uniquement (port 3003)
+	$(BUN) run dev:client
+
 ##@ Build - production builds
 
 .PHONY: build
@@ -81,6 +113,14 @@ build-web: ## Build web seulement
 .PHONY: build-mobile
 build-mobile: ## Build mobile seulement
 	$(TURBO) run build --filter=@lumiris/mobile
+
+.PHONY: build-client
+build-client: ## Build client seulement
+	$(TURBO) run build --filter=@lumiris/client
+
+.PHONY: check-client
+check-client: ## Lint + typecheck sur client seulement
+	$(TURBO) run lint typecheck --filter=@lumiris/client
 
 .PHONY: start
 start: ## Démarre tous les apps en mode prod
@@ -264,10 +304,10 @@ GIT_SHA       := $(shell git rev-parse --short HEAD 2>/dev/null || echo dev)
 IMAGE_TAG     ?= $(GIT_SHA)
 GHCR_OWNER    ?= lumiris
 REGISTRY      ?= ghcr.io
-APPS          := admin web mobile api
+APPS          := admin client web mobile api
 
 .PHONY: docker-build
-docker-build: ## Build les 4 images (admin, web, mobile, api) — IMAGE_TAG=<sha>
+docker-build: ## Build les 5 images (admin, client, web, mobile, api) — IMAGE_TAG=<sha>
 	@for app in $(APPS); do \
 	  echo "[docker-build] $$app:$(IMAGE_TAG)"; \
 	  docker build \
@@ -277,12 +317,12 @@ docker-build: ## Build les 4 images (admin, web, mobile, api) — IMAGE_TAG=<sha
 	done
 
 .PHONY: docker-build-app
-docker-build-app: ## Build une seule image (APP=admin|web|mobile|api)
-	@test -n "$(APP)" || { echo "Usage: APP=<admin|web|mobile|api> make docker-build-app"; exit 1; }
+docker-build-app: ## Build une seule image (APP=admin|client|web|mobile|api)
+	@test -n "$(APP)" || { echo "Usage: APP=<admin|client|web|mobile|api> make docker-build-app"; exit 1; }
 	docker build -f apps/$(APP)/Dockerfile -t $(REGISTRY)/$(GHCR_OWNER)/$(APP):$(IMAGE_TAG) .
 
 .PHONY: docker-push
-docker-push: ## Pousse les 4 images vers GHCR (login préalable requis)
+docker-push: ## Pousse les 5 images vers GHCR (login préalable requis)
 	@for app in $(APPS); do \
 	  docker push $(REGISTRY)/$(GHCR_OWNER)/$$app:$(IMAGE_TAG) || exit 1; \
 	done
@@ -311,7 +351,7 @@ stack-ps: ## Liste les services en cours
 ##@ Deploy - zero-downtime sur le VPS
 
 HEALTH_TIMEOUT ?= 240
-DEPLOY_SVCS    ?= admin web mobile api
+DEPLOY_SVCS    ?= admin client web mobile api
 
 .PHONY: deploy-zd
 deploy-zd: ## Zero-downtime deploy (IMAGE_TAG=<sha>) — scale +1 → wait healthy → scale -1

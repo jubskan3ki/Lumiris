@@ -1,13 +1,17 @@
 import { Hero } from '@/features/hero';
-import { PillarsPreview } from '@/features/pillars-preview';
-import { RecentScans } from '@/features/recent-scans';
+import { IrisPillars } from '@/features/iris-pillars';
+import { FeaturedPassports } from '@/features/featured-passports';
+import { Personas } from '@/features/personas';
+import { RegulatoryTimeline } from '@/features/regulatory-timeline';
 
 export default function Home() {
     return (
         <>
             <Hero />
-            <PillarsPreview />
-            <RecentScans />
+            <IrisPillars />
+            <FeaturedPassports />
+            <Personas />
+            <RegulatoryTimeline />
         </>
     );
 }

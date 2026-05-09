@@ -2,15 +2,14 @@
     "name": "@lumiris/core",
     "version": "0.1.0",
     "private": true,
-    "description": "LUMIRIS business logic — the canonical 50/30/20 transparency Scoring Algorithm and audit primitives. Identical on admin, web, and mobile.",
+    "description": "LUMIRIS business logic — algorithme Iris Score 40/25/25/10 (transparence / savoir-faire / impact / réparabilité). Pur, déterministe, identique sur admin / web / mobile / Tauri.",
     "type": "module",
     "main": "./src/index.ts",
     "types": "./src/index.ts",
     "exports": {
         ".": "./src/index.ts",
         "./scoring": "./src/scoring/index.ts",
-        "./grade": "./src/scoring/grade.ts",
-        "./constants": "./src/constants.ts"
+        "./constants": "./src/scoring/constants.ts"
     },
     "scripts": {
         "lint": "eslint src",

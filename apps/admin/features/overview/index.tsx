@@ -2,21 +2,16 @@
 
 import { memo, useMemo } from 'react';
 import { motion, type Variants } from 'framer-motion';
-import { ListChecks, ShieldCheck, BarChart3, FileEdit, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { computeScore } from '@lumiris/core';
-import { mockKpi as kpiData } from '@lumiris/mock-data/kpi';
-import { mockDpps as dppRecords } from '@lumiris/mock-data/dpp';
-import { mockCertificates } from '@lumiris/mock-data/certificates';
-import { mockTeamActivity as teamActivity } from '@lumiris/mock-data/team';
-import { mockJournalArticles as journalArticles } from '@lumiris/mock-data/journal';
+import { ArrowDownRight, ArrowUpRight, BarChart3, Coins, FileText, Sparkles, Store } from 'lucide-react';
+import { computeScore } from '@lumiris/core/scoring';
+import { mockArtisans, mockPassports } from '@lumiris/mock-data';
+import type { Artisan, ArtisanTier, IrisGrade } from '@lumiris/types';
 import { cn } from '@lumiris/ui/lib/cn';
+import { useAdminAuditLog } from '@/lib/auth';
 
 const containerAnim: Variants = {
     hidden: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: { staggerChildren: 0.08 },
-    },
+    show: { opacity: 1, transition: { staggerChildren: 0.08 } },
 };
 
 const itemAnim: Variants = {
@@ -24,69 +19,126 @@ const itemAnim: Variants = {
     show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
 };
 
+// MRR by tier — kept inline since billing types live in api-client (roadmap).
+const TIER_MRR_EUR: Record<ArtisanTier, number> = {
+    Solo: 29,
+    Studio: 79,
+    Maison: 149,
+};
+
+const PLUS_ADDON_MRR = 19; // ATELIER+ add-on per artisan
+const LOCAL_AVG_MRR = 12; // Average LUMIRIS Local subscription
+
+const SCORING_NOW = new Date('2026-04-30T08:00:00Z');
+
 function OverviewComponent() {
-    const scores = useMemo(
-        () =>
-            dppRecords.map((dpp) =>
-                computeScore(dpp, {
-                    certificates: mockCertificates.filter((c) => c.factory === dpp.supplierFactory),
-                }),
-            ),
-        [],
-    );
+    const auditLog = useAdminAuditLog();
 
-    const platformAverage = useMemo(() => {
-        if (scores.length === 0) return 0;
-        const sum = scores.reduce((acc, s) => acc + s.total, 0);
-        return sum / scores.length;
-    }, [scores]);
+    // 1. Artisans actifs — split par tier + churn 30j (stub : 0 sur les fixtures actuelles).
+    const artisanKpi = useMemo(() => {
+        const total = mockArtisans.length;
+        const splitByTier: Record<ArtisanTier, number> = {
+            Solo: mockArtisans.filter((a: Artisan) => a.tier === 'Solo').length,
+            Studio: mockArtisans.filter((a: Artisan) => a.tier === 'Studio').length,
+            Maison: mockArtisans.filter((a: Artisan) => a.tier === 'Maison').length,
+        };
+        return { total, splitByTier, churn30d: 0 };
+    }, []);
 
-    const gradeEcount = useMemo(() => scores.filter((s) => s.grade === 'E').length, [scores]);
+    // 2. Passeports en file de curation — basé sur Passport.status + moderation.
+    const curationKpi = useMemo(() => {
+        const pending = mockPassports.filter(
+            (p) => p.status !== 'Published' || p.moderation?.status === 'PendingReview',
+        );
+        const inCompletion = mockPassports.filter((p) => p.status === 'InCompletion').length;
+        const draft = mockPassports.filter((p) => p.status === 'Draft').length;
+        return { pendingCount: pending.length, inCompletion, draft };
+    }, []);
+
+    // 3. Score Iris moyen plateforme + grade dominant + nb plafonnés.
+    const irisKpi = useMemo(() => {
+        const published = mockPassports.filter((p) => p.status === 'Published');
+        if (published.length === 0) {
+            return { avg: 0, dominantGrade: '—' as IrisGrade | '—', cappedCount: 0, sampleSize: 0 };
+        }
+        const results = published.map((passport) => {
+            const artisan = mockArtisans.find((a) => a.id === passport.artisanId);
+            return computeScore(passport, {
+                certificates: passport.materials.flatMap((m) => m.certifications),
+                ...(artisan ? { artisan } : {}),
+                now: SCORING_NOW,
+            });
+        });
+        const avg = results.reduce((s, r) => s + r.total, 0) / results.length;
+        const cappedCount = results.filter((r) => r.cap?.applied).length;
+        const gradeCount: Record<IrisGrade, number> = { A: 0, B: 0, C: 0, D: 0, E: 0 };
+        results.forEach((r) => {
+            gradeCount[r.grade] += 1;
+        });
+        const dominantGrade = (Object.keys(gradeCount) as IrisGrade[]).reduce(
+            (best, g) => (gradeCount[g] > gradeCount[best] ? g : best),
+            'A',
+        );
+        return { avg, dominantGrade, cappedCount, sampleSize: published.length };
+    }, []);
+
+    // 4. MRR consolidé (ATELIER + ATELIER+ + Local proxy).
+    const mrrKpi = useMemo(() => {
+        const tierMrr = mockArtisans.reduce((s: number, a: Artisan) => s + TIER_MRR_EUR[a.tier], 0);
+        const plusMrr = mockArtisans.filter((a: Artisan) => a.plus).length * PLUS_ADDON_MRR;
+        const localMrrProxy = 15 * LOCAL_AVG_MRR; // 15 retoucheurs abonnés, valeur indicative
+        const total = tierMrr + plusMrr + localMrrProxy;
+        const arr = total * 12;
+        return { mrrTotal: total, arrTotal: arr };
+    }, []);
 
     const silos = [
         {
-            label: 'Active Audits',
-            value: dppRecords.filter((r) => r.status === 'Audit_Pending' || r.status === 'Draft').length,
-            subLabel: 'In pipeline',
-            icon: ListChecks,
+            label: 'Artisans actifs',
+            icon: Store,
+            value: `${artisanKpi.total}`,
+            subLabel: `${artisanKpi.splitByTier.Solo} Solo · ${artisanKpi.splitByTier.Studio} Studio · ${artisanKpi.splitByTier.Maison} Maison`,
             accentClass: 'text-lumiris-emerald',
-            bgClass: 'bg-lumiris-emerald/6',
+            bgClass: 'bg-lumiris-emerald/8',
             borderClass: 'border-lumiris-emerald/15',
-            trend: `${gradeEcount} flagged Grade E`,
-            trendUp: gradeEcount === 0,
+            trend: `Churn 30j : ${artisanKpi.churn30d}`,
+            trendUp: artisanKpi.churn30d === 0,
         },
         {
-            label: 'Transparency Score',
-            value: `${platformAverage.toFixed(1)}`,
-            subLabel: 'Live mean (computeScore)',
-            icon: ShieldCheck,
-            accentClass: 'text-lumiris-cyan',
-            bgClass: 'bg-lumiris-cyan/6',
-            borderClass: 'border-lumiris-cyan/15',
-            trend: `${scores.length} DPPs scored`,
-            trendUp: true,
-        },
-        {
-            label: 'App Traffic',
-            value: kpiData.activeScans.toLocaleString(),
-            subLabel: 'Scans in 24h',
-            icon: BarChart3,
+            label: 'File de curation',
+            icon: FileText,
+            value: `${curationKpi.pendingCount}`,
+            subLabel: `${curationKpi.draft} draft · ${curationKpi.inCompletion} en complétion`,
             accentClass: 'text-lumiris-amber',
-            bgClass: 'bg-lumiris-amber/6',
+            bgClass: 'bg-lumiris-amber/8',
             borderClass: 'border-lumiris-amber/15',
-            trend: '+340 scans',
-            trendUp: true,
+            trend: 'Délai moyen — à venir',
+            trendUp: false,
         },
         {
-            label: 'Content Readiness',
-            value: `${journalArticles.filter((a) => a.status === 'Published').length}/${journalArticles.length}`,
-            subLabel: 'Articles published',
-            icon: FileEdit,
-            accentClass: 'text-foreground',
-            bgClass: 'bg-muted',
-            borderClass: 'border-border',
-            trend: `${journalArticles.filter((a) => a.status === 'Draft').length} drafts pending`,
-            trendUp: false,
+            label: 'Score Iris moyen',
+            icon: Sparkles,
+            value: irisKpi.sampleSize === 0 ? '—' : irisKpi.avg.toFixed(1),
+            subLabel:
+                irisKpi.sampleSize === 0
+                    ? 'Aucun passeport publié'
+                    : `Grade dominant ${irisKpi.dominantGrade} · ${irisKpi.cappedCount} plafonnés`,
+            accentClass: 'text-lumiris-cyan',
+            bgClass: 'bg-lumiris-cyan/8',
+            borderClass: 'border-lumiris-cyan/15',
+            trend: `${irisKpi.sampleSize} passeports notés`,
+            trendUp: irisKpi.cappedCount === 0,
+        },
+        {
+            label: 'MRR consolidé',
+            icon: Coins,
+            value: `${Math.round(mrrKpi.mrrTotal).toLocaleString('fr-FR')} €`,
+            subLabel: `ARR projeté ${Math.round(mrrKpi.arrTotal / 1000).toLocaleString('fr-FR')} k€`,
+            accentClass: 'text-lumiris-orange',
+            bgClass: 'bg-lumiris-orange/8',
+            borderClass: 'border-lumiris-orange/15',
+            trend: 'Atelier + Plus + Local',
+            trendUp: true,
         },
     ];
 
@@ -94,11 +146,11 @@ function OverviewComponent() {
         <div className="space-y-8">
             <div>
                 <h2 className="text-foreground text-balance text-xl font-semibold">
-                    Good morning. Here&apos;s your platform overview.
+                    Bonjour. Voici l&apos;état de la plateforme.
                 </h2>
                 <p className="text-muted-foreground mt-1 text-sm">
-                    Real-time metrics — KPIs derived from{' '}
-                    <span className="text-foreground font-mono">computeScore</span>, not stored values.
+                    KPIs calculés en direct via <span className="text-foreground font-mono">computeScore</span>, jamais
+                    stockés.
                 </p>
             </div>
 
@@ -146,33 +198,42 @@ function OverviewComponent() {
             </motion.div>
 
             <div className="opal-shadow border-border bg-card rounded-xl border">
-                <div className="border-border border-b px-6 py-4">
-                    <h3 className="text-foreground text-sm font-semibold">Team Activity</h3>
-                    <p className="text-muted-foreground mt-0.5 text-xs">Recent actions across the platform</p>
+                <div className="border-border flex items-center justify-between border-b px-6 py-4">
+                    <div>
+                        <h3 className="text-foreground text-sm font-semibold">Activité de curation</h3>
+                        <p className="text-muted-foreground mt-0.5 text-xs">
+                            Validations, flags, overrides — alimenté par l&apos;audit log live
+                        </p>
+                    </div>
+                    <BarChart3 className="text-muted-foreground/50 h-4 w-4" aria-hidden />
                 </div>
                 <div className="divide-border divide-y">
-                    {teamActivity.map((entry, idx) => (
-                        <div key={idx} className="flex items-start gap-4 px-6 py-4">
-                            <div
-                                className={cn(
-                                    'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold',
-                                    entry.avatar === 'SY'
-                                        ? 'bg-muted text-muted-foreground'
-                                        : 'bg-lumiris-emerald/8 text-lumiris-emerald',
-                                )}
-                            >
-                                {entry.avatar}
+                    {auditLog.slice(0, 8).map((entry) => (
+                        <div key={entry.id} className="flex items-start gap-4 px-6 py-3.5">
+                            <div className="bg-lumiris-emerald/8 text-lumiris-emerald flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold">
+                                {entry.actorRole.slice(0, 2).toUpperCase()}
                             </div>
                             <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-foreground text-sm font-medium">{entry.user}</span>
-                                    <span className="text-muted-foreground text-xs">{entry.role}</span>
-                                </div>
-                                <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">{entry.action}</p>
+                                <p className="text-foreground text-sm">
+                                    <span className="font-medium">{entry.actorId}</span>{' '}
+                                    <span className="text-muted-foreground">
+                                        {entry.action} · {entry.targetType} {entry.targetId}
+                                    </span>
+                                </p>
                             </div>
-                            <span className="text-muted-foreground/60 flex-shrink-0 text-xs">{entry.time}</span>
+                            <span className="text-muted-foreground/60 shrink-0 font-mono text-[10px]">
+                                {new Date(entry.ts).toLocaleString('fr-FR', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                })}
+                            </span>
                         </div>
                     ))}
+                    {auditLog.length === 0 ? (
+                        <p className="text-muted-foreground px-6 py-8 text-center text-sm">Aucune activité récente.</p>
+                    ) : null}
                 </div>
             </div>
         </div>

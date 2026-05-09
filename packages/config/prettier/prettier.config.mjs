@@ -13,10 +13,5 @@ export default {
     arrowParens: 'always',
     endOfLine: 'lf',
     plugins: ['prettier-plugin-tailwindcss'],
-    overrides: [
-        {
-            files: ['*.json', '*.md', '*.yaml', '*.yml'],
-            options: { tabWidth: 2 },
-        },
-    ],
+    tailwindFunctions: ['clsx', 'cn', 'cva', 'twMerge'],
 };

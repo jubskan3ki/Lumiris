@@ -2,11 +2,31 @@
     "$schema": "https://unpkg.com/knip@5/schema.json",
     "workspaces": {
         ".": {
-            "entry": ["turbo.json", "lighthouserc.cjs", "commitlint.config.mjs", "knip.json"],
+            "entry": [
+                "turbo.json",
+                "lighthouserc.cjs",
+                "commitlint.config.mjs",
+                "knip.json",
+                "syncpack.config.mjs",
+                "scripts/*.{mjs,js,ts}",
+                "bench/scenarios/*.js"
+            ],
             "ignore": ["**/.next/**", "**/dist/**", "**/.turbo/**", "**/src-tauri/**"],
-            "ignoreDependencies": ["@lhci/cli", "rimraf", "stylelint", "syncpack"]
+            "ignoreDependencies": ["@lhci/cli", "k6", "postcss-load-config", "rimraf", "stylelint", "syncpack"]
         },
         "apps/admin": {
+            "entry": [
+                "app/**/{page,layout,loading,error,not-found,route,template}.{ts,tsx}",
+                "app/web-vitals.tsx",
+                "instrumentation.ts",
+                "env.ts",
+                "features/**/index.tsx",
+                "next.config.mjs"
+            ],
+            "project": ["**/*.{ts,tsx}"],
+            "ignore": [".next/**"]
+        },
+        "apps/client": {
             "entry": [
                 "app/**/{page,layout,loading,error,not-found,route,template}.{ts,tsx}",
                 "app/web-vitals.tsx",
@@ -53,7 +73,11 @@
             "project": ["src/**/*.{ts,tsx}"]
         },
         "packages/scoring-ui": {
-            "entry": ["src/index.ts", "src/components/**/*.tsx", "src/theme/*.ts"],
+            "entry": ["src/index.ts", "src/components/**/*.tsx", "src/hooks/*.ts", "src/theme/*.ts"],
+            "project": ["src/**/*.{ts,tsx}"]
+        },
+        "packages/telemetry": {
+            "entry": ["src/index.ts", "src/*.{ts,tsx}"],
             "project": ["src/**/*.{ts,tsx}"]
         },
         "packages/core": {
@@ -74,7 +98,12 @@
         },
         "packages/config": {
             "entry": ["tsconfig/*.json"],
-            "project": ["**/*.{ts,mjs}"]
+            "project": ["**/*.{ts,mjs}"],
+            "ignoreDependencies": [
+                "prettier-plugin-tailwindcss",
+                "stylelint-config-standard",
+                "stylelint-config-tailwindcss"
+            ]
         }
     }
 }

@@ -1,17 +1,4 @@
-/**
- * OTel Node SDK bootstrap — call from `instrumentation.ts` (Next.js) or
- * from the API entrypoint when `process.env.NEXT_RUNTIME === 'nodejs'`
- * (or when running outside Next).
- *
- * Exporter:
- *   - dev → silent (set OTEL_DEV_CONSOLE=1 to dump spans to console)
- *   - prod → OTLP/HTTP to OTEL_EXPORTER_OTLP_ENDPOINT (default: Tempo)
- *
- * Sampling:
- *   - dev → AlwaysOn (100%)
- *   - prod → ParentBasedTraceIdRatio(NEXT_PUBLIC_WEB_VITALS_SAMPLE_RATE)
- *     (we reuse the same sample rate var to keep one knob across signals)
- */
+/** OTel Node SDK bootstrap — appelé depuis instrumentation.ts ; OTLP/HTTP en prod, sampling = web-vitals rate. */
 
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';

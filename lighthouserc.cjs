@@ -2,6 +2,12 @@
  * Lighthouse CI — Web Vitals budget for the LUMIRIS public surfaces.
  * Runs against `bun start` of @lumiris/web by default; admin & mobile
  * can be added via the `urls` array as they reach a stable preview.
+ *
+ * Local execution requires Node 18+ (`lhci` is a Node binary). When the dev
+ * environment exposes only Bun (no `node` / `npm` / `lhci` on PATH), Lighthouse
+ * cannot be run locally — assertions are validated by the GitHub Actions job
+ * `lighthouse` on every PR (`.github/workflows/ci.yml`). Treat the CI run as
+ * the authoritative budget gate.
  */
 module.exports = {
     ci: {

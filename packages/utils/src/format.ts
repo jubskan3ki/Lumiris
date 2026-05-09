@@ -1,6 +1,6 @@
 // Locale-stable defaults so admin, web, and mobile render the same string for the same input.
 
-import type { IrisGrade, ScoreBreakdown } from '@lumiris/types';
+import type { IrisGrade } from '@lumiris/types';
 
 export const DEFAULT_LOCALE = 'en-US';
 
@@ -42,7 +42,7 @@ export function formatRelativeDate(
     return rtf.format(0, 'second');
 }
 
-/** `value` is treated as 0–100 (matching ScoreBreakdown axes), not 0–1 — pass `fromUnit: true` for fractions. */
+/** `value` is treated as 0–100 by default; pass `fromUnit: true` for 0–1 ratios. */
 export function formatPercent(
     value: number,
     options: FormatOptions & { fromUnit?: boolean; digits?: number } = {},
@@ -61,17 +61,6 @@ export function formatScoreTotal(total: number): string {
     return `${roundTo(total, 1)} / 100`;
 }
 
-export function formatScoreAxis(
-    axis: keyof ScoreBreakdown,
-    breakdown: ScoreBreakdown,
-    weights: { [K in keyof ScoreBreakdown]: number } = { integrity: 50, trust: 30, impact: 20 },
-): string {
-    const score = breakdown[axis];
-    const cap = weights[axis];
-    const weighted = roundTo((score * cap) / 100, 1);
-    return `${capitalize(axis)} · ${weighted} / ${cap}`;
-}
-
 /** Passthrough today; exists so callers route through one helper if formatting evolves. */
 export function formatGrade(grade: IrisGrade | null | undefined): string {
     return grade ?? '—';
@@ -82,6 +71,11 @@ function roundTo(n: number, digits: number): number {
     return Math.round(n * f) / f;
 }
 
-function capitalize(s: string): string {
-    return s.length === 0 ? s : s.charAt(0).toUpperCase() + s.slice(1);
+export function slugify(input: string): string {
+    return input
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
 }

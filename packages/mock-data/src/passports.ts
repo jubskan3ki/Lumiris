@@ -1,0 +1,847 @@
+import type { Passport, CareInstructions, Material } from '@lumiris/types';
+import { buildGS1Identifier } from '@lumiris/types';
+import { mockCertificateById } from './certificates';
+import { CHAUSSURE_CUIR_STEPS, CHEMISE_LIN_STEPS, PULL_LIN_STEPS, instantiateSteps } from './manufacturing-steps';
+
+// care helpers AGEC — texte clair par fibre dominante, pictogrammes officiels viendront en UI v2
+
+const CARE_LINEN: CareInstructions = {
+    washing: 'Lavage 30 °C, programme délicat, lessive sans phosphates.',
+    drying: "Séchage à plat, à l'abri du soleil direct.",
+    ironing: "Repassage à fer tiède sur l'envers, vapeur autorisée.",
+    storage: 'Stocker plié dans un endroit sec et aéré.',
+};
+
+const CARE_WOOL: CareInstructions = {
+    washing: 'Lavage à la main, eau froide, lessive laine. Pas de machine.',
+    drying: 'Séchage à plat sur serviette, jamais suspendu.',
+    ironing: 'Défroissage à la vapeur uniquement, pas de fer en contact direct.',
+    storage: 'Stocker plié avec un sachet anti-mites naturel (cèdre, lavande).',
+};
+
+const CARE_COTTON: CareInstructions = {
+    washing: 'Lavage 40 °C, programme normal.',
+    drying: "Séchage à l'air libre ou sèche-linge basse température.",
+    ironing: 'Repassage chaud, vapeur autorisée.',
+    storage: "Pliage ou cintre, à l'abri de la lumière directe.",
+};
+
+const CARE_SILK: CareInstructions = {
+    washing: 'Nettoyage à sec uniquement. Pas de lavage en machine.',
+    drying: 'Pressing professionnel — éviter exposition prolongée au soleil.',
+    ironing: "Fer froid sur l'envers, à travers un linge fin.",
+    storage: 'Stocker plié dans du papier de soie, à plat.',
+};
+
+const CARE_LEATHER: CareInstructions = {
+    washing: 'Pas de lavage. Nettoyage avec un chiffon humide légèrement savonneux si nécessaire.',
+    drying: "Séchage à l'air libre, jamais près d'une source de chaleur.",
+    ironing: 'Pas de repassage. Brossage doux pour redresser les fibres.',
+    storage: 'Embauchoirs en bois pour les chaussures, housse coton pour le reste.',
+};
+
+// 20 passeports : 3 Draft / 5 InCompletion / 12 Published — grades émergent de computeScore()
+
+const certs = (...ids: readonly string[]) =>
+    ids.map(mockCertificateById).filter((c): c is NonNullable<typeof c> => !!c);
+
+const linenWithGots = (pct = 100): Material => ({
+    fiber: 'linen',
+    percentage: pct,
+    supplierId: 'sup-filature-bretagne',
+    originCountry: 'FR',
+    certifications: certs('cert-gots-marie-lin'),
+    invoiceRef: 'inv-001',
+});
+
+const woolMerinos = (pct = 100): Material => ({
+    fiber: 'wool',
+    percentage: pct,
+    supplierId: 'sup-laine-arles',
+    originCountry: 'FR',
+    certifications: certs('cert-oeko-claire-laine'),
+    invoiceRef: 'inv-003',
+});
+
+const leatherTannageVegetal = (pct = 100): Material => ({
+    fiber: 'leather',
+    percentage: pct,
+    supplierId: 'sup-tannerie-roux',
+    originCountry: 'FR',
+    certifications: certs('cert-epv-paul'),
+    invoiceRef: 'inv-002',
+});
+
+export const mockPassports: readonly Passport[] = [
+    {
+        id: 'pass-marie-001',
+        gs1: buildGS1Identifier('03700000000017', 'SN-MAR-001', 'pass-marie-001'),
+        status: 'Published',
+        createdAt: '2026-01-08T08:00:00Z',
+        updatedAt: '2026-03-02T08:00:00Z',
+        artisanId: 'art-marie',
+        garment: {
+            kind: 'shirt',
+            reference: 'CHE-MAR-001',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Chemise+lin+Marie',
+            dimensions: { weightG: 280 },
+            retailPrice: 240,
+            currency: 'EUR',
+        },
+        materials: [linenWithGots(100)],
+        steps: instantiateSteps(CHEMISE_LIN_STEPS, {
+            idPrefix: 'pass-marie-001',
+            performedBy: 'Atelier de Marie',
+            locationCity: 'Quimper',
+        }),
+        certifications: certs('cert-ofg-marie'),
+        warranty: {
+            durationMonths: 24,
+            terms: 'Réparation gratuite des coutures pendant 2 ans.',
+            repairabilityCommitment:
+                "Pièces détachées disponibles 10 ans. Tout défaut de couture est repris à l'atelier sans frais.",
+        },
+        // Spec textile : care AGEC + déclarations impact (ACV interne courte chaîne).
+        care: {
+            washing: 'Lavage 30 °C, programme délicat, lessive sans phosphates.',
+            drying: "Séchage à plat, à l'abri du soleil direct.",
+            ironing: "Repassage à fer tiède sur l'envers, vapeur autorisée.",
+            storage: 'Stocker plié dans un endroit sec et aéré.',
+        },
+        carbonKg: 1.6,
+        waterLiters: 240,
+        recycledPct: 0,
+        transportKm: 90,
+        moderation: { status: 'Approved', reviewerId: 'usr-fdr-juba', reviewedAt: '2026-03-03T10:00:00Z' },
+    },
+    {
+        id: 'pass-amelie-001',
+        gs1: buildGS1Identifier('03700000000024', 'SN-AME-001', 'pass-amelie-001'),
+        status: 'Published',
+        createdAt: '2026-02-01T08:00:00Z',
+        updatedAt: '2026-03-15T08:00:00Z',
+        artisanId: 'art-amelie',
+        garment: {
+            kind: 'accessory',
+            reference: 'BRO-AME-001',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Echarpe+brodee',
+            dimensions: { weightG: 90 },
+            retailPrice: 380,
+            currency: 'EUR',
+        },
+        materials: [
+            {
+                fiber: 'silk',
+                percentage: 100,
+                supplierId: 'sup-soie-cevennes',
+                originCountry: 'FR',
+                certifications: certs('cert-custom-amelie'),
+                invoiceRef: 'inv-004',
+            },
+        ],
+        steps: instantiateSteps(CHEMISE_LIN_STEPS, {
+            idPrefix: 'pass-amelie-001',
+            performedBy: 'Berthier Brodeuse',
+            locationCity: 'Lyon',
+        }),
+        certifications: certs('cert-custom-amelie'),
+        warranty: {
+            durationMonths: 36,
+            terms: 'Reprise de la broderie incluse à vie.',
+            repairabilityCommitment:
+                'Reprise gratuite à vie sur les fils de broderie. Restauration partielle possible (devis sur demande).',
+        },
+        care: CARE_SILK,
+        carbonKg: 2.0,
+        waterLiters: 360,
+        recycledPct: 0,
+        transportKm: 480,
+        moderation: { status: 'Approved', reviewerId: 'usr-fdr-juba', reviewedAt: '2026-03-16T10:00:00Z' },
+    },
+    {
+        id: 'pass-paul-001',
+        gs1: buildGS1Identifier('03700000000031', 'SN-PAU-001', 'pass-paul-001'),
+        status: 'Published',
+        createdAt: '2026-01-15T08:00:00Z',
+        updatedAt: '2026-03-25T08:00:00Z',
+        artisanId: 'art-paul',
+        garment: {
+            kind: 'accessory',
+            reference: 'PORT-PAU-001',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Portefeuille+cuir',
+            dimensions: { weightG: 180 },
+            retailPrice: 290,
+            currency: 'EUR',
+        },
+        materials: [leatherTannageVegetal(100)],
+        steps: instantiateSteps(CHAUSSURE_CUIR_STEPS, {
+            idPrefix: 'pass-paul-001',
+            performedBy: 'Tannerie Chevreau',
+            locationCity: 'Graulhet',
+        }),
+        certifications: certs('cert-epv-paul'),
+        warranty: {
+            durationMonths: 24,
+            terms: 'Garantie 24 mois sur les coutures et la finition.',
+            repairabilityCommitment:
+                'Recouturage gratuit pendant 2 ans, puis au tarif tannerie. Cuir nourri à vie sur rendez-vous.',
+        },
+        care: CARE_LEATHER,
+        carbonKg: 3.5,
+        waterLiters: 3060,
+        recycledPct: 0,
+        transportKm: 220,
+        moderation: { status: 'Approved', reviewerId: 'usr-fdr-juba', reviewedAt: '2026-03-26T10:00:00Z' },
+    },
+    {
+        id: 'pass-laurens-001',
+        gs1: buildGS1Identifier('03700000000048', 'SN-LAU-001', 'pass-laurens-001'),
+        status: 'Published',
+        createdAt: '2026-01-20T08:00:00Z',
+        updatedAt: '2026-04-01T08:00:00Z',
+        artisanId: 'art-maison-laurens',
+        garment: {
+            kind: 'jacket',
+            reference: 'VES-LAU-001',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Veste+Maison+Laurens',
+            dimensions: { weightG: 850 },
+            retailPrice: 1980,
+            currency: 'EUR',
+        },
+        materials: [
+            {
+                fiber: 'wool',
+                percentage: 60,
+                supplierId: 'sup-laine-tarn',
+                originCountry: 'FR',
+                certifications: certs('cert-iso14001-laurens'),
+                invoiceRef: 'inv-008',
+            },
+            {
+                fiber: 'cashmere',
+                percentage: 40,
+                supplierId: 'sup-cachemire-mongolie',
+                originCountry: 'MN',
+                certifications: [],
+                invoiceRef: 'inv-007',
+            },
+        ],
+        steps: instantiateSteps(CHEMISE_LIN_STEPS, {
+            idPrefix: 'pass-laurens-001',
+            performedBy: 'Maison Laurens',
+            locationCity: 'Paris',
+        }),
+        certifications: certs('cert-iso14001-laurens'),
+        warranty: {
+            durationMonths: 60,
+            terms: 'Garantie 5 ans, retouches à vie.',
+            repairabilityCommitment:
+                'Retouches incluses à vie en atelier (Paris). Reprise des coutures, ourlets, pinces sans frais.',
+        },
+        care: CARE_WOOL,
+        carbonKg: 22.0,
+        waterLiters: 2515,
+        recycledPct: 0,
+        // Cachemire mongol — empreinte transport élevée mais déclarée publiquement.
+        transportKm: 7100,
+        moderation: { status: 'Approved', reviewerId: 'usr-fdr-juba', reviewedAt: '2026-04-02T10:00:00Z' },
+    },
+
+    {
+        id: 'pass-marie-002',
+        gs1: buildGS1Identifier('03700000000055', 'SN-MAR-002', 'pass-marie-002'),
+        status: 'Published',
+        createdAt: '2026-02-10T08:00:00Z',
+        updatedAt: '2026-03-20T08:00:00Z',
+        artisanId: 'art-marie',
+        garment: {
+            kind: 'shirt',
+            reference: 'CHE-MAR-002',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Chemise+lin+brut',
+            dimensions: { weightG: 240 },
+            retailPrice: 195,
+            currency: 'EUR',
+        },
+        materials: [linenWithGots(100)],
+        steps: instantiateSteps(CHEMISE_LIN_STEPS, {
+            idPrefix: 'pass-marie-002',
+            performedBy: 'Atelier de Marie',
+            locationCity: 'Quimper',
+        }).slice(0, 4),
+        certifications: certs('cert-ofg-marie'),
+        warranty: { durationMonths: 12, terms: 'Garantie 12 mois.' },
+        care: CARE_LINEN,
+        carbonKg: 1.4,
+        waterLiters: 220,
+        recycledPct: 0,
+        transportKm: 110,
+    },
+    {
+        id: 'pass-claire-001',
+        gs1: buildGS1Identifier('03700000000062', 'SN-CLA-001', 'pass-claire-001'),
+        status: 'Published',
+        createdAt: '2026-02-15T08:00:00Z',
+        updatedAt: '2026-03-25T08:00:00Z',
+        artisanId: 'art-claire',
+        garment: {
+            kind: 'sweater',
+            reference: 'PUL-CLA-001',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Pull+laine+merinos',
+            dimensions: { weightG: 480 },
+            retailPrice: 285,
+            currency: 'EUR',
+        },
+        materials: [woolMerinos(100)],
+        steps: instantiateSteps(PULL_LIN_STEPS, {
+            idPrefix: 'pass-claire-001',
+            performedBy: "L'atelier des Hauts",
+            locationCity: 'Lille',
+        }),
+        certifications: certs('cert-oeko-claire-laine'),
+        warranty: { durationMonths: 12, terms: 'Garantie 12 mois.' },
+        care: CARE_WOOL,
+        carbonKg: 11.0,
+        waterLiters: 290,
+        recycledPct: 0,
+        transportKm: 540,
+    },
+    {
+        id: 'pass-theo-001',
+        gs1: buildGS1Identifier('03700000000079', 'SN-THE-001', 'pass-theo-001'),
+        status: 'Published',
+        createdAt: '2026-01-22T08:00:00Z',
+        updatedAt: '2026-03-30T08:00:00Z',
+        artisanId: 'art-theo',
+        garment: {
+            kind: 'shoe',
+            reference: 'DER-THE-001',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Derbies+cuir',
+            dimensions: { weightG: 1200 },
+            retailPrice: 690,
+            currency: 'EUR',
+        },
+        materials: [leatherTannageVegetal(100)],
+        steps: instantiateSteps(CHAUSSURE_CUIR_STEPS, {
+            idPrefix: 'pass-theo-001',
+            performedBy: 'Maison Magnan',
+            locationCity: 'Romans-sur-Isère',
+        }),
+        certifications: [],
+        warranty: {
+            durationMonths: 24,
+            terms: 'Ressemelage offert pendant 2 ans.',
+            repairabilityCommitment:
+                'Ressemelage gratuit la première année, puis 80 € par paire. Cuir nourri à vie en boutique.',
+        },
+        care: CARE_LEATHER,
+        carbonKg: 21.0,
+        waterLiters: 20400,
+        recycledPct: 0,
+        transportKm: 180,
+    },
+    {
+        id: 'pass-theo-002',
+        gs1: buildGS1Identifier('03700000000086', 'SN-THE-002', 'pass-theo-002'),
+        status: 'Published',
+        createdAt: '2026-02-05T08:00:00Z',
+        updatedAt: '2026-04-05T08:00:00Z',
+        artisanId: 'art-theo',
+        garment: {
+            kind: 'shoe',
+            reference: 'BOT-THE-002',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Bottines+cuir',
+            dimensions: { weightG: 1450 },
+            retailPrice: 820,
+            currency: 'EUR',
+        },
+        materials: [leatherTannageVegetal(100)],
+        steps: instantiateSteps(CHAUSSURE_CUIR_STEPS, {
+            idPrefix: 'pass-theo-002',
+            performedBy: 'Maison Magnan',
+            locationCity: 'Romans-sur-Isère',
+        }).slice(0, 4),
+        certifications: [],
+        warranty: { durationMonths: 12, terms: 'Garantie 12 mois.' },
+        care: CARE_LEATHER,
+        carbonKg: 25.0,
+        waterLiters: 24650,
+        recycledPct: 0,
+        transportKm: 180,
+    },
+    {
+        id: 'pass-jules-001',
+        gs1: buildGS1Identifier('03700000000093', 'SN-JUL-001', 'pass-jules-001'),
+        status: 'Published',
+        createdAt: '2026-02-20T08:00:00Z',
+        updatedAt: '2026-04-10T08:00:00Z',
+        artisanId: 'art-jules',
+        garment: {
+            kind: 'sweater',
+            reference: 'PUL-JUL-001',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Pull+coton+recycle',
+            dimensions: { weightG: 420 },
+            retailPrice: 145,
+            currency: 'EUR',
+        },
+        materials: [
+            {
+                fiber: 'cotton',
+                percentage: 70,
+                supplierId: 'sup-coton-bio-belgique',
+                originCountry: 'BE',
+                certifications: certs('cert-grs-jules'),
+                invoiceRef: 'inv-005',
+            },
+            {
+                fiber: 'recycled-polyester',
+                percentage: 30,
+                supplierId: 'sup-coton-bio-belgique',
+                originCountry: 'BE',
+                certifications: certs('cert-grs-jules'),
+                invoiceRef: 'inv-005',
+            },
+        ],
+        steps: instantiateSteps(PULL_LIN_STEPS, {
+            idPrefix: 'pass-jules-001',
+            performedBy: 'Atelier Pasquier',
+            locationCity: 'Bordeaux',
+        }),
+        certifications: certs('cert-grs-jules'),
+        warranty: { durationMonths: 12, terms: 'Garantie 12 mois.' },
+        care: CARE_COTTON,
+        carbonKg: 2.2,
+        waterLiters: 2360,
+        recycledPct: 30,
+        transportKm: 760,
+    },
+    {
+        id: 'pass-romain-001',
+        gs1: buildGS1Identifier('03700000000109', 'SN-ROM-001', 'pass-romain-001'),
+        status: 'Published',
+        createdAt: '2026-01-30T08:00:00Z',
+        updatedAt: '2026-04-12T08:00:00Z',
+        artisanId: 'art-romain',
+        garment: {
+            kind: 'jacket',
+            reference: 'VES-ROM-001',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Veste+laine+Mazamet',
+            dimensions: { weightG: 720 },
+            retailPrice: 540,
+            currency: 'EUR',
+        },
+        materials: [
+            {
+                fiber: 'wool',
+                percentage: 100,
+                supplierId: 'sup-laine-tarn',
+                originCountry: 'FR',
+                certifications: certs('cert-bluesign-romain'),
+                invoiceRef: 'inv-008',
+            },
+        ],
+        steps: instantiateSteps(PULL_LIN_STEPS, {
+            idPrefix: 'pass-romain-001',
+            performedBy: 'Petit & Fils',
+            locationCity: 'Mazamet',
+        }),
+        certifications: certs('cert-bluesign-romain'),
+        warranty: {
+            durationMonths: 24,
+            terms: 'Garantie 24 mois sur les coutures.',
+            repairabilityCommitment:
+                "Reprise des coutures à l'atelier (Mazamet) sans frais sur 2 ans, puis devis. Pièces de rechange (boutons, doublure) en stock 10 ans.",
+        },
+        care: CARE_WOOL,
+        carbonKg: 16.5,
+        waterLiters: 430,
+        recycledPct: 0,
+        transportKm: 95,
+    },
+    {
+        id: 'pass-leila-001',
+        gs1: buildGS1Identifier('03700000000116', 'SN-LEI-001', 'pass-leila-001'),
+        status: 'Published',
+        createdAt: '2026-02-25T08:00:00Z',
+        updatedAt: '2026-04-15T08:00:00Z',
+        artisanId: 'art-leila',
+        garment: {
+            kind: 'shirt',
+            reference: 'CHE-LEI-001',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Chemise+coton+bio',
+            dimensions: { weightG: 220 },
+            retailPrice: 175,
+            currency: 'EUR',
+        },
+        materials: [
+            {
+                fiber: 'cotton',
+                percentage: 80,
+                supplierId: 'sup-coton-bio-belgique',
+                originCountry: 'BE',
+                certifications: certs('cert-grs-jules'),
+                invoiceRef: 'inv-005',
+            },
+            {
+                fiber: 'silk',
+                percentage: 20,
+                supplierId: 'sup-soie-cevennes',
+                originCountry: 'FR',
+                certifications: [],
+                invoiceRef: 'inv-004',
+            },
+        ],
+        steps: instantiateSteps(CHEMISE_LIN_STEPS, {
+            idPrefix: 'pass-leila-001',
+            performedBy: 'Leïla Couture',
+            locationCity: 'Marseille',
+        }),
+        certifications: [],
+        warranty: { durationMonths: 12, terms: 'Garantie 12 mois.' },
+        // Mix coton/soie : on conserve les conseils du fibre dominante (coton).
+        care: CARE_COTTON,
+        carbonKg: 2.0,
+        waterLiters: 1584,
+        recycledPct: 0,
+        transportKm: 1300,
+    },
+
+    {
+        id: 'pass-nicolas-001',
+        gs1: buildGS1Identifier('03700000000123', 'SN-NIC-001', 'pass-nicolas-001'),
+        status: 'Published',
+        createdAt: '2026-03-01T08:00:00Z',
+        updatedAt: '2026-04-10T08:00:00Z',
+        artisanId: 'art-nicolas',
+        garment: {
+            kind: 'accessory',
+            reference: 'ECH-NIC-001',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Echarpe+laine',
+            dimensions: { weightG: 220 },
+            retailPrice: 120,
+            currency: 'EUR',
+        },
+        materials: [woolMerinos(100)],
+        steps: instantiateSteps(PULL_LIN_STEPS, {
+            idPrefix: 'pass-nicolas-001',
+            performedBy: 'Atelier Faure',
+            locationCity: 'Castres',
+        }).slice(0, 3),
+        certifications: certs('cert-ofg-nicolas-unverified'),
+        warranty: { durationMonths: 6, terms: 'Garantie 6 mois.' },
+        care: CARE_WOOL,
+        carbonKg: 5.5,
+        waterLiters: 132,
+        recycledPct: 0,
+        transportKm: 60,
+    },
+    {
+        id: 'pass-pauline-001',
+        gs1: buildGS1Identifier('03700000000130', 'SN-PAU-001', 'pass-pauline-001'),
+        status: 'Published',
+        createdAt: '2026-03-10T08:00:00Z',
+        updatedAt: '2026-04-15T08:00:00Z',
+        artisanId: 'art-pauline',
+        garment: {
+            kind: 'shirt',
+            reference: 'CHE-PAU-001',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Chemise+lin+Pauline',
+            dimensions: { weightG: 260 },
+            retailPrice: 165,
+            currency: 'EUR',
+        },
+        materials: [
+            {
+                fiber: 'linen',
+                percentage: 70,
+                supplierId: 'sup-filature-bretagne',
+                originCountry: 'FR',
+                certifications: certs('cert-gots-pauline-expired'),
+                invoiceRef: 'inv-001',
+            },
+            {
+                fiber: 'hemp',
+                percentage: 30,
+                supplierId: 'sup-chanvre-allier',
+                originCountry: 'FR',
+                certifications: [],
+                invoiceRef: undefined,
+            },
+        ],
+        steps: instantiateSteps(CHEMISE_LIN_STEPS, {
+            idPrefix: 'pass-pauline-001',
+            performedBy: 'Pauline Roux Mode',
+            locationCity: 'Nantes',
+        }).slice(0, 4),
+        certifications: [],
+        warranty: { durationMonths: 12, terms: 'Garantie 12 mois.' },
+        care: CARE_LINEN,
+        carbonKg: 1.5,
+        waterLiters: 50,
+        recycledPct: 0,
+        transportKm: 350,
+    },
+    {
+        id: 'pass-soraya-001',
+        gs1: buildGS1Identifier('03700000000147', 'SN-SOR-001', 'pass-soraya-001'),
+        status: 'Published',
+        createdAt: '2026-02-12T08:00:00Z',
+        updatedAt: '2026-04-08T08:00:00Z',
+        artisanId: 'art-soraya',
+        garment: {
+            kind: 'jacket',
+            reference: 'VES-SOR-001',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Veste+laine+Reims',
+            dimensions: { weightG: 680 },
+            retailPrice: 420,
+            currency: 'EUR',
+        },
+        materials: [
+            {
+                fiber: 'wool',
+                percentage: 100,
+                supplierId: 'sup-laine-tarn',
+                originCountry: 'FR',
+                certifications: certs('cert-oeko-soraya-expired'),
+                invoiceRef: undefined,
+            },
+        ],
+        steps: instantiateSteps(PULL_LIN_STEPS, {
+            idPrefix: 'pass-soraya-001',
+            performedBy: 'Maillard Maison',
+            locationCity: 'Reims',
+        }).slice(0, 3),
+        certifications: [],
+        warranty: { durationMonths: 12, terms: 'Garantie 12 mois.' },
+        care: CARE_WOOL,
+        carbonKg: 15.5,
+        waterLiters: 410,
+        recycledPct: 0,
+        transportKm: 720,
+    },
+
+    {
+        id: 'pass-leila-002-incomplet',
+        gs1: buildGS1Identifier('03700000000154', 'SN-LEI-002', 'pass-leila-002-incomplet'),
+        status: 'InCompletion',
+        createdAt: '2026-04-10T08:00:00Z',
+        updatedAt: '2026-04-25T08:00:00Z',
+        artisanId: 'art-leila',
+        garment: {
+            kind: 'trouser',
+            reference: 'PAN-LEI-002',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Pantalon+lin',
+            dimensions: { weightG: 380 },
+            retailPrice: 220,
+            currency: 'EUR',
+        },
+        materials: [
+            // supplierId vide → AGEC manquant → cap-D
+            { fiber: 'linen', percentage: 100, supplierId: '', originCountry: 'FR', certifications: [] },
+        ],
+        steps: instantiateSteps(CHEMISE_LIN_STEPS, {
+            idPrefix: 'pass-leila-002',
+            performedBy: 'Leïla Couture',
+            locationCity: 'Marseille',
+        }).slice(0, 3),
+        certifications: [],
+        warranty: { durationMonths: 12, terms: 'Garantie 12 mois.' },
+    },
+    {
+        id: 'pass-nicolas-002-incomplet',
+        gs1: buildGS1Identifier('03700000000161', 'SN-NIC-002', 'pass-nicolas-002-incomplet'),
+        status: 'InCompletion',
+        createdAt: '2026-04-15T08:00:00Z',
+        updatedAt: '2026-04-26T08:00:00Z',
+        artisanId: 'art-nicolas',
+        garment: {
+            kind: 'sweater',
+            reference: 'PUL-NIC-002',
+            // mainPhotoUrl vide → ESPR manquant → cap-D
+            mainPhotoUrl: '',
+            dimensions: { weightG: 460 },
+            retailPrice: 165,
+            currency: 'EUR',
+        },
+        materials: [woolMerinos(100)],
+        steps: instantiateSteps(PULL_LIN_STEPS, {
+            idPrefix: 'pass-nicolas-002',
+            performedBy: 'Atelier Faure',
+            locationCity: 'Castres',
+        }),
+        certifications: [],
+        warranty: { durationMonths: 6, terms: 'Garantie 6 mois.' },
+    },
+    {
+        id: 'pass-pauline-002-incomplet',
+        gs1: buildGS1Identifier('03700000000178', 'SN-PAU-002', 'pass-pauline-002-incomplet'),
+        status: 'InCompletion',
+        createdAt: '2026-04-20T08:00:00Z',
+        updatedAt: '2026-04-28T08:00:00Z',
+        artisanId: 'art-pauline',
+        garment: {
+            kind: 'sweater',
+            reference: 'PUL-PAU-002',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Pull+chanvre',
+            dimensions: { weightG: 410 },
+            retailPrice: 145,
+            currency: 'EUR',
+        },
+        materials: [
+            {
+                fiber: 'hemp',
+                percentage: 100,
+                supplierId: 'sup-chanvre-allier',
+                originCountry: 'FR',
+                certifications: [],
+                invoiceRef: 'inv-006',
+            },
+        ],
+        steps: instantiateSteps(PULL_LIN_STEPS, {
+            idPrefix: 'pass-pauline-002',
+            performedBy: 'Pauline Roux Mode',
+            locationCity: 'Nantes',
+        }).slice(0, 2),
+        certifications: [],
+        warranty: { durationMonths: 12, terms: 'Garantie 12 mois.' },
+    },
+    {
+        id: 'pass-jules-002-incomplet',
+        gs1: buildGS1Identifier('03700000000185', 'SN-JUL-002', 'pass-jules-002-incomplet'),
+        status: 'InCompletion',
+        createdAt: '2026-04-22T08:00:00Z',
+        updatedAt: '2026-04-29T08:00:00Z',
+        artisanId: 'art-jules',
+        garment: {
+            kind: 'sweater',
+            reference: 'PUL-JUL-002',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Pull+coton',
+            dimensions: { weightG: 380 },
+            retailPrice: 95,
+            currency: 'EUR',
+        },
+        materials: [
+            {
+                fiber: 'cotton',
+                percentage: 100,
+                supplierId: 'sup-coton-bio-belgique',
+                originCountry: 'BE',
+                certifications: certs('cert-grs-jules'),
+                invoiceRef: 'inv-005',
+            },
+        ],
+        steps: instantiateSteps(PULL_LIN_STEPS, {
+            idPrefix: 'pass-jules-002',
+            performedBy: 'Sous-traitant Lille',
+            locationCity: 'Lille',
+        }).slice(0, 3),
+        certifications: [],
+        warranty: { durationMonths: 6, terms: 'Garantie 6 mois.' },
+    },
+    {
+        id: 'pass-claire-002-incomplet',
+        gs1: buildGS1Identifier('03700000000192', 'SN-CLA-002', 'pass-claire-002-incomplet'),
+        status: 'InCompletion',
+        createdAt: '2026-04-23T08:00:00Z',
+        updatedAt: '2026-04-29T08:00:00Z',
+        artisanId: 'art-claire',
+        garment: {
+            kind: 'accessory',
+            reference: 'BON-CLA-002',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Bonnet+laine',
+            dimensions: { weightG: 80 },
+            retailPrice: 65,
+            currency: 'EUR',
+        },
+        materials: [woolMerinos(100)],
+        steps: instantiateSteps(PULL_LIN_STEPS, {
+            idPrefix: 'pass-claire-002',
+            performedBy: "L'atelier des Hauts",
+            locationCity: 'Lille',
+        }).slice(0, 2),
+        certifications: [],
+        warranty: { durationMonths: 6, terms: 'Garantie 6 mois.' },
+    },
+
+    {
+        id: 'pass-marie-003-draft',
+        gs1: buildGS1Identifier('03700000000208', 'SN-MAR-003', 'pass-marie-003-draft'),
+        status: 'Draft',
+        createdAt: '2026-04-24T08:00:00Z',
+        updatedAt: '2026-04-29T08:00:00Z',
+        artisanId: 'art-marie',
+        garment: {
+            kind: 'shirt',
+            reference: 'CHE-MAR-003',
+            mainPhotoUrl: 'https://placehold.co/640x800/png?text=Brouillon+chemise',
+            dimensions: {},
+            retailPrice: 0,
+            currency: 'EUR',
+        },
+        materials: [],
+        steps: [],
+        certifications: [],
+        warranty: { durationMonths: 0, terms: '' },
+    },
+    {
+        id: 'pass-theo-003-draft',
+        gs1: buildGS1Identifier('03700000000215', 'SN-THE-003', 'pass-theo-003-draft'),
+        status: 'Draft',
+        createdAt: '2026-04-26T08:00:00Z',
+        updatedAt: '2026-04-29T08:00:00Z',
+        artisanId: 'art-theo',
+        garment: {
+            kind: 'shoe',
+            reference: 'MOC-THE-003',
+            mainPhotoUrl: '',
+            dimensions: {},
+            retailPrice: 0,
+            currency: 'EUR',
+        },
+        materials: [],
+        steps: [],
+        certifications: [],
+        warranty: { durationMonths: 0, terms: '' },
+    },
+    {
+        id: 'pass-laurens-002-draft',
+        gs1: buildGS1Identifier('03700000000222', 'SN-LAU-002', 'pass-laurens-002-draft'),
+        status: 'Draft',
+        createdAt: '2026-04-28T08:00:00Z',
+        updatedAt: '2026-04-29T08:00:00Z',
+        artisanId: 'art-maison-laurens',
+        garment: {
+            kind: 'jacket',
+            reference: 'VES-LAU-002',
+            mainPhotoUrl: '',
+            dimensions: {},
+            retailPrice: 0,
+            currency: 'EUR',
+        },
+        materials: [],
+        steps: [],
+        certifications: [],
+        warranty: { durationMonths: 0, terms: '' },
+    },
+];
+
+export function mockPassportById(id: string): Passport | undefined {
+    return mockPassports.find((p) => p.id === id);
+}
+
+/** Lookup passeport par GTIN — tolère le leading zero manquant pour scanners qui le droppent. */
+export function mockPassportByGtin(gtin: string): Passport | undefined {
+    if (!gtin) return undefined;
+    const normalized = gtin.replace(/\D/g, '');
+    const padded = normalized.padStart(14, '0');
+    return mockPassports.find((p) => p.gs1.gtin === padded || p.gs1.gtin === normalized);
+}
+
+export function mockPassportsByArtisan(artisanId: string): readonly Passport[] {
+    return mockPassports.filter((p) => p.artisanId === artisanId);
+}
+
+export function mockPassportsByStatus(status: Passport['status']): readonly Passport[] {
+    return mockPassports.filter((p) => p.status === status);
+}
+
+export const featuredPassport: Passport | undefined = mockPassports[0];

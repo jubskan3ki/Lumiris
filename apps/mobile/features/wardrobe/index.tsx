@@ -1,322 +1,231 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, GitCompareArrows, X } from 'lucide-react';
-import type { IrisGrade as IrisGradeLetter } from '@lumiris/types';
-import { GRADE_LABEL, IrisGrade, Wardrobe as VaultGrid, type WardrobeItem } from '@lumiris/scoring-ui';
-import { WARDROBE_ITEMS, type MobileProduct } from '@/lib/lumiris-data';
-
-// CSS-var stroke per grade so the SVG gauge stays on the canonical palette at runtime.
-const GAUGE_STROKE: Record<IrisGradeLetter, string> = {
-    'A+': 'var(--lumiris-emerald)',
-    A: 'var(--lumiris-emerald)',
-    B: 'var(--lumiris-cyan)',
-    C: 'var(--lumiris-amber)',
-    D: 'var(--lumiris-amber)',
-    E: 'var(--lumiris-rose)',
-};
-
-const CHIP_TEXT: Record<IrisGradeLetter, string> = {
-    'A+': 'text-lumiris-emerald',
-    A: 'text-lumiris-emerald',
-    B: 'text-lumiris-cyan',
-    C: 'text-lumiris-amber',
-    D: 'text-lumiris-amber',
-    E: 'text-lumiris-rose',
-};
+import { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Shirt, Trash2, ScanQrCode } from 'lucide-react';
+import { IrisGrade } from '@lumiris/scoring-ui';
+import { mockArtisanById, mockPassportById, mockPassports } from '@lumiris/mock-data';
+import type { Passport } from '@lumiris/types';
+import { useWardrobe, removeFromWardrobe } from '@/lib/wardrobe-storage';
+import { scorePassport } from '@/lib/passport-score';
 
 interface WardrobeProps {
-    onSelectProduct: (product: MobileProduct) => void;
+    onScanRequested: () => void;
 }
 
-export function Wardrobe({ onSelectProduct }: WardrobeProps) {
-    const [compareMode, setCompareMode] = useState(false);
-    const [selectedIds, setSelectedIds] = useState<string[]>([]);
-    const [showComparison, setShowComparison] = useState(false);
+export function Wardrobe({ onScanRequested }: WardrobeProps) {
+    const entries = useWardrobe();
+    const [now] = useState(() => new Date());
 
-    const items: WardrobeItem[] = useMemo(
+    const items = useMemo(
         () =>
-            WARDROBE_ITEMS.map((p) => ({
-                id: p.id,
-                name: p.name,
-                brand: p.brand,
-                grade: p.grade,
-                score: p.score,
-                price: p.price,
-            })),
-        [],
+            entries
+                .map((entry) => {
+                    const passport = mockPassportById(entry.passportId);
+                    if (!passport) return null;
+                    const score = scorePassport(passport, now);
+                    const artisan = mockArtisanById(passport.artisanId);
+                    return { entry, passport, score, artisan } as const;
+                })
+                .filter((it): it is NonNullable<typeof it> => it !== null),
+        [entries, now],
     );
 
-    const productById = useMemo(() => new Map(WARDROBE_ITEMS.map((p) => [p.id, p])), []);
+    const ePieces = items.filter((it) => it.score.grade === 'E');
 
-    const overall = useMemo(() => {
-        if (WARDROBE_ITEMS.length === 0) {
-            return { grade: 'E' as const, percentage: 0 };
-        }
-        const sum = WARDROBE_ITEMS.reduce((acc, p) => acc + p.score, 0);
-        const avg = sum / WARDROBE_ITEMS.length;
-        return { grade: gradeFromAverage(avg), percentage: avg };
-    }, []);
-
-    const distribution = useMemo(() => {
-        const dist: Record<string, number> = {};
-        WARDROBE_ITEMS.forEach((p) => {
-            const key = p.grade === 'A+' ? 'A' : p.grade;
-            dist[key] = (dist[key] ?? 0) + 1;
-        });
-        return dist;
-    }, []);
-
-    const exitCompare = () => {
-        setShowComparison(false);
-        setCompareMode(false);
-        setSelectedIds([]);
-    };
-
-    const handleSelect = (item: WardrobeItem) => {
-        if (compareMode) {
-            setSelectedIds((prev) => {
-                if (prev.includes(item.id)) {
-                    return prev.filter((id) => id !== item.id);
-                }
-                if (prev.length >= 2) {
-                    return prev;
-                }
-                const next = [...prev, item.id];
-                if (next.length === 2) {
-                    setTimeout(() => setShowComparison(true), 200);
-                }
-                return next;
-            });
-            return;
-        }
-        const product = productById.get(item.id);
-        if (product) {
-            onSelectProduct(product);
-        }
-    };
-
-    const compareProducts: MobileProduct[] = selectedIds
-        .map((id) => productById.get(id))
-        .filter((p): p is MobileProduct => Boolean(p));
+    if (items.length === 0) {
+        return <WardrobeEmpty onScanRequested={onScanRequested} />;
+    }
 
     return (
-        <div className="bg-background flex h-full flex-col">
-            <motion.div
-                className="flex items-center justify-between px-6 pb-4 pt-14"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-            >
-                <div>
-                    <h1 className="text-foreground text-xl font-bold">Your Vault</h1>
-                    <p className="text-muted-foreground mt-0.5 text-sm">{WARDROBE_ITEMS.length} items scanned</p>
-                </div>
-                <button
-                    onClick={() => (compareMode ? exitCompare() : setCompareMode(true))}
-                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                        compareMode
-                            ? 'border-lumiris-cyan bg-lumiris-cyan/10 text-lumiris-cyan'
-                            : 'border-border bg-card text-foreground'
-                    }`}
-                >
-                    <GitCompareArrows className="h-3.5 w-3.5" />
-                    {compareMode ? 'Cancel' : 'Compare'}
-                </button>
-            </motion.div>
+        <div className="bg-background flex h-full flex-col overflow-y-auto pb-24">
+            <motion.header className="px-5 pb-4 pt-12" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+                <h1 className="text-foreground text-xl font-bold">Garde-Robe</h1>
+                <p className="text-muted-foreground text-sm">
+                    {items.length} pièce{items.length > 1 ? 's' : ''} suivie{items.length > 1 ? 's' : ''}.
+                </p>
+            </motion.header>
 
-            <div className="flex-1 overflow-y-auto px-5 pb-28">
-                <motion.div
-                    className="border-border/60 bg-card mb-5 flex items-center gap-5 rounded-2xl border p-5"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                >
-                    <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
-                        <svg className="h-full w-full -rotate-90" viewBox="0 0 80 80">
-                            <circle cx="40" cy="40" r="34" fill="none" strokeWidth="4" className="stroke-secondary" />
-                            <motion.circle
-                                cx="40"
-                                cy="40"
-                                r="34"
-                                fill="none"
-                                strokeWidth="4"
-                                strokeLinecap="round"
-                                stroke={GAUGE_STROKE[overall.grade]}
-                                strokeDasharray={`${2 * Math.PI * 34}`}
-                                initial={{ strokeDashoffset: 2 * Math.PI * 34 }}
-                                animate={{
-                                    strokeDashoffset: 2 * Math.PI * 34 * (1 - overall.percentage / 100),
-                                }}
-                                transition={{ delay: 0.3, duration: 1.2, ease: 'easeOut' }}
-                            />
-                        </svg>
-                        <span
-                            className="absolute font-mono text-2xl font-bold"
-                            style={{ color: GAUGE_STROKE[overall.grade] }}
-                        >
-                            {overall.grade}
-                        </span>
-                    </div>
-
-                    <div className="flex-1">
-                        <h3 className="text-foreground text-sm font-bold">Wardrobe Health</h3>
-                        <p className={`${CHIP_TEXT[overall.grade]} mt-0.5 text-xs font-semibold`}>
-                            {GRADE_LABEL[overall.grade]}
-                        </p>
-                        <div className="bg-lumiris-emerald/10 mt-2.5 flex items-center gap-1.5 rounded-xl px-2.5 py-1.5">
-                            <TrendingUp className="text-lumiris-emerald h-3 w-3" />
-                            <span className="text-lumiris-emerald text-[11px] font-medium">Top 20% in your city</span>
-                        </div>
-                    </div>
-                </motion.div>
-
-                <motion.div
-                    className="mb-5 flex gap-2"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                >
-                    {(['A', 'B', 'C', 'D', 'E'] as const).map((grade) => (
-                        <div
-                            key={grade}
-                            className="border-border/40 bg-card flex flex-1 flex-col items-center gap-0.5 rounded-xl border py-2.5"
-                        >
-                            <span className={`${CHIP_TEXT[grade]} text-base font-bold`}>
-                                {distribution[grade] ?? 0}
-                            </span>
-                            <span className={`${CHIP_TEXT[grade]} text-[10px] font-bold`}>{grade}</span>
-                        </div>
-                    ))}
-                </motion.div>
-
-                <AnimatePresence>
-                    {compareMode && selectedIds.length < 2 && (
-                        <motion.div
-                            className="border-lumiris-cyan/30 bg-lumiris-cyan/5 mb-4 rounded-2xl border px-4 py-3 text-center"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                        >
-                            <p className="text-lumiris-cyan text-xs font-medium">
-                                Select {2 - selectedIds.length} product
-                                {2 - selectedIds.length > 1 ? 's' : ''} to compare
-                            </p>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <VaultGrid items={items} onSelect={handleSelect} selectedIds={selectedIds} />
+            <div className="grid grid-cols-2 gap-3 px-4">
+                {items.map(({ passport, score, artisan }) => (
+                    <WardrobeCard
+                        key={passport.id}
+                        passport={passport}
+                        grade={score.grade}
+                        score={score.total}
+                        artisanName={artisan?.atelierName ?? '—'}
+                    />
+                ))}
             </div>
 
-            <AnimatePresence>
-                {showComparison && compareProducts.length === 2 && (
-                    <ComparisonView products={compareProducts} onClose={exitCompare} />
-                )}
-            </AnimatePresence>
+            {ePieces.length > 0 ? (
+                <section className="mt-6 flex flex-col gap-3 px-4">
+                    {ePieces.map(({ passport }) => (
+                        <Alternatives key={passport.id} sourcePassport={passport} now={now} />
+                    ))}
+                </section>
+            ) : null}
         </div>
     );
 }
 
-interface ComparisonViewProps {
-    products: readonly MobileProduct[];
-    onClose: () => void;
-}
-
-function ComparisonView({ products, onClose }: ComparisonViewProps) {
-    const [a, b] = products;
-    if (!a || !b) {
-        return null;
-    }
-
+function WardrobeEmpty({ onScanRequested }: { onScanRequested: () => void }) {
     return (
         <motion.div
-            className="bg-background absolute inset-0 z-50 flex flex-col"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 40 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="bg-background flex h-full flex-col items-center justify-center gap-4 px-8 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
         >
-            <div className="flex items-center justify-between px-6 pb-4 pt-14">
-                <h2 className="text-foreground text-lg font-bold">Compare</h2>
-                <button
-                    onClick={onClose}
-                    className="border-border bg-card flex h-9 w-9 items-center justify-center rounded-xl border"
-                >
-                    <X className="text-foreground h-4 w-4" />
-                </button>
+            <div className="border-border/60 bg-card relative flex h-20 w-20 items-center justify-center rounded-3xl border">
+                <Shirt className="text-muted-foreground h-8 w-8" />
+                <span
+                    className="bg-lumiris-cyan/15 absolute -inset-3 -z-10 rounded-3xl blur-xl motion-reduce:hidden"
+                    aria-hidden
+                />
             </div>
-
-            <div className="flex-1 overflow-y-auto px-5 pb-8">
-                <div className="mb-6 flex gap-3">
-                    {[a, b].map((product) => (
-                        <div
-                            key={product.id}
-                            className="border-border/60 bg-card flex flex-1 flex-col items-center gap-2 rounded-2xl border py-5"
-                        >
-                            <IrisGrade grade={product.grade} size="lg" />
-                            <p className="text-foreground text-xs font-semibold">{product.name}</p>
-                            <p className="text-muted-foreground text-[11px]">{product.brand}</p>
-                        </div>
-                    ))}
-                </div>
-
-                <ComparisonRow
-                    label="Score"
-                    valueA={`${Math.round(a.score)} / 100`}
-                    valueB={`${Math.round(b.score)} / 100`}
-                />
-                <ComparisonRow label="Price" valueA={`€${a.price}`} valueB={`€${b.price}`} />
-                <ComparisonRow label="Value" valueA={a.priceGradeRatio} valueB={b.priceGradeRatio} />
-                <ComparisonRow
-                    label="CO2"
-                    valueA={`${a.environmental[0]?.value ?? '-'} kg`}
-                    valueB={`${b.environmental[0]?.value ?? '-'} kg`}
-                />
-                <ComparisonRow
-                    label="Water"
-                    valueA={`${a.environmental[1]?.value ?? '-'} L`}
-                    valueB={`${b.environmental[1]?.value ?? '-'} L`}
-                />
-                <ComparisonRow
-                    label="Energy"
-                    valueA={`${a.environmental[2]?.value ?? '-'} kWh`}
-                    valueB={`${b.environmental[2]?.value ?? '-'} kWh`}
-                />
-                <ComparisonRow
-                    label="Certificates"
-                    valueA={`${a.certificates.length}`}
-                    valueB={`${b.certificates.length}`}
-                />
-                <ComparisonRow label="Supply Steps" valueA={`${a.journey.length}`} valueB={`${b.journey.length}`} />
+            <div>
+                <h1 className="text-foreground text-lg font-semibold">Ta Garde-Robe est vide</h1>
+                <p className="text-muted-foreground mt-1 max-w-xs text-sm">
+                    Scanne le QR du passeport sur l&apos;étiquette d&apos;une de tes pièces pour la suivre dans LUMIRIS.
+                </p>
             </div>
+            <button
+                type="button"
+                onClick={onScanRequested}
+                className="bg-foreground text-primary-foreground inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold"
+            >
+                <ScanQrCode className="h-4 w-4" />
+                Scanner ma première pièce
+            </button>
         </motion.div>
     );
 }
 
-interface ComparisonRowProps {
-    label: string;
-    valueA: string;
-    valueB: string;
+interface WardrobeCardProps {
+    passport: Passport;
+    grade: 'A' | 'B' | 'C' | 'D' | 'E';
+    score: number;
+    artisanName: string;
 }
 
-function ComparisonRow({ label, valueA, valueB }: ComparisonRowProps) {
+function WardrobeCard({ passport, grade, score, artisanName }: WardrobeCardProps) {
     return (
-        <div className="border-border/40 flex items-center gap-3 border-b py-3">
-            <span className="text-foreground flex-1 text-right text-sm font-semibold">{valueA}</span>
-            <span className="text-muted-foreground w-24 text-center text-[10px] font-bold uppercase tracking-wider">
-                {label}
-            </span>
-            <span className="text-foreground flex-1 text-sm font-semibold">{valueB}</span>
-        </div>
+        <Link
+            href={`/passeport/${passport.id}`}
+            className="border-border/60 bg-card group relative flex flex-col overflow-hidden rounded-2xl border transition-all"
+            style={grade === 'E' ? { filter: 'saturate(0.4) brightness(0.95)' } : undefined}
+        >
+            <div className="bg-secondary/40 aspect-3/4 relative">
+                {passport.garment.mainPhotoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        src={passport.garment.mainPhotoUrl}
+                        alt={passport.garment.reference}
+                        className="h-full w-full object-cover"
+                    />
+                ) : (
+                    <div className="text-muted-foreground/40 flex h-full w-full items-center justify-center">
+                        <Shirt className="h-8 w-8" />
+                    </div>
+                )}
+                <div className="absolute right-2 top-2">
+                    <IrisGrade grade={grade} size="sm" tone="solid" />
+                </div>
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        removeFromWardrobe(passport.id);
+                    }}
+                    aria-label="Retirer de la Garde-Robe"
+                    className="border-border bg-card/80 text-muted-foreground hover:text-foreground absolute left-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full border opacity-0 transition group-hover:opacity-100"
+                >
+                    <Trash2 className="h-3.5 w-3.5" />
+                </button>
+            </div>
+            <div className="flex flex-col gap-0.5 p-3">
+                <p className="text-foreground truncate text-xs font-semibold">{passport.garment.reference}</p>
+                <p className="text-muted-foreground truncate text-[11px]">{artisanName}</p>
+                <div className="text-muted-foreground/80 mt-1 inline-flex items-center justify-between font-mono text-[10px]">
+                    <span>Iris {score}</span>
+                    <span>
+                        {passport.garment.retailPrice} {passport.garment.currency}
+                    </span>
+                </div>
+            </div>
+        </Link>
     );
 }
 
-function gradeFromAverage(avg: number): 'A+' | 'A' | 'B' | 'C' | 'D' | 'E' {
-    if (avg >= 90) return 'A+';
-    if (avg >= 80) return 'A';
-    if (avg >= 65) return 'B';
-    if (avg >= 50) return 'C';
-    if (avg >= 35) return 'D';
-    return 'E';
+// Suggestions alternatives — pour chaque E, on cherche dans le catalogue mock les pièces
+// du même `garment.kind` notées A ou B, triées grade puis prix croissant. Lien vers
+// `/passeport/[id]` (en attendant un futur `/artisans/[slug]` côté web).
+function Alternatives({ sourcePassport, now }: { sourcePassport: Passport; now: Date }) {
+    const alternatives = useMemo(() => {
+        return mockPassports
+            .filter(
+                (p) =>
+                    p.id !== sourcePassport.id &&
+                    p.garment.kind === sourcePassport.garment.kind &&
+                    p.status === 'Published',
+            )
+            .map((p) => ({ passport: p, score: scorePassport(p, now) }))
+            .filter((row) => row.score.grade === 'A' || row.score.grade === 'B')
+            .sort((a, b) => {
+                if (a.score.grade !== b.score.grade) return a.score.grade.localeCompare(b.score.grade);
+                return a.passport.garment.retailPrice - b.passport.garment.retailPrice;
+            })
+            .slice(0, 6);
+    }, [sourcePassport, now]);
+
+    if (alternatives.length === 0) return null;
+
+    return (
+        <div className="border-lumiris-cyan/20 bg-lumiris-cyan/5 flex flex-col gap-2 rounded-2xl border p-3">
+            <div className="flex items-baseline justify-between">
+                <p className="text-foreground text-xs font-semibold uppercase tracking-wider">
+                    Mieux que {sourcePassport.garment.reference}
+                </p>
+                <p className="text-muted-foreground text-[11px]">artisans français A/B</p>
+            </div>
+            <ul className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+                {alternatives.map(({ passport, score }) => {
+                    const artisan = mockArtisanById(passport.artisanId);
+                    return (
+                        <li key={passport.id} className="shrink-0">
+                            <Link
+                                href={`/passeport/${passport.id}`}
+                                className="border-border/60 bg-card flex w-40 flex-col gap-1 rounded-xl border p-2"
+                            >
+                                <div className="bg-secondary/40 relative h-24 overflow-hidden rounded-lg">
+                                    {passport.garment.mainPhotoUrl ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img
+                                            src={passport.garment.mainPhotoUrl}
+                                            alt={passport.garment.reference}
+                                            className="h-full w-full object-cover"
+                                        />
+                                    ) : null}
+                                    <div className="absolute right-1.5 top-1.5">
+                                        <IrisGrade grade={score.grade} size="sm" tone="solid" />
+                                    </div>
+                                </div>
+                                <p className="text-foreground truncate text-[11px] font-semibold">
+                                    {passport.garment.reference}
+                                </p>
+                                <p className="text-muted-foreground truncate text-[10px]">
+                                    {artisan?.atelierName ?? '—'}
+                                </p>
+                                <p className="text-foreground/80 font-mono text-[10px]">
+                                    {passport.garment.retailPrice} €
+                                </p>
+                            </Link>
+                        </li>
+                    );
+                })}
+            </ul>
+        </div>
+    );
 }

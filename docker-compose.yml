@@ -98,6 +98,24 @@ services:
             - traefik.http.routers.mobile.tls.certresolver=letsencrypt
             - traefik.http.services.mobile.loadbalancer.server.port=3002
 
+    client:
+        <<: *app-defaults
+        image: ghcr.io/${GHCR_OWNER:-lumiris}/client:${IMAGE_TAG:-latest}
+        container_name: lumiris-client
+        depends_on: [api]
+        healthcheck:
+            test: ['CMD', 'wget', '-qO-', 'http://localhost:3003/']
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 20s
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.client.rule=Host(`${CLIENT_HOST:-client.lumiris.local}`)
+            - traefik.http.routers.client.entrypoints=websecure
+            - traefik.http.routers.client.tls.certresolver=letsencrypt
+            - traefik.http.services.client.loadbalancer.server.port=3003
+
     api:
         <<: *app-defaults
         image: ghcr.io/${GHCR_OWNER:-lumiris}/api:${IMAGE_TAG:-latest}

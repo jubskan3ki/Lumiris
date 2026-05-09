@@ -1,7 +1,16 @@
-// Long-form content shared between admin (CMS) and web (public).
+// contenu éditorial public partagé admin (CMS) ↔ web (vitrine) — 4 catégories + body MDX
 
 export type JournalStatus = 'Draft' | 'Published' | 'Scheduled';
-export type JournalCategory = 'Regulation' | 'Lifestyle' | 'Audit' | 'Sustainability';
+
+export type JournalCategory = 'reglementation' | 'portrait-artisan' | 'savoir-faire' | 'entretien';
+
+/** Libellés FR canoniques — utilisés par les UIs admin et public. */
+export const JOURNAL_CATEGORY_LABEL: Record<JournalCategory, string> = {
+    reglementation: 'Réglementation',
+    'portrait-artisan': "Portrait d'artisan",
+    'savoir-faire': 'Savoir-faire',
+    entretien: 'Entretien',
+};
 
 export interface JournalArticle {
     id: string;
@@ -13,6 +22,9 @@ export interface JournalArticle {
     updatedAt: string;
     excerpt: string;
     readTime: string;
-    body?: string;
+    /** Corps MDX — requis dès qu'un article est `Published`. Toléré vide en `Draft`. */
+    body: string;
     coverImage?: string;
+    /** URL-safe slug humain. Optionnel : dérivable du titre côté consumer s'il est absent. */
+    slug?: string;
 }
