@@ -5,7 +5,7 @@
 @variant dark (&:is(.dark *));
 
 :root {
-    /* LUMIRIS White — Clinical Minimalism */
+    /* LUMIRIS White - Clinical Minimalism */
     --background: oklch(98% 0.002 260deg);
     --foreground: oklch(15% 0.01 260deg);
     --card: oklch(100% 0 0deg);
@@ -49,7 +49,7 @@
     --lumiris-surface: oklch(100% 0 0deg);
     --lumiris-surface-raised: oklch(98% 0.002 260deg);
 
-    /* Iris Grade A→E — accès via <IrisGrade>/<ScoreBreakdown> ou utilitaires `text-iris-grade-*` */
+    /* Iris Grade A→E - accès via <IrisGrade>/<ScoreBreakdown> ou utilitaires `text-iris-grade-*` */
     --iris-grade-a: oklch(55% 0.18 160deg);
     --iris-grade-b: oklch(60% 0.13 195deg);
     --iris-grade-c: oklch(72% 0.16 85deg);
@@ -170,7 +170,7 @@
     }
 }
 
-/* Prismatic gradient — surface brand partagée mobile/web ; shimmer hérité par admin/mobile sans dommage */
+/* Prismatic gradient - surface brand partagée mobile/web ; shimmer hérité par admin/mobile sans dommage */
 .prismatic-bg {
     background: linear-gradient(
         135deg,
@@ -202,14 +202,14 @@
     }
 }
 
-/* Frosted-glass surface — used by the marketing header pill on web. */
+/* Frosted-glass surface - used by the marketing header pill on web. */
 .glass {
     background: oklch(100% 0 0deg / 72%);
     backdrop-filter: blur(20px) saturate(1.8);
     border: 1px solid oklch(91.8% 0.005 264deg / 60%);
 }
 
-/* Gentle float — used by the hero product card on web. */
+/* Gentle float - used by the hero product card on web. */
 .float-animation {
     animation: float 6s ease-in-out infinite;
 }
@@ -229,7 +229,7 @@ html {
     scroll-behavior: smooth;
 }
 
-/* Marketing ticker — used by RecentScans on web. */
+/* Marketing ticker - used by RecentScans on web. */
 .ticker-scroll {
     animation: ticker-scroll-frames 40s linear infinite;
 }

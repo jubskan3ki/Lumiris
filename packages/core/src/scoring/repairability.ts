@@ -1,4 +1,4 @@
-// réparabilité 10 % — retoucheurs proches (60) + fibres réparables pondérées (30) + garantie (10)
+// réparabilité 10 % - retoucheurs proches (60) + fibres réparables pondérées (30) + garantie (10)
 
 import type { Artisan, Passport, Fiber, Repairer, ScoreReason } from '@lumiris/types';
 import type { AxisResult } from './types';
@@ -42,14 +42,14 @@ export function scoreRepairability(passport: Passport, input: RepairabilityInput
             retouchePts = Math.min(20, nearby * 5);
             reasons.push({
                 axis: 'repairability',
-                message: `Aucun retoucheur partenaire dans ${artisan.city} — proposez la Garde-Robe Locale à vos clients.`,
+                message: `Aucun retoucheur partenaire dans ${artisan.city} - proposez la Garde-Robe Locale à vos clients.`,
                 severity: 'warn',
             });
         }
     } else {
         reasons.push({
             axis: 'repairability',
-            message: 'Profil artisan non fourni — disponibilité retoucheurs non évaluable.',
+            message: 'Profil artisan non fourni - disponibilité retoucheurs non évaluable.',
             severity: 'info',
         });
     }

@@ -1,4 +1,4 @@
-// barrel public — apps préfèrent les imports granulaires (./components/<x>) pour le tree-shaking
+// barrel public - apps préfèrent les imports granulaires (./components/<x>) pour le tree-shaking
 
 export {
     IrisGrade,
@@ -40,10 +40,13 @@ export {
     AXIS_COLOR,
     AXIS_LABEL,
     gradeColor,
+    gradeColorVar,
     gradeBackground,
     gradeBackgroundSolid,
     gradeBorder,
+    gradeBorder2px,
     type GradeColorToken,
 } from './theme/grade-color';
 
 export { useComputeScore } from './hooks/use-compute-score';
+export { useUniqueCertificates } from './hooks/use-unique-certificates';

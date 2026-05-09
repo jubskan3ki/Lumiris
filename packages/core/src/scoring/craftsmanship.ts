@@ -1,4 +1,4 @@
-// savoir-faire 25 % — part artisanale (50) + labels EPV/OFG/CUSTOM (30) + garantie (20)
+// savoir-faire 25 % - part artisanale (50) + labels EPV/OFG/CUSTOM (30) + garantie (20)
 
 import type { Artisan, Passport, CertificationRef, ScoreReason } from '@lumiris/types';
 import { getEffectiveWeight } from '@lumiris/types';
@@ -6,7 +6,7 @@ import type { AxisResult } from './types';
 
 interface CraftsmanshipInput {
     artisan?: Artisan;
-    /** Catalogue plat des certifications connues — utilisé pour les certs CUSTOM artisan. */
+    /** Catalogue plat des certifications connues - utilisé pour les certs CUSTOM artisan. */
     certificates: readonly CertificationRef[];
     now: Date;
 }
@@ -41,7 +41,7 @@ export function scoreCraftsmanship(passport: Passport, input: CraftsmanshipInput
     } else if (!artisan) {
         reasons.push({
             axis: 'craftsmanship',
-            message: 'Profil artisan non fourni — part artisanale non évaluable.',
+            message: 'Profil artisan non fourni - part artisanale non évaluable.',
             severity: 'warn',
         });
     }
@@ -72,7 +72,7 @@ export function scoreCraftsmanship(passport: Passport, input: CraftsmanshipInput
     if (months < 24) {
         reasons.push({
             axis: 'craftsmanship',
-            message: `Garantie ${months} mois — passez à 24 mois pour atteindre le palier maximum.`,
+            message: `Garantie ${months} mois - passez à 24 mois pour atteindre le palier maximum.`,
             severity: 'info',
         });
     }

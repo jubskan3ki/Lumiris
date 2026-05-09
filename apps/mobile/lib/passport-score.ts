@@ -1,4 +1,4 @@
-// Wrapper synchrone autour de `computeScore()` — toujours appelé avec un `now` injecté
+// Wrapper synchrone autour de `computeScore()` - toujours appelé avec un `now` injecté
 // (déterministe). On résout l'artisan depuis le mock pour récupérer EPV/OFG/displayName,
 // utilisés par le sous-score craftsmanship.
 

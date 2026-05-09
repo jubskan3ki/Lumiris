@@ -6,7 +6,7 @@
 @source "../../../packages/ui/src/**/*.{ts,tsx}";
 @source "../../../packages/scoring-ui/src/**/*.{ts,tsx}";
 
-/* Wizard steps build grade utilities via template literals — force-emit the full
+/* Wizard steps build grade utilities via template literals - force-emit the full
  * A-E triad so each grade keeps its hue. */
 @source inline("text-grade-a text-grade-b text-grade-c text-grade-d text-grade-e");
 @source inline("bg-grade-a bg-grade-b bg-grade-c bg-grade-d bg-grade-e");

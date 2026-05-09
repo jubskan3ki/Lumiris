@@ -1,4 +1,4 @@
-// admin RBAC — distinct de `User.role` (consumer/artisan), modélise l'identité back-office
+// admin RBAC - distinct de `User.role` (consumer/artisan), modélise l'identité back-office
 
 export type AdminUserRole = 'curator' | 'lead_curator' | 'content_manager' | 'billing_ops' | 'platform_admin' | 'dpo';
 

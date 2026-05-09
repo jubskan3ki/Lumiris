@@ -1,24 +1,32 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import jsQR from 'jsqr';
+import { KeyRound } from 'lucide-react';
 import { mockArtisanById } from '@lumiris/mock-data';
 import type { Passport } from '@lumiris/types';
 import { scorePassport } from '@/lib/passport-score';
 import { incrementScanCounter } from '@/lib/scan-counter';
-import { decodeQrPayload, resolvePassportFromScan } from './qr-decoder';
-import { PrismaticOverlay } from './prismatic-overlay';
-import { NfcComingSoon } from './nfc-coming-soon';
+import { processVideoFrame } from '@/lib/scan/qr-processor';
+import { getCameraPermissionState, hasSeenCameraPrompt, markCameraPromptSeen } from '@/lib/camera/permission-storage';
+import { IrisRing, type IrisRingStatus } from './iris-ring';
 import { ScanResultModal } from './scan-result-modal';
 import { CameraDeniedState, QrUnreadableState, PassportNotFoundState } from './empty-states';
-
-type ScannerStatus = 'idle' | 'scanning' | 'denied' | 'unreadable' | 'unknown' | 'matched';
+import { PermissionPrompt } from './permission-prompt';
 
 // Délai en ms après lequel on considère que le QR est introuvable et on bascule sur l'état "unreadable".
-// Volontairement long (12 s) pour ne pas frustrer l'utilisateur — la grille de la caméra pulse en permanence.
+// Volontairement long (12 s) pour ne pas frustrer l'utilisateur - l'iris ring respire en permanence.
 const UNREADABLE_TIMEOUT_MS = 12_000;
+
+const STATUS_CHIP: Record<IrisRingStatus, { label: string; dot: string }> = {
+    idle: { label: 'Ready', dot: 'bg-muted-foreground' },
+    scanning: { label: 'Scanning', dot: 'bg-iris-grade-b' },
+    matched: { label: 'Locked', dot: 'bg-iris-grade-a' },
+    denied: { label: 'Caméra off', dot: 'bg-lumiris-rose' },
+    unreadable: { label: 'Illisible', dot: 'bg-lumiris-amber' },
+    unknown: { label: 'Inconnu', dot: 'bg-lumiris-orange' },
+};
 
 export function ScanPassport() {
     const router = useRouter();
@@ -28,7 +36,8 @@ export function ScanPassport() {
     const rafRef = useRef<number | null>(null);
     const startedAtRef = useRef<number>(0);
 
-    const [status, setStatus] = useState<ScannerStatus>('idle');
+    const [status, setStatus] = useState<IrisRingStatus>('idle');
+    const [phase, setPhase] = useState<'pre-prompt' | 'live'>('live');
     const [match, setMatch] = useState<{ passport: Passport; raw: string } | null>(null);
     const [unknownRaw, setUnknownRaw] = useState<string>('');
 
@@ -66,49 +75,28 @@ export function ScanPassport() {
         }
     }, []);
 
-    // Boucle requestAnimationFrame — décode 1 frame sur 2 pour préserver la batterie.
+    // Boucle requestAnimationFrame - déléguer le décodage à processVideoFrame, gérer le timeout.
     const tick = useCallback(() => {
         const video = videoRef.current;
-        if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) {
-            rafRef.current = requestAnimationFrame(tick);
-            return;
-        }
+        if (!video) return;
         if (!canvasRef.current) canvasRef.current = document.createElement('canvas');
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        if (!ctx) return;
 
-        const w = video.videoWidth;
-        const h = video.videoHeight;
-        if (w === 0 || h === 0) {
-            rafRef.current = requestAnimationFrame(tick);
+        const result = processVideoFrame(video, canvasRef.current);
+        if (result.kind === 'matched') {
+            if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(60);
+            incrementScanCounter();
+            stopCamera();
+            setMatch({ passport: result.passport, raw: result.raw });
+            setStatus('matched');
             return;
         }
-        canvas.width = w;
-        canvas.height = h;
-        ctx.drawImage(video, 0, 0, w, h);
-        const imageData = ctx.getImageData(0, 0, w, h);
-
-        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
-        if (code?.data) {
-            const decoded = decodeQrPayload(code.data);
-            const passport = resolvePassportFromScan(decoded);
-            if (passport) {
-                if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(60);
-                incrementScanCounter();
-                stopCamera();
-                setMatch({ passport, raw: code.data });
-                setStatus('matched');
-                return;
-            }
-            // Lu mais inconnu — on s'arrête sur l'état "unknown" avec le payload brut.
+        if (result.kind === 'unknown') {
             stopCamera();
-            setUnknownRaw(code.data);
+            setUnknownRaw(result.raw);
             setStatus('unknown');
             return;
         }
-
-        // Pas de QR : si on dépasse le délai max sans rien lire, bascule sur "unreadable"
+        // no-frame ou no-code : on continue, sauf timeout dépassé.
         if (performance.now() - startedAtRef.current > UNREADABLE_TIMEOUT_MS) {
             stopCamera();
             setStatus('unreadable');
@@ -126,12 +114,46 @@ export function ScanPassport() {
         };
     }, [status, tick]);
 
+    // Au mount : on choisit entre pre-prompt explicatif et démarrage direct selon
+    // l'état de permission caméra et notre flag local "déjà vu".
+    //   - granted  → démarrage direct (l'iris ring respire, pas de friction)
+    //   - denied   → pre-prompt réaffiché (l'utilisateur a refusé une fois ; on
+    //                redonne du contexte avant de retenter, puis CameraDeniedState
+    //                prend le relais si nouveau refus)
+    //   - autres   → pre-prompt si jamais vu, sinon démarrage direct (le natif
+    //                prendra la décision)
     useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            const state = await getCameraPermissionState();
+            if (cancelled) return;
+            if (state === 'granted') {
+                setPhase('live');
+                startCamera();
+                return;
+            }
+            if (state === 'denied' || !hasSeenCameraPrompt()) {
+                setPhase('pre-prompt');
+                return;
+            }
+            setPhase('live');
+            startCamera();
+        })();
+        return () => {
+            cancelled = true;
+            stopCamera();
+        };
+    }, [startCamera, stopCamera]);
+
+    const onAcceptPrompt = useCallback(() => {
+        markCameraPromptSeen();
+        setPhase('live');
         startCamera();
-        return () => stopCamera();
-        // Démarrage unique au mount — `startCamera`/`stopCamera` sont stables.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [startCamera]);
+
+    const onDeferPrompt = useCallback(() => {
+        router.push('/scan/manual');
+    }, [router]);
 
     const restart = useCallback(() => {
         setMatch(null);
@@ -147,8 +169,15 @@ export function ScanPassport() {
         [router, stopCamera],
     );
 
-    const matchScore = match ? scorePassport(match.passport, new Date()) : null;
+    const openManualEntry = useCallback(() => {
+        stopCamera();
+        router.push('/scan/manual');
+    }, [router, stopCamera]);
+
+    const matchScore = useMemo(() => (match ? scorePassport(match.passport, new Date()) : null), [match]);
     const matchArtisan = match ? mockArtisanById(match.passport.artisanId) : undefined;
+
+    const chip = STATUS_CHIP[status];
 
     return (
         <div className="bg-background relative h-full w-full overflow-hidden">
@@ -160,44 +189,59 @@ export function ScanPassport() {
                 aria-label="Vue caméra"
             />
 
-            {/* Voile sombre pour faire ressortir le viewfinder */}
+            {/* Voile sombre pour faire ressortir l'iris ring */}
             <div className="bg-background/30 pointer-events-none absolute inset-0" />
 
-            <PrismaticOverlay active={status === 'matched'} />
-
+            {/* Header */}
             <motion.header
                 className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between px-5 pb-3 pt-12"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
             >
                 <div>
                     <h1 className="text-foreground text-base font-bold tracking-tight">LUMIRIS</h1>
-                    <p className="text-muted-foreground text-[10px] font-semibold uppercase tracking-[0.2em]">
-                        Scanner un passeport
-                    </p>
+                    <p className="text-muted-foreground text-[10px] font-semibold uppercase tracking-[0.2em]">Vision</p>
                 </div>
-                <NfcComingSoon />
+                <div
+                    className="border-border bg-card/80 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 backdrop-blur-md"
+                    role="status"
+                    aria-label={`Statut scanner : ${chip.label}`}
+                >
+                    <span className={`h-1.5 w-1.5 rounded-full ${chip.dot}`} aria-hidden />
+                    <span className="text-foreground text-xs font-medium">{chip.label}</span>
+                </div>
             </motion.header>
 
-            <motion.p
-                className="text-muted-foreground absolute bottom-32 left-0 right-0 z-20 px-8 text-center text-xs"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+            {/* Iris ring centré */}
+            <div className="absolute inset-0 z-10 flex items-center justify-center">
+                <IrisRing status={status} />
+            </div>
+
+            {/* Bottom : aide + bouton saisie manuelle (au-dessus de la tab bar de l'AppShell) */}
+            <motion.div
+                className="absolute bottom-28 left-0 right-0 z-20 flex flex-col items-center gap-3 px-8"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
             >
-                Approche le QR du passeport jusqu&apos;à ce qu&apos;il rentre dans le cadre.
-            </motion.p>
+                <p className="text-muted-foreground text-center text-xs">
+                    Approche le QR du passeport jusqu&apos;à ce qu&apos;il rentre dans le cadre.
+                </p>
+                <button
+                    type="button"
+                    onClick={openManualEntry}
+                    className="border-border/60 bg-card/80 text-foreground inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium backdrop-blur-md"
+                >
+                    <KeyRound className="h-3.5 w-3.5" />
+                    Saisir un identifiant
+                </button>
+            </motion.div>
 
-            {status === 'denied' ? <CameraDeniedState onRetry={startCamera} /> : null}
-            {status === 'unreadable' ? (
-                <QrUnreadableState
-                    onRetry={restart}
-                    onManualEntry={() => {
-                        setUnknownRaw('');
-                        setStatus('unknown');
-                    }}
-                />
-            ) : null}
+            {phase === 'pre-prompt' ? <PermissionPrompt onActivate={onAcceptPrompt} onDefer={onDeferPrompt} /> : null}
+
+            {status === 'denied' ? <CameraDeniedState onRetry={startCamera} onManualEntry={openManualEntry} /> : null}
+            {status === 'unreadable' ? <QrUnreadableState onRetry={restart} onManualEntry={openManualEntry} /> : null}
             {status === 'unknown' ? (
                 <PassportNotFoundState raw={unknownRaw} onRetry={restart} onSubmitManualId={openPassport} />
             ) : null}

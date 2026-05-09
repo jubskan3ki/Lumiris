@@ -13,7 +13,7 @@ bun install && bun dev
 | Workspace     | Package           | Role                                                                              | Port |
 | ------------- | ----------------- | --------------------------------------------------------------------------------- | ---- |
 | `apps/admin`  | `@lumiris/admin`  | Internal back-office — DPP audit, certificate vault, journal CMS. Light/Clinical. | 3001 |
-| `apps/web`    | `@lumiris/web`    | Public marketing site, methodology pages, journal.                                | 3000 |
+| `apps/site`   | `@lumiris/site`   | Public marketing site, methodology pages, journal.                                | 3000 |
 | `apps/mobile` | `@lumiris/mobile` | Mobile-optimized consumer view — Iris Scanner, Deep Reveal.                       | 3002 |
 
 ## Shared packages
@@ -38,7 +38,7 @@ bun install && bun dev
 .
 ├── apps/
 │   ├── admin/         # @lumiris/admin  → back-office dashboard
-│   ├── web/           # @lumiris/web    → public site & journal
+│   ├── site/          # @lumiris/site   → public site & journal
 │   └── mobile/        # @lumiris/mobile → mobile-optimized view
 ├── packages/
 │   ├── ui/            # @lumiris/ui     → Prismatic Clarity design system
@@ -59,8 +59,8 @@ bun install && bun dev
 | Make target            | What it does                            |
 | ---------------------- | --------------------------------------- |
 | `make install`         | Install everything via Bun              |
-| `make dev`             | Run admin + web + mobile in parallel    |
-| `make dev-web`         | Only the public site                    |
+| `make dev`             | Run admin + site + mobile in parallel   |
+| `make dev-site`        | Only the public site                    |
 | `make build`           | Build all apps (Turbo-cached)           |
 | `make verify`          | `lint` + `typecheck` + `test` + `knip`  |
 | `make ci`              | Full local CI pipeline                  |
@@ -81,4 +81,4 @@ Each `apps/*` is an independent Next.js app — deploy individually on Vercel, o
 
 ---
 
-> **Philosophy.** DRY · type-safe · scalable. Every piece of code that affects the audit verdict — types, scoring, UI primitives — lives in `packages/` and is consumed identically across admin, web, and mobile. That's the brand promise: one truth, three surfaces.
+> **Philosophy.** DRY · type-safe · scalable. Every piece of code that affects the audit verdict (types, scoring, UI primitives) lives in `packages/` and is consumed identically across admin, site, and mobile. That's the brand promise: one truth, three surfaces.

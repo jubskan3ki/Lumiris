@@ -7,7 +7,7 @@ export interface PassportRow {
     passport: Passport;
     /** Statut effectif après application de l'overlay local. */
     status: EffectiveStatus;
-    /** Délai en heures depuis la soumission (createdAt) — utilisé pour le tri FIFO. */
+    /** Délai en heures depuis la soumission (createdAt) - utilisé pour le tri FIFO. */
     ageHours: number;
 }
 

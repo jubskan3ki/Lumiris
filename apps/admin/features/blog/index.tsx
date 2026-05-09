@@ -24,7 +24,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@lumiris/ui/hooks/use-toast';
 import { cn } from '@lumiris/ui/lib/cn';
 import { RequirePermission, useCurrentUser, useLogAction, usePermission } from '@/lib/auth';
-import { BlogEditor, isPublishable, StatusBadge, validateForPublish } from './editor';
+import { isPublishable, validateForPublish } from '@/lib/blog-validation';
+import { BlogEditor, StatusBadge } from './editor';
 
 function BlogComponent() {
     return (
@@ -264,7 +265,7 @@ function BlogInner() {
                 <div>
                     <h2 className="text-foreground text-xl font-semibold">
                         <BookOpen className="text-lumiris-emerald mr-1.5 inline h-5 w-5" />
-                        Blog — Journal LUMIRIS
+                        Blog - Journal LUMIRIS
                     </h2>
                     <p className="text-muted-foreground mt-1 text-sm">
                         {articles.length} articles · 5 catégories · workflow Draft → Review → Published.
@@ -368,7 +369,7 @@ function BlogInner() {
                                 <TableRow key={a.id} onClick={() => setEditingId(a.id)} className="cursor-pointer">
                                     <TableCell>
                                         <p className="text-foreground text-sm font-medium">
-                                            {a.title || '— Sans titre —'}
+                                            {a.title || '- Sans titre -'}
                                         </p>
                                         <p className="text-muted-foreground line-clamp-1 text-[11px]">{a.excerpt}</p>
                                     </TableCell>
@@ -405,7 +406,7 @@ function BlogInner() {
                                                 </span>
                                             </div>
                                         ) : (
-                                            <span className="text-muted-foreground/50 text-xs">—</span>
+                                            <span className="text-muted-foreground/50 text-xs">-</span>
                                         )}
                                     </TableCell>
                                     <TableCell className="text-right font-mono text-[11px]">

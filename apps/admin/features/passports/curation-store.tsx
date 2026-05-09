@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import type { IrisGrade } from '@lumiris/types';
 
-// Couche de "modération étendue" — vit en mémoire dans l'admin app et n'altère JAMAIS
+// Couche de "modération étendue" - vit en mémoire dans l'admin app et n'altère JAMAIS
 // les fixtures de @lumiris/mock-data. Encode les statuts qui n'existent pas dans le pivot
 // v6.1 (changes_requested / flagged / archived) comme des overlays par passportId.
 // Quand le backend arrivera, ce store sera remplacé par un fetch sur /admin/passports.
@@ -17,7 +17,7 @@ interface CurationOverlay {
     flagTags?: readonly string[];
     changesMessage?: string;
     changesChecklist?: readonly string[];
-    /** Override de score — overlay visuel uniquement, pas un vrai changement de score. */
+    /** Override de score - overlay visuel uniquement, pas un vrai changement de score. */
     overrideGrade?: IrisGrade;
     overrideReason?: string;
     /** Trace minimaliste pour rejouer l'historique, en complément de l'audit log. */

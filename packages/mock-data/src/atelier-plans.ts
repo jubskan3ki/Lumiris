@@ -61,7 +61,7 @@ export const ATELIER_ADD_ONS: readonly AtelierAddOn[] = [
         monthlyEur: 19,
         yearlyEur: 190,
         description:
-            "Visibilité renforcée dans l'annuaire LUMIRIS — sans jamais influencer le score Iris. Aucun acteur n'achète son score.",
+            "Visibilité renforcée dans l'annuaire LUMIRIS - sans jamais influencer le score Iris. Aucun acteur n'achète son score.",
     },
 ] as const;
 

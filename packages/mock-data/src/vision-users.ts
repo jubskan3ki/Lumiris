@@ -1,6 +1,6 @@
 import type { ConsumerProfile } from '@lumiris/types';
 
-// vision users — Garde-Robe + Iris Scanner ; admin ne voit jamais les anon individuellement (RGPD)
+// vision users - Garde-Robe + Iris Scanner ; admin ne voit jamais les anon individuellement (RGPD)
 
 export interface MockRgpdRequest {
     /** Type RGPD attendu côté DPO. */
@@ -10,7 +10,7 @@ export interface MockRgpdRequest {
 }
 
 export interface MockVisionUser extends ConsumerProfile {
-    /** Optionnelle — uniquement quand le user accepte de partager sa ville. */
+    /** Optionnelle - uniquement quand le user accepte de partager sa ville. */
     city?: string;
     rgpdRequests?: readonly MockRgpdRequest[];
     /** Marqueur d'anonymisation post-effacement RGPD. */
@@ -162,7 +162,7 @@ export const mockVisionUsers: readonly MockVisionUser[] = [
         city: 'Paris',
     },
 
-    // anon — jamais listés individuellement (RGPD)
+    // anon - jamais listés individuellement (RGPD)
     {
         id: 'VIS-A-001',
         role: 'consumer',

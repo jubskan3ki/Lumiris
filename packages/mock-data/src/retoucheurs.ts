@@ -1,6 +1,6 @@
 import type { Repairer } from '@lumiris/types';
 
-// 15 retoucheurs (8 Local payant, 7 free) — persona Mehdi inclus, spécialités mixées
+// 15 retoucheurs (8 Local payant, 7 free) - persona Mehdi inclus, spécialités mixées
 export const mockRepairers: readonly Repairer[] = [
     {
         id: 'rtc-mehdi',

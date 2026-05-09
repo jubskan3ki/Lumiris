@@ -1,0 +1,515 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Archive,
+    Check,
+    GitCompareArrows,
+    MoreHorizontal,
+    ScanQrCode,
+    Shirt,
+    SlidersHorizontal,
+    TrendingUp,
+} from 'lucide-react';
+import { GRADE_LABEL, gradeBackgroundSolid, gradeColorVar } from '@lumiris/scoring-ui';
+import { mockArtisanById, mockPassportById } from '@lumiris/mock-data';
+import type { GarmentKind, IrisGrade } from '@lumiris/types';
+import { cn } from '@lumiris/ui/lib/cn';
+import { scorePassport } from '@/lib/passport-score';
+import { useWardrobe } from '@/lib/wardrobe-storage';
+import { getGradeDistribution, getOverallScore } from '@/lib/iris/wardrobe-stats';
+import { COMPARE_MAX, clearCompare, setCompare, toggleCompare, useCompare } from '@/lib/iris/compare-store';
+import { toast } from '@/lib/toast';
+import { ComparisonOverlay, type VaultItem } from './comparison-overlay';
+import { FiltersSheet, VAULT_DEFAULT_FILTERS, type VaultFilters } from './filters-sheet';
+import { ItemActionsSheet } from './item-actions-sheet';
+
+const GRADES: readonly IrisGrade[] = ['A', 'B', 'C', 'D', 'E'];
+const GRADE_RANK: Record<IrisGrade, number> = { A: 5, B: 4, C: 3, D: 2, E: 1 };
+
+interface VaultEntryItem extends VaultItem {
+    addedAt: string;
+}
+
+export function Vault() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const entries = useWardrobe();
+    const compareIds = useCompare();
+    const [now] = useState(() => new Date());
+    const [compareMode, setCompareMode] = useState(false);
+    const [gradeFilter, setGradeFilter] = useState<IrisGrade | null>(null);
+    const [showComparison, setShowComparison] = useState(false);
+    const [filtersOpen, setFiltersOpen] = useState(false);
+    const [filters, setFilters] = useState<VaultFilters>(VAULT_DEFAULT_FILTERS);
+    const [actionsTarget, setActionsTarget] = useState<VaultEntryItem | null>(null);
+
+    const items = useMemo<readonly VaultEntryItem[]>(
+        () =>
+            entries
+                .map((entry) => {
+                    const passport = mockPassportById(entry.passportId);
+                    if (!passport) return null;
+                    const artisan = mockArtisanById(passport.artisanId);
+                    return {
+                        passport,
+                        score: scorePassport(passport, now),
+                        artisanName: artisan?.atelierName ?? '-',
+                        addedAt: entry.addedAt,
+                    } satisfies VaultEntryItem;
+                })
+                .filter((item): item is VaultEntryItem => item !== null),
+        [entries, now],
+    );
+
+    const grades = useMemo(() => items.map((it) => it.score.grade), [items]);
+    const distribution = useMemo(() => getGradeDistribution(grades), [grades]);
+    const overall = useMemo(() => getOverallScore(grades), [grades]);
+
+    const availableKinds = useMemo<readonly GarmentKind[]>(
+        () => Array.from(new Set(items.map((it) => it.passport.garment.kind))),
+        [items],
+    );
+    const availableBrands = useMemo(() => Array.from(new Set(items.map((it) => it.artisanName))), [items]);
+
+    const hasActiveFilters = filters.kinds.length > 0 || filters.brands.length > 0 || filters.sort !== 'recent';
+
+    const filteredItems = useMemo(() => {
+        const base = gradeFilter ? items.filter((it) => it.score.grade === gradeFilter) : items;
+        const byKind = filters.kinds.length
+            ? base.filter((it) => filters.kinds.includes(it.passport.garment.kind))
+            : base;
+        const byBrand = filters.brands.length ? byKind.filter((it) => filters.brands.includes(it.artisanName)) : byKind;
+        const sorted = [...byBrand];
+        switch (filters.sort) {
+            case 'oldest':
+                sorted.sort((a, b) => a.addedAt.localeCompare(b.addedAt));
+                break;
+            case 'grade-desc':
+                sorted.sort((a, b) => GRADE_RANK[b.score.grade] - GRADE_RANK[a.score.grade]);
+                break;
+            case 'price-asc':
+                sorted.sort((a, b) => a.passport.garment.retailPrice - b.passport.garment.retailPrice);
+                break;
+            case 'price-desc':
+                sorted.sort((a, b) => b.passport.garment.retailPrice - a.passport.garment.retailPrice);
+                break;
+            case 'recent':
+            default:
+                sorted.sort((a, b) => b.addedAt.localeCompare(a.addedAt));
+                break;
+        }
+        return sorted;
+    }, [items, gradeFilter, filters]);
+
+    // Auto-ouverture du compare depuis `/vault?compareWith=<id>` - une seule fois au mount.
+    const autoComparePinned = useRef(false);
+    useEffect(() => {
+        if (autoComparePinned.current) return;
+        const target = searchParams.get('compareWith');
+        if (!target) return;
+        if (!items.some((it) => it.passport.id === target)) return;
+        autoComparePinned.current = true;
+        setCompare([target]);
+        setCompareMode(true);
+        toast.info('Sélectionne une 2e pièce à comparer');
+    }, [searchParams, items]);
+
+    // Quand 2 items sont sélectionnés, on ouvre l'overlay après un court délai pour la transition.
+    useEffect(() => {
+        if (compareIds.length === COMPARE_MAX && !showComparison) {
+            const id = window.setTimeout(() => setShowComparison(true), 200);
+            return () => window.clearTimeout(id);
+        }
+        return undefined;
+    }, [compareIds, showComparison]);
+
+    // Sortie du mode compare → reset complet.
+    const exitCompare = useCallback(() => {
+        setShowComparison(false);
+        setCompareMode(false);
+        clearCompare();
+    }, []);
+
+    // Au démontage du composant, on nettoie le store éphémère.
+    useEffect(() => () => clearCompare(), []);
+
+    const onToggleCompareMode = useCallback(() => {
+        if (compareMode) {
+            exitCompare();
+        } else {
+            setCompareMode(true);
+        }
+    }, [compareMode, exitCompare]);
+
+    const onCardTap = useCallback(
+        (passportId: string) => {
+            if (compareMode) {
+                toggleCompare(passportId);
+                return;
+            }
+            router.push(`/passeport/${passportId}`);
+        },
+        [compareMode, router],
+    );
+
+    const onChipTap = useCallback((grade: IrisGrade) => {
+        setGradeFilter((prev) => (prev === grade ? null : grade));
+    }, []);
+
+    if (items.length === 0) {
+        return <VaultEmpty onScan={() => router.push('/')} />;
+    }
+
+    const compareItems = compareIds
+        .map((id) => items.find((it) => it.passport.id === id))
+        .filter((it): it is VaultEntryItem => it !== undefined);
+    const remaining = COMPARE_MAX - compareIds.length;
+
+    return (
+        <div className="bg-background flex h-full flex-col">
+            <motion.header
+                className="flex items-center justify-between px-5 pb-4 pt-12"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+            >
+                <div>
+                    <h1 className="text-foreground text-xl font-bold">Ma Garde-Robe</h1>
+                    <p className="text-muted-foreground mt-0.5 text-sm">
+                        {items.length} pièce{items.length > 1 ? 's' : ''} scannée{items.length > 1 ? 's' : ''}
+                    </p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setFiltersOpen(true)}
+                        aria-label="Filtres et tri"
+                        aria-pressed={hasActiveFilters}
+                        className={cn(
+                            'relative inline-flex h-8 w-8 items-center justify-center rounded-full border transition-colors',
+                            hasActiveFilters
+                                ? 'border-lumiris-cyan bg-lumiris-cyan/10 text-lumiris-cyan'
+                                : 'border-border bg-card text-foreground',
+                        )}
+                    >
+                        <SlidersHorizontal className="h-3.5 w-3.5" />
+                        {hasActiveFilters ? (
+                            <span
+                                className="bg-lumiris-cyan absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full"
+                                aria-hidden
+                            />
+                        ) : null}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onToggleCompareMode}
+                        aria-pressed={compareMode}
+                        className={cn(
+                            'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors',
+                            compareMode
+                                ? 'border-lumiris-cyan bg-lumiris-cyan/10 text-lumiris-cyan'
+                                : 'border-border bg-card text-foreground',
+                        )}
+                    >
+                        <GitCompareArrows className="h-3.5 w-3.5" />
+                        {compareMode ? 'Annuler' : 'Comparer'}
+                    </button>
+                </div>
+            </motion.header>
+
+            <div className="flex-1 overflow-y-auto px-5 pb-28">
+                <WardrobeHealth grade={overall.grade} percentage={overall.percentage} />
+
+                <DistributionChips distribution={distribution} activeGrade={gradeFilter} onSelect={onChipTap} />
+
+                <AnimatePresence>
+                    {compareMode && remaining > 0 ? (
+                        <motion.div
+                            className="border-lumiris-cyan/30 bg-lumiris-cyan/5 mb-4 rounded-2xl border px-4 py-3 text-center"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                        >
+                            <p className="text-lumiris-cyan text-xs font-medium">
+                                Sélectionne {remaining} autre{remaining > 1 ? 's' : ''} pièce
+                                {remaining > 1 ? 's' : ''} pour comparer
+                            </p>
+                        </motion.div>
+                    ) : null}
+                </AnimatePresence>
+
+                <div className="grid grid-cols-2 gap-3">
+                    <AnimatePresence initial={false}>
+                        {filteredItems.map((item, idx) => (
+                            <VaultCard
+                                key={item.passport.id}
+                                item={item}
+                                index={idx}
+                                compareMode={compareMode}
+                                isSelected={compareIds.includes(item.passport.id)}
+                                onTap={() => onCardTap(item.passport.id)}
+                                onOpenActions={() => setActionsTarget(item)}
+                            />
+                        ))}
+                    </AnimatePresence>
+                </div>
+
+                {filteredItems.length === 0 ? (
+                    <p className="text-muted-foreground mt-8 text-center text-xs">
+                        Aucune pièce ne correspond aux filtres.
+                    </p>
+                ) : null}
+            </div>
+
+            <FiltersSheet
+                open={filtersOpen}
+                onOpenChange={setFiltersOpen}
+                availableKinds={availableKinds}
+                availableBrands={availableBrands}
+                value={filters}
+                onApply={setFilters}
+            />
+
+            <ItemActionsSheet
+                open={actionsTarget !== null}
+                onOpenChange={(open) => {
+                    if (!open) setActionsTarget(null);
+                }}
+                passport={actionsTarget?.passport ?? null}
+                artisanName={actionsTarget?.artisanName ?? ''}
+            />
+
+            <AnimatePresence>
+                {showComparison && compareItems.length === COMPARE_MAX ? (
+                    <ComparisonOverlay items={compareItems} onClose={exitCompare} />
+                ) : null}
+            </AnimatePresence>
+        </div>
+    );
+}
+
+function VaultEmpty({ onScan }: { onScan: () => void }) {
+    return (
+        <motion.div
+            className="bg-background flex h-full flex-col items-center justify-center gap-4 px-8 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+        >
+            <div className="border-border/60 bg-card relative flex h-20 w-20 items-center justify-center rounded-3xl border">
+                <Archive className="text-muted-foreground h-8 w-8" />
+                <span
+                    className="bg-lumiris-cyan/15 absolute -inset-3 -z-10 rounded-3xl blur-xl motion-reduce:hidden"
+                    aria-hidden
+                />
+            </div>
+            <div>
+                <h1 className="text-foreground text-lg font-semibold">Garde-Robe vide</h1>
+                <p className="text-muted-foreground mt-1 max-w-xs text-sm">
+                    Tu n&apos;as encore rien scanné. Pointe ton scanner sur un passeport.
+                </p>
+            </div>
+            <button
+                type="button"
+                onClick={onScan}
+                className="bg-foreground text-primary-foreground inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold"
+            >
+                <ScanQrCode className="h-4 w-4" />
+                Scanner
+            </button>
+        </motion.div>
+    );
+}
+
+interface WardrobeHealthProps {
+    grade: IrisGrade;
+    percentage: number;
+}
+
+function WardrobeHealth({ grade, percentage }: WardrobeHealthProps) {
+    const radius = 34;
+    const circumference = 2 * Math.PI * radius;
+    const stroke = gradeColorVar(grade);
+
+    return (
+        <motion.div
+            className="border-border/60 bg-card mb-5 flex items-center gap-5 rounded-2xl border p-5"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+        >
+            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
+                <svg className="h-full w-full -rotate-90" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r={radius} fill="none" strokeWidth="4" className="stroke-secondary" />
+                    {/* `key` retrigger l'animation seulement quand le grade global change. */}
+                    <motion.circle
+                        key={grade}
+                        cx="40"
+                        cy="40"
+                        r={radius}
+                        fill="none"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        stroke={stroke}
+                        strokeDasharray={circumference}
+                        initial={{ strokeDashoffset: circumference }}
+                        animate={{ strokeDashoffset: circumference * (1 - percentage / 100) }}
+                        transition={{ delay: 0.3, duration: 1.2, ease: 'easeOut' }}
+                    />
+                </svg>
+                <span className="absolute text-2xl font-bold" style={{ color: stroke }}>
+                    {grade}
+                </span>
+            </div>
+
+            <div className="flex-1">
+                <h3 className="text-foreground text-sm font-bold">Wardrobe Health</h3>
+                <p className="mt-0.5 text-xs font-semibold" style={{ color: stroke }}>
+                    {GRADE_LABEL[grade]}
+                </p>
+                <div className="bg-lumiris-emerald/10 mt-2.5 inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5">
+                    <TrendingUp className="text-lumiris-emerald h-3 w-3" />
+                    <span className="text-lumiris-emerald text-[11px] font-medium">Top 20% in your city</span>
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
+interface DistributionChipsProps {
+    distribution: Record<IrisGrade, number>;
+    activeGrade: IrisGrade | null;
+    onSelect: (grade: IrisGrade) => void;
+}
+
+function DistributionChips({ distribution, activeGrade, onSelect }: DistributionChipsProps) {
+    return (
+        <motion.div
+            className="mb-5 flex gap-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            role="group"
+            aria-label="Filtrer par grade"
+        >
+            {GRADES.map((grade) => {
+                const count = distribution[grade];
+                const active = activeGrade === grade;
+                const cssVar = gradeColorVar(grade);
+                return (
+                    <button
+                        key={grade}
+                        type="button"
+                        onClick={() => onSelect(grade)}
+                        aria-pressed={active}
+                        className={cn(
+                            'bg-card flex flex-1 flex-col items-center gap-0.5 rounded-xl border py-2.5 transition-colors',
+                            active ? 'border-current shadow-sm' : 'border-border/40',
+                        )}
+                        style={active ? { color: cssVar } : undefined}
+                    >
+                        <span className="text-base font-bold" style={{ color: cssVar }}>
+                            {count}
+                        </span>
+                        <span className="text-[10px] font-bold" style={{ color: cssVar }}>
+                            {grade}
+                        </span>
+                    </button>
+                );
+            })}
+        </motion.div>
+    );
+}
+
+interface VaultCardProps {
+    item: VaultEntryItem;
+    index: number;
+    compareMode: boolean;
+    isSelected: boolean;
+    onTap: () => void;
+    onOpenActions: () => void;
+}
+
+function VaultCard({ item, index, compareMode, isSelected, onTap, onOpenActions }: VaultCardProps) {
+    const { passport, score, artisanName } = item;
+    const grade = score.grade;
+    const isE = grade === 'E';
+    const isA = grade === 'A';
+    const cardStyle: React.CSSProperties = {
+        ...(isE ? { filter: 'saturate(0.4) brightness(0.92)' } : {}),
+        ...(isA ? { animation: 'iris-grade-a-glow 3s ease-in-out infinite' } : {}),
+    };
+
+    return (
+        <motion.div
+            layout
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.2 } }}
+            transition={{ delay: 0.25 + index * 0.04 }}
+            className={cn(
+                'bg-card group relative flex flex-col overflow-hidden rounded-2xl border text-left transition-colors',
+                isSelected ? 'border-lumiris-cyan ring-lumiris-cyan/20 ring-2' : 'border-border/60',
+            )}
+            style={cardStyle}
+        >
+            <button
+                type="button"
+                onClick={onTap}
+                className="flex flex-col text-left"
+                aria-label={`${passport.garment.reference} - grade ${grade}`}
+            >
+                {compareMode ? (
+                    <div
+                        className={cn(
+                            'absolute left-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all',
+                            isSelected ? 'border-lumiris-cyan bg-lumiris-cyan' : 'border-border bg-card/90',
+                        )}
+                        aria-hidden
+                    >
+                        {isSelected ? <Check className="text-primary-foreground h-3 w-3" /> : null}
+                    </div>
+                ) : null}
+
+                <div className="bg-secondary/50 relative flex h-28 items-center justify-center">
+                    <Shirt className="text-muted-foreground/25 h-9 w-9" aria-hidden />
+                    <div
+                        className={cn(
+                            'text-primary-foreground absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold',
+                            gradeBackgroundSolid(grade),
+                        )}
+                        aria-label={`Iris grade ${grade}`}
+                    >
+                        {grade}
+                    </div>
+                </div>
+
+                <div className="p-3">
+                    <h4 className="text-foreground truncate text-xs font-semibold leading-tight">
+                        {passport.garment.reference}
+                    </h4>
+                    <p className="text-muted-foreground mt-0.5 truncate text-[11px]">{artisanName}</p>
+                    <p className="text-foreground mt-1 text-xs font-bold">
+                        {passport.garment.retailPrice}{' '}
+                        {passport.garment.currency === 'EUR' ? '€' : passport.garment.currency}
+                    </p>
+                </div>
+            </button>
+
+            {!compareMode ? (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenActions();
+                    }}
+                    aria-label={`Actions pour ${passport.garment.reference}`}
+                    className="border-border bg-background/80 text-foreground hover:bg-background absolute bottom-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full border backdrop-blur-md active:scale-95"
+                >
+                    <MoreHorizontal className="h-3.5 w-3.5" />
+                </button>
+            ) : null}
+        </motion.div>
+    );
+}

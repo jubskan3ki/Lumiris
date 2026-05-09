@@ -35,9 +35,9 @@ jobs:
                     - app: admin
                       context: .
                       dockerfile: apps/admin/Dockerfile
-                    - app: web
+                    - app: site
                       context: .
-                      dockerfile: apps/web/Dockerfile
+                      dockerfile: apps/site/Dockerfile
                     - app: mobile
                       context: .
                       dockerfile: apps/mobile/Dockerfile

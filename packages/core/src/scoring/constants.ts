@@ -1,4 +1,4 @@
-// constantes Iris V2 — toute valeur est un brand commitment, modifier un poids change la promesse LUMIRIS
+// constantes Iris V2 - toute valeur est un brand commitment, modifier un poids change la promesse LUMIRIS
 
 import type { Passport, Fiber } from '@lumiris/types';
 import type { ScoreWeights } from '@lumiris/types';
@@ -10,7 +10,7 @@ export const LUMIRIS_WEIGHTS: ScoreWeights = {
     repairability: 0.1,
 } as const;
 
-/** Coefficients carbone (kg CO₂e/kg) — sources ADEME Base Empreinte 2024 + Higg MSI v3.5. */
+/** Coefficients carbone (kg CO₂e/kg) - sources ADEME Base Empreinte 2024 + Higg MSI v3.5. */
 export const FIBER_IMPACT_COEFFICIENTS: Record<Fiber, number> = {
     wool: 22,
     linen: 0.5,
@@ -23,7 +23,7 @@ export const FIBER_IMPACT_COEFFICIENTS: Record<Fiber, number> = {
     other: 8,
 } as const;
 
-/** Coefficients eau (L/kg) — sources Water Footprint Network + ADEME 2024. */
+/** Coefficients eau (L/kg) - sources Water Footprint Network + ADEME 2024. */
 export const FIBER_WATER_COEFFICIENTS: Record<Fiber, number> = {
     wool: 600,
     linen: 200,
@@ -41,14 +41,14 @@ export const IMPACT_BASELINE = {
     carbonCeilingKg: 12,
     /** Plafond eau (litres). */
     waterCeilingLiters: 3000,
-    /** Cible part recyclée (%) — au-delà, sous-score atteint 100. */
+    /** Cible part recyclée (%) - au-delà, sous-score atteint 100. */
     recycledTargetPct: 50,
     /** Plafond transport (km). 0 km → 25 pts ; ≥ 2000 km → 0 pt. */
     transportCeilingKm: 2000,
 } as const;
 
 export interface RequiredFieldCheck {
-    /** Path lisible — `materials[].fiber` est purement déclaratif (pour les messages). */
+    /** Path lisible - `materials[].fiber` est purement déclaratif (pour les messages). */
     path: string;
     /** Renvoie true si le champ est *présent et valide*. */
     isPresent: (passport: Passport) => boolean;

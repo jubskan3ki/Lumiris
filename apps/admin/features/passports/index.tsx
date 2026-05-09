@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useMemo, useState } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowDownUp, Filter, Flag, Info, Search, Sparkles } from 'lucide-react';
 import { mockArtisans, mockPassports } from '@lumiris/mock-data';
@@ -101,7 +102,7 @@ function PassportsInner() {
                 <div>
                     <h2 className="text-foreground text-xl font-semibold">File de curation</h2>
                     <p className="text-muted-foreground mt-1 text-sm">
-                        {mockPassports.length} passeports — calculé en direct via{' '}
+                        {mockPassports.length} passeports - calculé en direct via{' '}
                         <span className="font-mono">computeScore()</span>.
                     </p>
                 </div>
@@ -183,7 +184,7 @@ function FairnessBanner() {
                 >
                     <Info className="h-3.5 w-3.5 shrink-0" />
                     <span>
-                        <strong>Tri équitable</strong> — ATELIER+ n&apos;influence pas l&apos;ordre. Le tri par défaut
+                        <strong>Tri équitable</strong> - ATELIER+ n&apos;influence pas l&apos;ordre. Le tri par défaut
                         est FIFO sur date de soumission. Cliquez pour voir la règle.
                     </span>
                 </button>
@@ -192,7 +193,7 @@ function FairnessBanner() {
                 <div className="space-y-2 text-xs">
                     <p className="text-foreground font-semibold">Personne n&apos;achète sa place dans la file.</p>
                     <p className="text-muted-foreground">
-                        ATELIER+ donne accès au dépôt-vente, à la facturation OCR et à l&apos;analytics — jamais à un
+                        ATELIER+ donne accès au dépôt-vente, à la facturation OCR et à l&apos;analytics - jamais à un
                         coupe-file ni à un boost de score. La file de curation est strictement FIFO sur la date de
                         soumission. Une route indique le flag <code className="bg-muted rounded px-1">addonPlus</code>{' '}
                         sur les profils, mais le scoring l&apos;ignore.
@@ -308,20 +309,22 @@ function PassportRowItem({
     const grade: IrisGradeLetter = score.grade;
 
     if (sortKey === 'grade') {
-        // re-sort guard handled by parent — placeholder.
+        // re-sort guard handled by parent - placeholder.
     }
 
     return (
         <TableRow className="cursor-pointer transition-colors" onClick={() => onSelect(row.passport)}>
             <TableCell className="font-medium">
                 <div className="flex items-center gap-3">
-                    <div className="bg-muted flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md">
+                    <div className="bg-muted relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md">
                         {row.passport.garment.mainPhotoUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
+                            <Image
                                 src={row.passport.garment.mainPhotoUrl}
                                 alt=""
-                                className="h-full w-full object-cover"
+                                fill
+                                unoptimized
+                                sizes="36px"
+                                className="object-cover"
                             />
                         ) : (
                             <Sparkles className="text-muted-foreground/40 h-3 w-3" />
@@ -340,11 +343,11 @@ function PassportRowItem({
                     <Avatar className="h-7 w-7">
                         {artisan?.photoUrl ? <AvatarImage src={artisan.photoUrl} alt="" /> : null}
                         <AvatarFallback className="text-[10px]">
-                            {artisan?.displayName.slice(0, 2).toUpperCase() ?? '—'}
+                            {artisan?.displayName.slice(0, 2).toUpperCase() ?? '-'}
                         </AvatarFallback>
                     </Avatar>
                     <div>
-                        <p className="text-foreground text-xs">{artisan?.atelierName ?? '—'}</p>
+                        <p className="text-foreground text-xs">{artisan?.atelierName ?? '-'}</p>
                         <div className="mt-0.5 flex items-center gap-1">
                             <Badge variant="outline" className="font-mono text-[10px]">
                                 {artisan?.tier}

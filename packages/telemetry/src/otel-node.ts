@@ -1,4 +1,4 @@
-/** OTel Node SDK bootstrap — appelé depuis instrumentation.ts ; OTLP/HTTP en prod, sampling = web-vitals rate. */
+/** OTel Node SDK bootstrap - appelé depuis instrumentation.ts ; OTLP/HTTP en prod, sampling = web-vitals rate. */
 
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';

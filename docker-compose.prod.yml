@@ -24,7 +24,7 @@ services:
                     cpus: '0.25'
                     memory: 128M
 
-    web:
+    site:
         deploy:
             replicas: 3
             update_config:

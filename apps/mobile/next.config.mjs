@@ -15,8 +15,6 @@ const nextConfig = {
         '@lumiris/types',
         '@lumiris/mock-data',
         '@lumiris/telemetry',
-        'react-leaflet',
-        '@react-leaflet/core',
     ],
     serverExternalPackages: [
         '@opentelemetry/sdk-node',

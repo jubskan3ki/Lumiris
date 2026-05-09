@@ -1,4 +1,4 @@
-// certifs matière/artisan/produit — getEffective* déterministes, `now` toujours injecté
+// certifs matière/artisan/produit - getEffective* déterministes, `now` toujours injecté
 
 export type CertificationKind = 'GOTS' | 'OEKO-TEX' | 'OFG' | 'EPV' | 'GRS' | 'BLUESIGN' | 'ISO-14001' | 'CUSTOM';
 
@@ -12,10 +12,10 @@ export interface CertificationRef {
     issuer: string;
     issuedAt: string;
     expiresAt: string;
-    /** Vérification humaine (founder / content_manager) — si false, poids effectif × 0.5. */
+    /** Vérification humaine (founder / content_manager) - si false, poids effectif × 0.5. */
     verified: boolean;
     fileUrl: string;
-    /** Champ libre — précise sur quoi porte la certification (e.g. "fibre laine origine Vosges"). */
+    /** Champ libre - précise sur quoi porte la certification (e.g. "fibre laine origine Vosges"). */
     scope?: string;
 }
 
@@ -41,5 +41,5 @@ export function getEffectiveWeight(cert: CertificationRef, now: Date): number {
     }
 }
 
-/** Alias canonique côté spec textile artisanal — équivalent direct de {@link CertificationRef}. */
+/** Alias canonique côté spec textile artisanal - équivalent direct de {@link CertificationRef}. */
 export type Certificate = CertificationRef;

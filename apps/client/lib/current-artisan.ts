@@ -3,7 +3,7 @@ import type { Artisan } from '@lumiris/types';
 
 const MARIE = mockArtisanById('art-marie');
 if (!MARIE) {
-    throw new Error('Mock data missing persona art-marie — atelier dev expects Marie Le Goff.');
+    throw new Error('Mock data missing persona art-marie - atelier dev expects Marie Le Goff.');
 }
 
 // Persona Marie est le profil par défaut côté ATELIER en dev (cf. cahier v6.1).

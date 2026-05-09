@@ -1,6 +1,6 @@
 import type { AdminAuditLogEntry } from '@lumiris/types';
 
-// 50 entrées sur 30 jours — l'app admin accumule de nouvelles entrées via lib/auth/audit.tsx
+// 50 entrées sur 30 jours - l'app admin accumule de nouvelles entrées via lib/auth/audit.tsx
 
 const DAY_MS = 86_400_000;
 const BASE = new Date('2026-04-30T08:00:00Z').getTime();
@@ -647,13 +647,13 @@ export const mockAdminAuditLog: readonly AdminAuditLogEntry[] = [
         targetType: 'passport',
         targetId: 'pass-pauline-002-incomplet',
         payload: {
-            message: 'Composition à 100% chanvre — il manque les étapes de fab',
+            message: 'Composition à 100% chanvre - il manque les étapes de fab',
             tags: ['etapes', 'composition'],
         },
         ipMock: '127.0.0.1',
     },
 
-    // anomalies pour le module governance — pattern 1 : >3 validations art-marie en <5 min (chaîne suspecte)
+    // anomalies pour le module governance - pattern 1 : >3 validations art-marie en <5 min (chaîne suspecte)
     {
         id: 'LOG-201',
         ts: ts(2, 11, 0),

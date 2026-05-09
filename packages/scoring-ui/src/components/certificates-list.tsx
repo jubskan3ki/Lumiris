@@ -12,7 +12,7 @@ export interface CertificatesListProps extends HTMLAttributes<HTMLDivElement> {
     now: Date;
 }
 
-// grille de cartes certificats — expirées dégradées visuellement + icône X
+// grille de cartes certificats - expirées dégradées visuellement + icône X
 export function CertificatesList({ certificates, now, className, ...rest }: CertificatesListProps) {
     if (certificates.length === 0) {
         return (

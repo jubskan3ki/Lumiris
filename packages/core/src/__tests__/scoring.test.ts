@@ -126,7 +126,7 @@ describe('LUMIRIS_WEIGHTS', () => {
     });
 });
 
-describe('computeScore — cas nominaux', () => {
+describe('computeScore - cas nominaux', () => {
     it('passeport vide → grade E (cap appliqué)', () => {
         const passport = makePassport({
             materials: [],
@@ -143,7 +143,7 @@ describe('computeScore — cas nominaux', () => {
         });
         const score = computeScore(passport, { certificates: [], now: NOW });
         expect(score.cap?.applied).toBe(true);
-        // passeport vide reste E — pas "presque conforme", il est opaque (cf. cap=D ne s'applique qu'au-dessus du seuil)
+        // passeport vide reste E - pas "presque conforme", il est opaque (cf. cap=D ne s'applique qu'au-dessus du seuil)
         expect(score.grade).toBe('E');
     });
 
@@ -173,7 +173,7 @@ describe('computeScore — cas nominaux', () => {
     });
 });
 
-describe('computeScore — certifications', () => {
+describe('computeScore - certifications', () => {
     it('certif expirée comptée à 0 (effective weight nul)', () => {
         const expired = makeCert('exp', { expiresAt: '2024-01-01T00:00:00Z' });
         const validRef = makeCert('ok');
@@ -211,7 +211,7 @@ describe('computeScore — certifications', () => {
     });
 });
 
-describe('computeScore — plafond D', () => {
+describe('computeScore - plafond D', () => {
     it('grade plafonné à D si un champ ESPR manque (même avec total > 85)', () => {
         const passport = makePassport({
             garment: {
@@ -254,7 +254,7 @@ describe('computeScore — plafond D', () => {
     });
 });
 
-describe('computeScore — reasons & déterminisme', () => {
+describe('computeScore - reasons & déterminisme', () => {
     it('reasons[] non vide quand des points manquent', () => {
         const passport = makePassport({
             warranty: { durationMonths: 6, terms: 'Garantie 6 mois.' },
@@ -290,7 +290,7 @@ describe('computeScore — reasons & déterminisme', () => {
     });
 });
 
-describe('IRIS_THRESHOLDS — frontières A/B/C/D/E', () => {
+describe('IRIS_THRESHOLDS - frontières A/B/C/D/E', () => {
     it('expose les valeurs canoniques A:80 / B:65 / C:50 / D:35', () => {
         expect(IRIS_THRESHOLDS).toEqual({ A: 80, B: 65, C: 50, D: 35 });
     });
@@ -316,7 +316,7 @@ describe('IRIS_THRESHOLDS — frontières A/B/C/D/E', () => {
     });
 });
 
-describe('computeScore — surcharge impact déclarée', () => {
+describe('computeScore - surcharge impact déclarée', () => {
     it('passport.carbonKg surcharge le calcul fibre × masse (carbone faible déclaré → meilleur impact)', () => {
         const baseline = makePassport({
             materials: [makeMaterial('cotton', 100)],
@@ -339,7 +339,7 @@ describe('computeScore — surcharge impact déclarée', () => {
     });
 });
 
-describe('computeScore — care AGEC obligatoire en Published', () => {
+describe('computeScore - care AGEC obligatoire en Published', () => {
     it('passeport Published sans care.washing → cap D', () => {
         const passport = makePassport({ status: 'Published', care: undefined });
         const score = computeScore(passport, { certificates: [], artisan, retoucheurs, now: NOW });

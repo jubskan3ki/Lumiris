@@ -8,7 +8,7 @@ import { IrisGrade } from './iris-grade';
 export interface PassportHeaderProps extends HTMLAttributes<HTMLElement> {
     passport: Passport;
     artisan?: Artisan;
-    /** Grade Iris déjà calculé par `@lumiris/core`. Pas calculé ici — le composant est purement visuel. */
+    /** Grade Iris déjà calculé par `@lumiris/core`. Pas calculé ici - le composant est purement visuel. */
     grade: IrisGradeLetter;
 }
 
@@ -22,7 +22,7 @@ const KIND_LABEL: Record<string, string> = {
     other: 'Pièce',
 };
 
-// hero passeport — photo + grade + artisan + GS1 ; pas de fetch interne
+// hero passeport - photo + grade + artisan + GS1 ; pas de fetch interne
 export function PassportHeader({ passport, artisan, grade, className, ...rest }: PassportHeaderProps) {
     const kindLabel = KIND_LABEL[passport.garment.kind] ?? KIND_LABEL.other;
     return (
@@ -37,7 +37,7 @@ export function PassportHeader({ passport, artisan, grade, className, ...rest }:
                 {passport.garment.mainPhotoUrl ? (
                     <img
                         src={passport.garment.mainPhotoUrl}
-                        alt={`${kindLabel} — ${passport.garment.reference}`}
+                        alt={`${kindLabel} - ${passport.garment.reference}`}
                         className="h-full w-full object-cover"
                     />
                 ) : (

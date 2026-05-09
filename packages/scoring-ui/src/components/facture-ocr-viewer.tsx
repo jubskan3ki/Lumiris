@@ -91,7 +91,7 @@ export function FactureOcrViewer({
                     </>
                 ) : (
                     <p className="text-muted-foreground italic">
-                        Le passage OCR n&apos;a pas encore tourné — métadonnées indisponibles.
+                        Le passage OCR n&apos;a pas encore tourné - métadonnées indisponibles.
                     </p>
                 )}
             </div>

@@ -1,4 +1,4 @@
-// Shape + dispatcher only — the consuming app imports the actual `web-vitals` library and feeds the handler returned here.
+// Shape + dispatcher only - the consuming app imports the actual `web-vitals` library and feeds the handler returned here.
 
 export type WebVitalsName = 'CLS' | 'FCP' | 'INP' | 'LCP' | 'TTFB';
 export type WebVitalsRating = 'good' | 'needs-improvement' | 'poor';

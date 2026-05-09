@@ -1,4 +1,4 @@
-// impact 25 % — carbone/eau/recyclé/transport (25 pts chacun) ; déclaré prime sur calculé (ACV externe)
+// impact 25 % - carbone/eau/recyclé/transport (25 pts chacun) ; déclaré prime sur calculé (ACV externe)
 
 import type { Passport, Material, ScoreReason } from '@lumiris/types';
 import { FIBER_IMPACT_COEFFICIENTS, FIBER_WATER_COEFFICIENTS, IMPACT_BASELINE } from './constants';
@@ -16,7 +16,7 @@ export function scoreImpact(passport: Passport): AxisResult {
             reasons: [
                 {
                     axis: 'impact',
-                    message: "Composition vide et aucune empreinte déclarée — impossible de calculer l'impact.",
+                    message: "Composition vide et aucune empreinte déclarée - impossible de calculer l'impact.",
                     severity: 'error',
                 },
             ],
@@ -48,7 +48,7 @@ export function scoreImpact(passport: Passport): AxisResult {
 
     let transportPts = 25;
     if (typeof passport.transportKm === 'number') {
-        // spec : `max(0, 1 - transportKm/2000) × 25` — 0 km → 25 pts ; 2000 km → 0
+        // spec : `max(0, 1 - transportKm/2000) × 25` - 0 km → 25 pts ; 2000 km → 0
         transportPts = clamp(1 - passport.transportKm / IMPACT_BASELINE.transportCeilingKm, 0, 1) * 25;
     } else if (composition.length > 0) {
         // fallback : malus proportionnel aux origines non-FR

@@ -1,4 +1,4 @@
-// vue publique d'un Passport — score pré-calculé une fois au chargement, consommé tel quel
+// vue publique d'un Passport - score pré-calculé une fois au chargement, consommé tel quel
 
 import { computeScore, type ComputeScoreOptions } from '@lumiris/core/scoring';
 import type { Artisan, Passport, ScoreResult } from '@lumiris/types';
@@ -12,9 +12,9 @@ export interface PassportPublicView {
     artisan: Artisan;
     /** Slug humain stable, dérivé de `artisan.displayName` + `product.reference`. */
     slug: string;
-    /** Court résumé éditorial (~120 car.) — utilisé pour OG / meta description. */
+    /** Court résumé éditorial (~120 car.) - utilisé pour OG / meta description. */
     excerpt: string;
-    /** Score complet — `undefined` si le passeport n'a pas assez de données (Draft / InCompletion sévère). */
+    /** Score complet - `undefined` si le passeport n'a pas assez de données (Draft / InCompletion sévère). */
     irisScore: ScoreResult | undefined;
     /** Vrai si le passeport est encore en cours de complétion (statut InCompletion). */
     inProgress: boolean;
@@ -41,7 +41,7 @@ function buildExcerpt(passport: Passport, artisan: Artisan): string {
     const fibers = passport.materials.map((m) => `${m.percentage}% ${FIBER_LABEL_FR[m.fiber] ?? m.fiber}`).join(' · ');
     const productLabel = PRODUCT_LABEL_FR[passport.garment.kind] ?? 'Pièce textile';
     if (!fibers) {
-        return `${productLabel} — ${artisan.atelierName}, ${artisan.city}.`;
+        return `${productLabel} - ${artisan.atelierName}, ${artisan.city}.`;
     }
     return `${productLabel} ${fibers}, ${artisan.atelierName} (${artisan.city}).`;
 }

@@ -1,9 +1,9 @@
-// artisan derrière un Passport — tier Solo/Studio/Maison + flag ATELIER+ + labels EPV/OFG
+// artisan derrière un Passport - tier Solo/Studio/Maison + flag ATELIER+ + labels EPV/OFG
 
 /** Tiers d'abonnement ATELIER. Conditionne `passportLimit`. */
 export type ArtisanTier = 'Solo' | 'Studio' | 'Maison';
 
-/** Régions FR métropole — string union plutôt qu'INSEE pour libellé humain en UI. */
+/** Régions FR métropole - string union plutôt qu'INSEE pour libellé humain en UI. */
 export type FrenchRegion =
     | 'Auvergne-Rhône-Alpes'
     | 'Bourgogne-Franche-Comté'
@@ -40,7 +40,7 @@ export interface Artisan {
     passportLimit: number;
 }
 
-/** Plafonds par tier — la source de vérité pour `Artisan.passportLimit`. */
+/** Plafonds par tier - la source de vérité pour `Artisan.passportLimit`. */
 export const ARTISAN_PASSPORT_LIMIT: Record<ArtisanTier, number> = {
     Solo: 50,
     Studio: 300,

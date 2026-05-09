@@ -1,8 +1,4 @@
-/**
- * Annuaire fournisseurs partagé entre les étapes 5.2 (composition) et 5.3 (invoice).
- * En V5 backend, cette table sera servie par apps/api ; pour l'instant elle vit ici
- * (référencée par mockPassports / mockInvoices dans @lumiris/mock-data).
- */
+// Annuaire fournisseurs - partagé étapes 5.2/5.3, sera servi par apps/api en V5.
 interface SupplierRef {
     id: string;
     name: string;
@@ -18,7 +14,7 @@ export const SUPPLIERS: readonly SupplierRef[] = [
     { id: 'sup-tannerie-roux', name: 'Tannerie Roux', country: 'FR', fibers: ['leather'] },
     {
         id: 'sup-coton-bio-belgique',
-        name: 'BioCotton BV — Gent',
+        name: 'BioCotton BV - Gent',
         country: 'BE',
         fibers: ['cotton', 'recycled-polyester'],
     },

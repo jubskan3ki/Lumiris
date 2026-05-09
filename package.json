@@ -16,7 +16,7 @@
         "dev": "turbo run dev",
         "dev:admin": "turbo run dev --filter=@lumiris/admin",
         "dev:client": "turbo run dev --filter=@lumiris/client",
-        "dev:web": "turbo run dev --filter=@lumiris/web",
+        "dev:site": "turbo run dev --filter=@lumiris/site",
         "dev:mobile": "turbo run dev --filter=@lumiris/mobile",
         "build": "turbo run build",
         "start": "turbo run start",

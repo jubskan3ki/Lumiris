@@ -2,7 +2,7 @@
     "name": "@lumiris/client",
     "version": "0.1.0",
     "private": true,
-    "description": "LUMIRIS Client — workspace B2B des artisans (offre ATELIER) pour créer leurs DPP textile.",
+    "description": "LUMIRIS Client - workspace B2B des artisans (offre ATELIER) pour créer leurs DPP textile.",
     "scripts": {
         "dev": "next dev --port 3003",
         "build": "next build",

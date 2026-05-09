@@ -1,4 +1,4 @@
-// garde-robe consumer — store (IndexedDB / Tauri-SQL) dans @lumiris/utils
+// garde-robe consumer - store (IndexedDB / Tauri-SQL) dans @lumiris/utils
 
 import type { IrisGrade } from './score';
 
@@ -7,7 +7,7 @@ export interface WardrobeFallback {
     name: string;
     brand: string;
     photoUrl?: string;
-    /** Estimation manuelle — non autoritative. */
+    /** Estimation manuelle - non autoritative. */
     estimatedGrade?: IrisGrade;
 }
 

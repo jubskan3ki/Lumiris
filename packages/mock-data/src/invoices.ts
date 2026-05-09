@@ -1,6 +1,6 @@
 import type { SupplierInvoice } from '@lumiris/types';
 
-// 8 factures fournisseurs — 5 avec OcrExtraction, 3 en attente d'OCR
+// 8 factures fournisseurs - 5 avec OcrExtraction, 3 en attente d'OCR
 export const mockInvoices: readonly SupplierInvoice[] = [
     {
         id: 'inv-001',
@@ -57,7 +57,7 @@ export const mockInvoices: readonly SupplierInvoice[] = [
             invoiceDate: '2026-02-20',
             totalHt: 1750,
             currency: 'EUR',
-            lineItems: [{ fiber: 'silk', label: 'Soie Cévennes — fil 21/23 deniers', qty: 4, unit: 'kg' }],
+            lineItems: [{ fiber: 'silk', label: 'Soie Cévennes - fil 21/23 deniers', qty: 4, unit: 'kg' }],
         },
         linkedPassportIds: ['pass-amelie-001', 'pass-leila-001'],
     },
@@ -67,7 +67,7 @@ export const mockInvoices: readonly SupplierInvoice[] = [
         fileUrl: 'https://lumiris.fr/mock/inv/inv-005.pdf',
         uploadedAt: '2026-03-15T16:40:00Z',
         ocrExtracted: {
-            supplierName: 'BioCotton BV — Gent',
+            supplierName: 'BioCotton BV - Gent',
             invoiceDate: '2026-03-12',
             totalHt: 640,
             currency: 'EUR',

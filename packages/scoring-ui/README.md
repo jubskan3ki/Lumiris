@@ -1,15 +1,15 @@
 # @lumiris/scoring-ui
 
 Visual primitives bound to the LUMIRIS 50/30/20 transparency score. Re-uses the
-algorithm from `@lumiris/core` and the design tokens from `@lumiris/ui` —
+algorithm from `@lumiris/core` and the design tokens from `@lumiris/ui` -
 **owns no domain logic of its own**.
 
 ## Components
 
-- `<IrisGrade grade size>` — grade pastille (A+ → E) using the canonical palette.
-- `<ScoreBreakdown breakdown weights>` — three bars sized against 50/30/20.
-- `<ScoreReasonsList reasons limit>` — narrative explanation of issues.
-- `<MissingFieldsBadge dpp>` — counter derived from `MANDATORY_DPP_FIELDS`.
+- `<IrisGrade grade size>` - grade pastille (A+ → E) using the canonical palette.
+- `<ScoreBreakdown breakdown weights>` - three bars sized against 50/30/20.
+- `<ScoreReasonsList reasons limit>` - narrative explanation of issues.
+- `<MissingFieldsBadge dpp>` - counter derived from `MANDATORY_DPP_FIELDS`.
 
 ## Theme
 
@@ -25,5 +25,5 @@ gradeColor('E'); // → 'text-lumiris-rose'
 
 ## Decision rule
 
-> If `X` depends on grade / score / DPP **and** renders JSX, it lives here —
+> If `X` depends on grade / score / DPP **and** renders JSX, it lives here -
 > not in `@lumiris/ui` (which stays domain-agnostic) and not in app code.

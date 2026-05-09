@@ -32,15 +32,15 @@ services:
         healthcheck:
             disable: true
 
-    web:
+    site:
         image: oven/bun:1.1.38-alpine
         working_dir: /repo
-        command: ['bun', 'run', 'dev:web']
+        command: ['bun', 'run', 'dev:site']
         ports: ['3000:3000']
         volumes:
             - ./:/repo
             - /repo/node_modules
-            - /repo/apps/web/.next
+            - /repo/apps/site/.next
         environment:
             NODE_ENV: development
             WATCHPACK_POLLING: 'true'

@@ -1,149 +1,177 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowUpRight, ExternalLink } from 'lucide-react';
-import { ArtisanCard, IrisGrade } from '@lumiris/scoring-ui';
-import { mockArtisans, mockPassports, mockJournalPublic, mockArtisanById } from '@lumiris/mock-data';
-import type { Passport } from '@lumiris/types';
-import { scorePassport } from '@/lib/passport-score';
+import { Sparkles } from 'lucide-react';
+import type { JournalCategory } from '@lumiris/types';
+import { Tabs, TabsList, TabsTrigger } from '@lumiris/ui/components/tabs';
+import { cn } from '@lumiris/ui/lib/cn';
+import { GRADE_CONFIG } from '@/lib/iris/grade-config';
+import { useUser } from '@/lib/auth';
+import { getDiscoverFeed, JOURNAL_CATEGORIES_ORDERED, type DiscoverFeedItem } from '@/lib/discover/feed';
+import { CategoryChips, type CategoryFilter } from './category-chips';
+import { HeroCard } from './hero-card';
+import { CategoryRow } from './category-row';
+import { ArticleCard } from './article-card';
 
 const WEB_BASE_URL = 'https://lumiris.fr';
+const COMPACT_SCROLL_THRESHOLD = 60;
 
-export function Discover() {
-    const [now] = useState(() => new Date());
+export interface DiscoverProps {
+    /** Pré-rendu SSR ; optionnel pour compat AppShell historique. */
+    items?: readonly DiscoverFeedItem[];
+}
 
-    const featuredPieces = useMemo(() => {
-        return mockPassports
-            .filter((p) => p.status === 'Published')
-            .map((p) => ({ passport: p, score: scorePassport(p, now) }))
-            .filter((row) => row.score.grade === 'A' || row.score.grade === 'B')
-            .sort((a, b) => new Date(b.passport.updatedAt).getTime() - new Date(a.passport.updatedAt).getTime())
-            .slice(0, 8);
-    }, [now]);
+export function Discover({ items }: DiscoverProps = {}) {
+    const feed = useMemo(() => items ?? getDiscoverFeed(), [items]);
+    const router = useRouter();
+    const { isAuthenticated } = useUser();
 
-    const featuredArtisans = useMemo(() => mockArtisans.slice(0, 6), []);
-    const articles = mockJournalPublic.slice(0, 3);
+    const [filter, setFilter] = useState<CategoryFilter>('all');
+    const [compact, setCompact] = useState(false);
+    const scrollRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        const node = scrollRef.current;
+        if (!node) return undefined;
+        const onScroll = () => setCompact(node.scrollTop > COMPACT_SCROLL_THRESHOLD);
+        node.addEventListener('scroll', onScroll, { passive: true });
+        return () => node.removeEventListener('scroll', onScroll);
+    }, []);
+
+    const availableCategories = useMemo(() => {
+        const set = new Set<JournalCategory>();
+        for (const item of feed) set.add(item.category);
+        return JOURNAL_CATEGORIES_ORDERED.filter((c) => set.has(c));
+    }, [feed]);
 
     return (
-        <div className="bg-background flex h-full flex-col overflow-y-auto pb-24">
-            <motion.header className="px-5 pb-4 pt-12" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+        <div className="bg-background flex h-full flex-col">
+            <motion.header className="px-5 pb-3 pt-12" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
                 <div className="flex items-center gap-2">
-                    <h1 className="text-foreground text-xl font-bold">Découvrir</h1>
-                    <Sparkles className="text-lumiris-amber h-4 w-4" />
+                    <h1 className="text-foreground text-2xl font-bold tracking-tight">Découvrir</h1>
+                    <Sparkles className={cn('h-4 w-4', GRADE_CONFIG.C.cssClass)} />
                 </div>
-                <p className="text-muted-foreground text-sm">Artisans, pièces du moment et journal LUMIRIS.</p>
+                <p className="text-muted-foreground mt-0.5 text-sm">Le Journal LUMIRIS</p>
+
+                {isAuthenticated ? (
+                    <Tabs
+                        value="all"
+                        onValueChange={(value) => {
+                            if (value === 'for-you') router.push('/discover/for-you');
+                        }}
+                        className="mt-4"
+                    >
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="all">Tous</TabsTrigger>
+                            <TabsTrigger value="for-you">Pour toi</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                ) : null}
             </motion.header>
 
-            <Section title="Artisans à découvrir">
-                <ul className="-mx-1 flex gap-3 overflow-x-auto px-5 pb-1">
-                    {featuredArtisans.map((artisan) => (
-                        <li key={artisan.id} className="shrink-0">
-                            <Link href={`/artisans/${artisan.id}`} className="block w-72">
-                                <ArtisanCard artisan={artisan} truncateStory />
-                            </Link>
-                        </li>
-                    ))}
-                </ul>
-            </Section>
+            <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pb-28">
+                <CategoryChips
+                    sticky
+                    compact={compact}
+                    categories={availableCategories}
+                    value={filter}
+                    onChange={setFilter}
+                />
 
-            <Section title="Pièces du moment" actionLabel="Voir tout" actionHref="#">
-                <div className="grid grid-cols-2 gap-3 px-4">
-                    {featuredPieces.map(({ passport, score }) => (
-                        <FeaturedPiece key={passport.id} passport={passport} grade={score.grade} />
-                    ))}
-                </div>
-            </Section>
+                {feed.length === 0 ? (
+                    <EmptyState />
+                ) : filter === 'all' ? (
+                    <AllView feed={feed} />
+                ) : (
+                    <FilteredView items={feed.filter((it) => it.category === filter)} />
+                )}
 
-            <Section title="Articles">
-                <div className="flex flex-col gap-3 px-4">
-                    {articles.map((article) => (
-                        <button
-                            key={article.id}
-                            type="button"
-                            onClick={() =>
-                                typeof window !== 'undefined' &&
-                                window.open(`${WEB_BASE_URL}/journal/${article.slug}`, '_blank', 'noopener,noreferrer')
-                            }
-                            className="border-border/60 bg-card hover:border-border group flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition"
-                        >
-                            <span className="text-muted-foreground inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider">
-                                {article.category}
-                                <ExternalLink className="h-3 w-3" />
-                            </span>
-                            <h3 className="text-foreground text-sm font-semibold leading-snug">{article.title}</h3>
-                            <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
-                                {article.excerpt}
-                            </p>
-                            <span className="text-muted-foreground group-hover:text-foreground inline-flex items-center gap-1 text-[11px] font-medium transition-colors">
-                                Lire l&apos;article
-                                <ArrowUpRight className="h-3 w-3" />
-                            </span>
-                        </button>
-                    ))}
-                </div>
-            </Section>
+                <FooterCta />
+            </div>
         </div>
     );
 }
 
-function Section({
-    title,
-    actionLabel,
-    actionHref,
-    children,
-}: {
-    title: string;
-    actionLabel?: string;
-    actionHref?: string;
-    children: React.ReactNode;
-}) {
+function AllView({ feed }: { feed: readonly DiscoverFeedItem[] }) {
+    const grouped = useMemo(() => groupByCategory(feed.slice(1)), [feed]);
+    const hero = feed[0];
+    if (!hero) return <EmptyState />;
+
+    let runningIndex = 1;
+    const sections = JOURNAL_CATEGORIES_ORDERED.map((cat) => {
+        const list = grouped[cat];
+        if (!list || list.length === 0) return null;
+        const baseIndex = runningIndex;
+        runningIndex += list.length;
+        return <CategoryRow key={cat} category={cat} items={list} baseIndex={baseIndex} />;
+    });
+
     return (
-        <section className="mt-2 flex flex-col gap-3 pb-2">
-            <div className="flex items-baseline justify-between px-5">
-                <h2 className="text-foreground text-sm font-semibold uppercase tracking-wider">{title}</h2>
-                {actionLabel && actionHref ? (
-                    <Link
-                        href={actionHref}
-                        className="text-muted-foreground hover:text-foreground text-[11px] font-medium"
-                    >
-                        {actionLabel}
-                    </Link>
-                ) : null}
-            </div>
-            {children}
-        </section>
+        <div className="mt-4">
+            <HeroCard item={hero} delay={0.05} />
+            {sections}
+        </div>
     );
 }
 
-function FeaturedPiece({ passport, grade }: { passport: Passport; grade: 'A' | 'B' | 'C' | 'D' | 'E' }) {
-    const artisan = mockArtisanById(passport.artisanId);
+function FilteredView({ items }: { items: readonly DiscoverFeedItem[] }) {
+    if (items.length === 0) {
+        return (
+            <p className="text-muted-foreground mt-12 px-2 text-center text-xs">
+                Pas encore d&apos;article dans cette catégorie.
+            </p>
+        );
+    }
+
+    const [hero, ...rest] = items;
+    if (!hero) return null;
+
     return (
-        <Link
-            href={`/passeport/${passport.id}`}
-            className="border-border/60 bg-card flex flex-col overflow-hidden rounded-2xl border"
-        >
-            <div className="bg-secondary/40 aspect-3/4 relative">
-                {passport.garment.mainPhotoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                        src={passport.garment.mainPhotoUrl}
-                        alt={passport.garment.reference}
-                        className="h-full w-full object-cover"
-                    />
-                ) : null}
-                <div className="absolute right-2 top-2">
-                    <IrisGrade grade={grade} size="sm" tone="solid" />
+        <div className="mt-4 flex flex-col gap-5">
+            <HeroCard item={hero} delay={0.05} />
+            {rest.length > 0 ? (
+                <div className="flex flex-col gap-4">
+                    {rest.map((item, i) => (
+                        <ArticleCard key={item.slug} item={item} index={i + 1} layout="vertical" />
+                    ))}
                 </div>
-            </div>
-            <div className="flex flex-col gap-0.5 p-3">
-                <p className="text-foreground truncate text-xs font-semibold">{passport.garment.reference}</p>
-                <p className="text-muted-foreground truncate text-[11px]">{artisan?.atelierName ?? '—'}</p>
-                <p className="text-foreground/80 font-mono text-[10px]">
-                    {passport.garment.retailPrice} {passport.garment.currency}
-                </p>
-            </div>
-        </Link>
+            ) : null}
+        </div>
+    );
+}
+
+function groupByCategory(items: readonly DiscoverFeedItem[]): Partial<Record<JournalCategory, DiscoverFeedItem[]>> {
+    const out: Partial<Record<JournalCategory, DiscoverFeedItem[]>> = {};
+    for (const item of items) {
+        const list = out[item.category] ?? [];
+        list.push(item);
+        out[item.category] = list;
+    }
+    return out;
+}
+
+function EmptyState() {
+    return (
+        <div className="mt-12 flex flex-col items-center gap-3 px-8 text-center">
+            <Sparkles className="text-muted-foreground h-8 w-8" />
+            <p className="text-muted-foreground text-sm">Pas encore d&apos;articles. Reviens bientôt.</p>
+        </div>
+    );
+}
+
+function FooterCta() {
+    return (
+        <div className="mt-10 flex items-center justify-center pb-2">
+            <a
+                href={`${WEB_BASE_URL}/journal`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
+            >
+                Plus d&apos;histoires sur lumiris.fr/journal
+            </a>
+        </div>
     );
 }

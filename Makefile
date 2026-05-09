@@ -45,7 +45,7 @@ NODE_ENV    ?= development
 
 ADMIN_DIR    := apps/admin
 CLIENT_DIR   := apps/client
-WEB_DIR      := apps/web
+SITE_DIR      := apps/site
 MOBILE_DIR   := apps/mobile
 UI_DIR       := packages/ui
 CORE_DIR     := packages/core
@@ -77,16 +77,16 @@ setup: install prepare ## Bootstrap complet (install + husky)
 ##@ Dev - hot reload sur les 3 surfaces
 
 .PHONY: dev
-dev: ## Lance admin + web + mobile en parallèle (Turbo)
+dev: ## Lance admin + site + mobile en parallèle (Turbo)
 	$(BUN) run dev
 
 .PHONY: dev-admin
 dev-admin: ## Back-office uniquement (port 3001)
 	$(BUN) run dev:admin
 
-.PHONY: dev-web
-dev-web: ## Site public uniquement (port 3000)
-	$(BUN) run dev:web
+.PHONY: dev-site
+dev-site: ## Site public uniquement (port 3000)
+	$(BUN) run dev:site
 
 .PHONY: dev-mobile
 dev-mobile: ## Vue mobile uniquement (port 3002)
@@ -106,9 +106,9 @@ build: ## Build tous les apps (Turbo cache)
 build-admin: ## Build admin seulement
 	$(TURBO) run build --filter=@lumiris/admin
 
-.PHONY: build-web
-build-web: ## Build web seulement
-	$(TURBO) run build --filter=@lumiris/web
+.PHONY: build-site
+build-site: ## Build site seulement
+	$(TURBO) run build --filter=@lumiris/site
 
 .PHONY: build-mobile
 build-mobile: ## Build mobile seulement
@@ -174,7 +174,7 @@ fix: ## Auto-fix tout (lint + css + format)
 ##@ Performance - Lighthouse + Web Vitals
 
 .PHONY: lhci
-lhci: ## Lighthouse CI sur le web public
+lhci: ## Lighthouse CI sur le site public
 	$(BUN) run lhci
 
 .PHONY: lighthouse-mobile
@@ -304,10 +304,10 @@ GIT_SHA       := $(shell git rev-parse --short HEAD 2>/dev/null || echo dev)
 IMAGE_TAG     ?= $(GIT_SHA)
 GHCR_OWNER    ?= lumiris
 REGISTRY      ?= ghcr.io
-APPS          := admin client web mobile api
+APPS          := admin client site mobile api
 
 .PHONY: docker-build
-docker-build: ## Build les 5 images (admin, client, web, mobile, api) — IMAGE_TAG=<sha>
+docker-build: ## Build les 5 images (admin, client, site, mobile, api) — IMAGE_TAG=<sha>
 	@for app in $(APPS); do \
 	  echo "[docker-build] $$app:$(IMAGE_TAG)"; \
 	  docker build \
@@ -317,8 +317,8 @@ docker-build: ## Build les 5 images (admin, client, web, mobile, api) — IMAGE_
 	done
 
 .PHONY: docker-build-app
-docker-build-app: ## Build une seule image (APP=admin|client|web|mobile|api)
-	@test -n "$(APP)" || { echo "Usage: APP=<admin|client|web|mobile|api> make docker-build-app"; exit 1; }
+docker-build-app: ## Build une seule image (APP=admin|client|site|mobile|api)
+	@test -n "$(APP)" || { echo "Usage: APP=<admin|client|site|mobile|api> make docker-build-app"; exit 1; }
 	docker build -f apps/$(APP)/Dockerfile -t $(REGISTRY)/$(GHCR_OWNER)/$(APP):$(IMAGE_TAG) .
 
 .PHONY: docker-push
@@ -351,7 +351,7 @@ stack-ps: ## Liste les services en cours
 ##@ Deploy - zero-downtime sur le VPS
 
 HEALTH_TIMEOUT ?= 240
-DEPLOY_SVCS    ?= admin client web mobile api
+DEPLOY_SVCS    ?= admin client site mobile api
 
 .PHONY: deploy-zd
 deploy-zd: ## Zero-downtime deploy (IMAGE_TAG=<sha>) — scale +1 → wait healthy → scale -1

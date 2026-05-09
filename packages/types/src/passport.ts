@@ -5,11 +5,11 @@ import type { CertificationRef } from './certificate';
 /** GS1 Digital Link en clair, format `https://id.lumiris.fr/01/<gtin>/21/<serial>`. */
 export type GS1DigitalLink = string;
 
-/** Identifiant GS1 décomposé — porté par `Passport.gs1`, exposé décomposé pour les UIs. */
+/** Identifiant GS1 décomposé - porté par `Passport.gs1`, exposé décomposé pour les UIs. */
 export interface GS1Identifier {
     gtin: string;
     serial: string;
-    /** URL publique de vérification — typiquement `https://lumiris.fr/passeport/<id>`. */
+    /** URL publique de vérification - typiquement `https://lumiris.fr/passeport/<id>`. */
     verificationUrl: string;
     /** Numéro de série NFC quand le passeport est livré avec une puce. */
     nfcSerial?: string;
@@ -73,17 +73,17 @@ export interface ProductionStep {
 }
 
 export type GarmentKind = 'sweater' | 'shirt' | 'shoe' | 'jacket' | 'trouser' | 'accessory' | 'other';
-/** @deprecated alias historique — utiliser {@link GarmentKind}. */
+/** @deprecated alias historique - utiliser {@link GarmentKind}. */
 export type ProductKind = GarmentKind;
 
 export interface GarmentDimensions {
     length?: number;
     width?: number;
     height?: number;
-    /** Masse en grammes — utilisée par le scoring impact pour calculer kgCO₂e. */
+    /** Masse en grammes - utilisée par le scoring impact pour calculer kgCO₂e. */
     weightG?: number;
 }
-/** @deprecated alias historique — utiliser {@link GarmentDimensions}. */
+/** @deprecated alias historique - utiliser {@link GarmentDimensions}. */
 export type ProductDimensions = GarmentDimensions;
 
 export interface GarmentInfo {
@@ -94,13 +94,13 @@ export interface GarmentInfo {
     retailPrice: number;
     currency: 'EUR';
 }
-/** @deprecated alias historique — utiliser {@link GarmentInfo}. */
+/** @deprecated alias historique - utiliser {@link GarmentInfo}. */
 export type ProductInfo = GarmentInfo;
 
 export interface PassportWarranty {
     durationMonths: number;
     terms: string;
-    /** Engagement de réparabilité en clair — `>= 30` caractères contribue à l'axe Réparabilité. */
+    /** Engagement de réparabilité en clair - `>= 30` caractères contribue à l'axe Réparabilité. */
     repairabilityCommitment?: string;
 }
 
@@ -122,7 +122,7 @@ export interface PassportModeration {
 
 export interface Passport {
     id: string;
-    /** Identifiant GS1 décomposé — gtin + serial + URL de vérification consommateur. */
+    /** Identifiant GS1 décomposé - gtin + serial + URL de vérification consommateur. */
     gs1: GS1Identifier;
     status: PassportStatus;
     createdAt: string;
@@ -131,15 +131,15 @@ export interface Passport {
     artisanId: string;
     /** Pièce textile (référence, photo, dimensions, prix). */
     garment: GarmentInfo;
-    /** Composition matières — somme des `percentage` doit faire 100. */
+    /** Composition matières - somme des `percentage` doit faire 100. */
     materials: readonly Material[];
     /** Étapes de fabrication ordonnées. */
     steps: readonly ProductionStep[];
-    /** Certifications du *passeport* (ex. AGEC d'ensemble) — distinct des certifs *par matière* dans `materials[].certifications`. */
+    /** Certifications du *passeport* (ex. AGEC d'ensemble) - distinct des certifs *par matière* dans `materials[].certifications`. */
     certifications: readonly CertificationRef[];
     warranty: PassportWarranty;
     moderation?: PassportModeration;
-    /** Conseils d'entretien — affichés sur la page consommateur, contribuent à l'AGEC. */
+    /** Conseils d'entretien - affichés sur la page consommateur, contribuent à l'AGEC. */
     care?: CareInstructions;
     /** Empreinte carbone déclarée (kg CO₂e). Quand renseignée, prime sur le calcul fibre × masse. */
     carbonKg?: number;

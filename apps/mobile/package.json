@@ -2,7 +2,7 @@
     "name": "@lumiris/mobile",
     "version": "0.1.0",
     "private": true,
-    "description": "LUMIRIS Mobile — mobile-optimized consumer view (Iris Scanner). Web first, Tauri-ready.",
+    "description": "LUMIRIS Mobile - mobile-optimized consumer view (Iris Scanner). Web first, Tauri-ready.",
     "scripts": {
         "dev": "next dev --port 3002",
         "dev:tauri": "next dev --port 1420",

@@ -28,10 +28,6 @@ export function incrementScanCounter(): void {
     notify();
 }
 
-export function getScanCount(): number {
-    return read();
-}
-
 function subscribe(cb: () => void): () => void {
     subscribers.add(cb);
     if (typeof window !== 'undefined') {

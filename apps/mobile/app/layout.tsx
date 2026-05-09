@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Geist_Mono } from 'next/font/google';
+import { Toaster } from '@lumiris/ui/components/sonner';
+import { AppShell } from '@/features/app-shell';
 import { WebVitals } from './web-vitals';
 import './globals.css';
 
@@ -35,7 +37,13 @@ export default function RootLayout({
         <html lang="en" className="bg-background">
             <body className={`${inter.variable} ${geistMono.variable} font-sans antialiased`}>
                 <WebVitals />
-                {children}
+                <Toaster
+                    position="top-center"
+                    offset="max(env(safe-area-inset-top), 1rem)"
+                    visibleToasts={3}
+                    closeButton={false}
+                />
+                <AppShell>{children}</AppShell>
             </body>
         </html>
     );

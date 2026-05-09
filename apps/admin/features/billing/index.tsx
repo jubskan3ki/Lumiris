@@ -36,6 +36,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lumiris/ui/components
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@lumiris/ui/components/table';
 import { cn } from '@lumiris/ui/lib/cn';
 import { RequirePermission, useLogAction, usePermission } from '@/lib/auth';
+import { computeBillingKpi } from '@/lib/billing-kpi';
+import { KpiCard } from '@/components/kpi-card';
 import { GovernanceBanner } from '../_shared/governance-banner';
 
 const STATUS_LABEL: Record<SubscriptionStatus, string> = {
@@ -112,27 +114,7 @@ function BillingInner() {
 // ─── Overview ───────────────────────────────────────────────────────────────
 
 function OverviewTab() {
-    const kpi = useMemo(() => {
-        const active = mockSubscriptions.filter((s) => s.status === 'active' || s.status === 'past_due');
-        const mrr = active.reduce((sum, s) => sum + s.mrrEur, 0);
-        const lastMonth = mockMrrTrajectory[mockMrrTrajectory.length - 2];
-        const thisMonth = mockMrrTrajectory[mockMrrTrajectory.length - 1];
-        const lastTotal = lastMonth
-            ? lastMonth.solo + lastMonth.studio + lastMonth.maison + lastMonth.plus + lastMonth.local
-            : 0;
-        const thisTotal = thisMonth
-            ? thisMonth.solo + thisMonth.studio + thisMonth.maison + thisMonth.plus + thisMonth.local
-            : mrr;
-        const netNew = thisTotal - lastTotal;
-        const canceled = mockSubscriptions.filter((s) => s.status === 'canceled');
-        const churnEur = canceled.length === 0 ? 0 : canceled.length * 79;
-        const churnPct = active.length === 0 ? 0 : (canceled.length / (active.length + canceled.length)) * 100;
-        const arr = mrr * 12;
-
-        const split = thisMonth ?? { solo: 0, studio: 0, maison: 0, plus: 0, local: 0 };
-
-        return { mrr, arr, churnPct, churnEur, netNew, split };
-    }, []);
+    const kpi = useMemo(() => computeBillingKpi(mockSubscriptions, mockMrrTrajectory), []);
 
     const mrrConfig = {
         solo: { label: 'Solo', color: 'var(--lumiris-cyan)' },
@@ -179,7 +161,7 @@ function OverviewTab() {
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <div className="border-border bg-card rounded-xl border p-4 lg:col-span-2">
                     <div className="mb-3 flex items-center justify-between">
-                        <p className="text-foreground text-sm font-medium">Trajectoire MRR — 6 mois</p>
+                        <p className="text-foreground text-sm font-medium">Trajectoire MRR - 6 mois</p>
                         <Badge variant="outline" className="font-mono text-[10px]">
                             empilé par ligne
                         </Badge>
@@ -211,31 +193,6 @@ function OverviewTab() {
                 </div>
             </div>
         </>
-    );
-}
-
-function KpiCard({
-    label,
-    value,
-    sub,
-    icon,
-    tone,
-}: {
-    label: string;
-    value: string;
-    sub?: string;
-    icon: React.ReactNode;
-    tone: string;
-}) {
-    return (
-        <div className="border-border bg-card flex flex-col rounded-xl border p-4">
-            <div className="flex items-center justify-between">
-                <p className="text-muted-foreground text-[10px] uppercase tracking-wider">{label}</p>
-                <span className={cn('opacity-70', tone)}>{icon}</span>
-            </div>
-            <p className={cn('mt-1 font-mono text-2xl font-bold', tone)}>{value}</p>
-            {sub ? <p className="text-muted-foreground mt-0.5 text-[11px]">{sub}</p> : null}
-        </div>
     );
 }
 
@@ -653,7 +610,7 @@ function HistoryTab() {
                                 </TableCell>
                                 <TableCell>
                                     <span className="text-muted-foreground font-mono text-[11px]">
-                                        {p.failureReason ?? '—'}
+                                        {p.failureReason ?? '-'}
                                     </span>
                                 </TableCell>
                             </TableRow>
@@ -669,7 +626,7 @@ function HistoryTab() {
                 </Table>
                 {rows.length > 100 ? (
                     <div className="border-border text-muted-foreground border-t px-4 py-2 text-center text-[11px]">
-                        Affichage limité à 100 lignes — affinez les filtres pour voir le reste ({rows.length} au total).
+                        Affichage limité à 100 lignes - affinez les filtres pour voir le reste ({rows.length} au total).
                     </div>
                 ) : null}
             </div>

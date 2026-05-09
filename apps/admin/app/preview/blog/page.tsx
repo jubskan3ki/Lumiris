@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { mockArtisans, mockBlogArticles } from '@lumiris/mock-data';
@@ -13,10 +14,7 @@ interface PreviewBlogPageProps {
     searchParams: Promise<{ id?: string }>;
 }
 
-/**
- * Aperçu mock du rendu apps/web pour un article blog. Pas une vraie iframe vers le site —
- * juste une approximation visuelle pour valider le contenu avant publication.
- */
+// Aperçu mock du rendu apps/site - approximation visuelle, pas une vraie iframe.
 export default async function PreviewBlogPage({ searchParams }: PreviewBlogPageProps) {
     const params = await searchParams;
     const article = params.id ? mockBlogArticles.find((a) => a.id === params.id) : mockBlogArticles[0];
@@ -48,7 +46,7 @@ function PreviewLayout({ article }: { article: BlogArticle }) {
                         Aperçu site WEB
                     </Badge>
                     <span className="text-muted-foreground/70 ml-auto font-mono text-[10px]">
-                        rendu approximatif — pas l&apos;app web réelle
+                        rendu approximatif - pas l&apos;app web réelle
                     </span>
                 </div>
             </div>
@@ -81,12 +79,16 @@ function PreviewLayout({ article }: { article: BlogArticle }) {
                 <p className="text-muted-foreground mt-3 text-lg leading-relaxed">{article.excerpt}</p>
 
                 {article.coverImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                        src={article.coverImage}
-                        alt=""
-                        className="mt-6 aspect-[16/9] w-full rounded-2xl object-cover"
-                    />
+                    <div className="relative mt-6 aspect-video w-full overflow-hidden rounded-2xl">
+                        <Image
+                            src={article.coverImage}
+                            alt=""
+                            fill
+                            unoptimized
+                            sizes="(max-width: 768px) 100vw, 768px"
+                            className="object-cover"
+                        />
+                    </div>
                 ) : null}
 
                 {linkedArtisan ? (
@@ -114,14 +116,14 @@ function PreviewLayout({ article }: { article: BlogArticle }) {
 
                 <footer className="border-border text-muted-foreground mt-12 border-t pt-6 text-xs">
                     <p>
-                        <strong>SEO meta title :</strong> {article.metaTitle || '—'}
+                        <strong>SEO meta title :</strong> {article.metaTitle || '-'}
                     </p>
                     <p className="mt-1">
-                        <strong>SEO meta description :</strong> {article.metaDescription || '—'}
+                        <strong>SEO meta description :</strong> {article.metaDescription || '-'}
                     </p>
                     <p className="mt-1">
                         <strong>Slug :</strong>{' '}
-                        <code className="bg-muted rounded px-1 font-mono">{article.slug || '—'}</code>
+                        <code className="bg-muted rounded px-1 font-mono">{article.slug || '-'}</code>
                     </p>
                 </footer>
             </article>

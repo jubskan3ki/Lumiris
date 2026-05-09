@@ -1,7 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AlertTriangle, FileUp, Plus, ShieldAlert, Trash2 } from 'lucide-react';
 import { getEffectiveStatus } from '@lumiris/types';
 import type { CertificationKind, CertificationRef, PassportWarranty } from '@lumiris/types';
@@ -14,7 +13,9 @@ import { Label } from '@lumiris/ui/components/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@lumiris/ui/components/select';
 import { Textarea } from '@lumiris/ui/components/textarea';
 import { WizardShell } from '@/features/wizard-shell';
+import { useStepNavigation } from '@/features/wizard-shell/use-step-navigation';
 import { useDraftStore } from '@/lib/draft-store';
+import { readFileAsDataUrl } from '@/lib/file-utils';
 
 const CERT_KINDS: readonly CertificationKind[] = [
     'GOTS',
@@ -43,11 +44,10 @@ function newCert(): CertificationRef {
 }
 
 export function CreateStepCertifications({ draftId }: { draftId: string }) {
-    const router = useRouter();
     const draft = useDraftStore((s) => s.drafts[draftId]);
     const setCertifications = useDraftStore((s) => s.setCertifications);
     const setWarranty = useDraftStore((s) => s.setWarranty);
-    const setLastStep = useDraftStore((s) => s.setLastStep);
+    const { goNext, goTo } = useStepNavigation(draftId);
 
     const [certs, setCerts] = useState<CertificationRef[]>(
         draft?.certifications.length ? [...draft.certifications] : [],
@@ -56,21 +56,6 @@ export function CreateStepCertifications({ draftId }: { draftId: string }) {
         draft?.warranty ?? { durationMonths: 12, terms: '' },
     );
 
-    useEffect(() => {
-        if (draft) {
-            setCerts([...draft.certifications]);
-            setLocalWarranty(draft.warranty);
-        }
-    }, [draft]);
-
-    if (!draft) {
-        return (
-            <WizardShell draftId={draftId} step="certifications">
-                {null}
-            </WizardShell>
-        );
-    }
-
     const updateCert = (idx: number, patch: Partial<CertificationRef>) => {
         setCerts((cur) => cur.map((c, i) => (i === idx ? { ...c, ...patch } : c)));
     };
@@ -78,17 +63,11 @@ export function CreateStepCertifications({ draftId }: { draftId: string }) {
     const handleNext = () => {
         setCertifications(draftId, certs);
         setWarranty(draftId, warranty);
-        setLastStep(draftId, 'certifications');
-        router.push(`/create/${draftId}/publish`);
+        goNext('certifications', 'publish');
     };
 
     return (
-        <WizardShell
-            draftId={draftId}
-            step="certifications"
-            onPrev={() => router.push(`/create/${draftId}/manufacturing`)}
-            onNext={handleNext}
-        >
+        <WizardShell draftId={draftId} step="certifications" onPrev={() => goTo('manufacturing')} onNext={handleNext}>
             <div className="space-y-6">
                 <Card>
                     <CardHeader>
@@ -122,7 +101,7 @@ export function CreateStepCertifications({ draftId }: { draftId: string }) {
                     <CardHeader>
                         <CardTitle>Garantie</CardTitle>
                         <p className="text-muted-foreground text-sm">
-                            Durée et termes — pèse 35% du sous-score Réparabilité.
+                            Durée et termes - pèse 35% du sous-score Réparabilité.
                         </p>
                     </CardHeader>
                     <CardContent className="grid gap-4 md:grid-cols-[160px_1fr]">
@@ -167,13 +146,10 @@ interface CertRowProps {
 function CertRow({ cert, onChange, onRemove }: CertRowProps) {
     const status = getEffectiveStatus(cert, new Date());
 
-    const handleFile = (file: File | undefined) => {
+    const handleFile = async (file: File | undefined) => {
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-            if (typeof reader.result === 'string') onChange({ fileUrl: reader.result });
-        };
-        reader.readAsDataURL(file);
+        const dataUrl = await readFileAsDataUrl(file);
+        onChange({ fileUrl: dataUrl });
     };
 
     return (

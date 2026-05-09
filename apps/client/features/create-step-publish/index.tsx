@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { Download, Eye, Printer, Sparkles } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -22,13 +21,14 @@ import {
 } from '@lumiris/ui/components/dialog';
 import { IrisGrade, MissingFieldsBadge, ScoreBreakdown, ScoreCapWarning, ScoreReasonsList } from '@lumiris/scoring-ui';
 import { WizardShell } from '@/features/wizard-shell';
+import { useStepNavigation } from '@/features/wizard-shell/use-step-navigation';
 import { currentArtisan } from '@/lib/current-artisan';
 import { draftToPassport, useDraftStore } from '@/lib/draft-store';
 
 export function CreateStepPublish({ draftId }: { draftId: string }) {
-    const router = useRouter();
     const draft = useDraftStore((s) => s.drafts[draftId]);
     const publish = useDraftStore((s) => s.publish);
+    const { goTo } = useStepNavigation(draftId);
 
     const [open, setOpen] = useState(false);
     const [published, setPublished] = useState<{
@@ -47,7 +47,7 @@ export function CreateStepPublish({ draftId }: { draftId: string }) {
         });
     }, [passport]);
 
-    if (!draft || !passport || !score) {
+    if (!passport || !score) {
         return (
             <WizardShell draftId={draftId} step="publish">
                 {null}
@@ -69,7 +69,7 @@ export function CreateStepPublish({ draftId }: { draftId: string }) {
     };
 
     return (
-        <WizardShell draftId={draftId} step="publish" onPrev={() => router.push(`/create/${draftId}/certifications`)}>
+        <WizardShell draftId={draftId} step="publish" onPrev={() => goTo('certifications')}>
             <div className="space-y-6">
                 <Card>
                     <CardHeader className="flex flex-row items-start justify-between gap-4">
@@ -117,7 +117,7 @@ export function CreateStepPublish({ draftId }: { draftId: string }) {
                         <Accordion type="multiple" className="w-full">
                             <Section value="prod" title="Produit">
                                 <Field label="Type" value={passport.garment.kind} />
-                                <Field label="Référence" value={passport.garment.reference || '—'} />
+                                <Field label="Référence" value={passport.garment.reference || '-'} />
                                 <Field
                                     label="Prix"
                                     value={`${passport.garment.retailPrice} ${passport.garment.currency}`}
@@ -128,7 +128,7 @@ export function CreateStepPublish({ draftId }: { draftId: string }) {
                                 {passport.materials.length === 0 && <Empty />}
                                 {passport.materials.map((m, i) => (
                                     <p key={i} className="text-foreground text-xs">
-                                        {m.percentage}% {m.fiber} — {m.originCountry} ·{' '}
+                                        {m.percentage}% {m.fiber} - {m.originCountry} ·{' '}
                                         {m.supplierId || 'fournisseur manquant'} · {m.certifications.length} certif(s)
                                     </p>
                                 ))}
@@ -137,7 +137,7 @@ export function CreateStepPublish({ draftId }: { draftId: string }) {
                                 {passport.steps.length === 0 && <Empty />}
                                 {passport.steps.map((s) => (
                                     <p key={s.id} className="text-foreground text-xs">
-                                        {s.kind} — {s.label || '(sans libellé)'} · {s.performedBy} ({s.locationCity},{' '}
+                                        {s.kind} - {s.label || '(sans libellé)'} · {s.performedBy} ({s.locationCity},{' '}
                                         {s.locationCountry}) · {s.photos.length} photo(s)
                                     </p>
                                 ))}
@@ -146,14 +146,14 @@ export function CreateStepPublish({ draftId }: { draftId: string }) {
                                 {passport.certifications.length === 0 && <Empty />}
                                 {passport.certifications.map((c) => (
                                     <p key={c.id} className="text-foreground text-xs">
-                                        {c.kind} — {c.issuer || c.customName || '(organisme inconnu)'}{' '}
+                                        {c.kind} - {c.issuer || c.customName || '(organisme inconnu)'}{' '}
                                         {c.verified ? '· vérifiée' : '· non vérifiée'}
                                     </p>
                                 ))}
                             </Section>
                             <Section value="warranty" title="Garantie">
                                 <Field label="Durée" value={`${passport.warranty.durationMonths} mois`} />
-                                <Field label="Termes" value={passport.warranty.terms || '—'} />
+                                <Field label="Termes" value={passport.warranty.terms || '-'} />
                             </Section>
                             <Section value="reasons" title="Motifs de score">
                                 <ScoreReasonsList reasons={score.reasons} />
@@ -165,8 +165,8 @@ export function CreateStepPublish({ draftId }: { draftId: string }) {
                 <div className="flex items-center justify-between gap-4">
                     <p className="text-muted-foreground text-xs">
                         {willBeIncomplete
-                            ? 'Le passeport sera publié en statut "En complétion" — vous pourrez compléter les champs manquants plus tard.'
-                            : "Aucun champ obligatoire manquant — publication en statut 'Publié'."}
+                            ? 'Le passeport sera publié en statut "En complétion" - vous pourrez compléter les champs manquants plus tard.'
+                            : "Aucun champ obligatoire manquant - publication en statut 'Publié'."}
                     </p>
                     <Button
                         onClick={handlePublish}

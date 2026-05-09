@@ -58,7 +58,7 @@ interface SidebarProps {
 
 function SidebarComponent({ activeSection, onNavigate }: SidebarProps) {
     const user = useCurrentUser();
-    // Overview is always visible — every back-office role lands somewhere; the placeholder gates inner content.
+    // Overview is always visible - every back-office role lands somewhere; the placeholder gates inner content.
     const visibleItems = NAV_ITEMS.filter((item) => item.id === 'overview' || can(user.role, item.requires));
 
     return (

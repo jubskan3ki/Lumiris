@@ -91,7 +91,7 @@ function InvoiceRow({
                 )}
             </TableCell>
             <TableCell className="text-muted-foreground text-xs">
-                {invoice.linkedPassportIds.length === 0 ? '—' : invoice.linkedPassportIds.length}
+                {invoice.linkedPassportIds.length === 0 ? '-' : invoice.linkedPassportIds.length}
             </TableCell>
             <TableCell className="text-right">
                 {!extracted && (

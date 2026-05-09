@@ -3,10 +3,10 @@
 import type { AdminAction, AdminUserRole } from '@lumiris/types';
 import { useCurrentUser } from './current-user';
 
-// Permission matrix — backend-ready. Source of truth for who can do what in the back-office.
+// Permission matrix - backend-ready. Source of truth for who can do what in the back-office.
 // Mirrored on the server when @lumiris/api-client lands; for now everything is enforced client-side.
 const ROLE_PERMISSIONS: Record<AdminUserRole, ReadonlySet<AdminAction>> = {
-    // "Personne n'achète son score" — curator peut valider, demander des changements et flagger
+    // "Personne n'achète son score" - curator peut valider, demander des changements et flagger
     // une anomalie, mais l'override de score est délibérément exclu (réservé lead_curator + platform_admin).
     curator: new Set<AdminAction>([
         'passport.read',

@@ -1,12 +1,12 @@
 import type { AdminProfile } from '@lumiris/types';
 
-// équipe interne pour timeline d'activité back-office — User.role limité à 3 valeurs (cf. AdminUserRole)
+// équipe interne pour timeline d'activité back-office - User.role limité à 3 valeurs (cf. AdminUserRole)
 
 export interface MockTeamActivityEntry {
     id: string;
     actorId: string;
     actorName: string;
-    /** Rôle d'affichage interne — distinct de UserRole, sert à la timeline. */
+    /** Rôle d'affichage interne - distinct de UserRole, sert à la timeline. */
     role: 'admin';
     action: string;
     targetType: 'passport' | 'artisan' | 'journal' | 'repairer';
@@ -28,7 +28,7 @@ export const mockAdmins: readonly AdminProfile[] = [
         id: 'usr-adm-ops',
         email: 'ops@lumiris.fr',
         role: 'admin',
-        name: 'Camille — DevOps',
+        name: 'Camille - DevOps',
         avatar: 'https://placehold.co/128x128/png?text=Ops',
         createdAt: '2024-05-15T08:00:00Z',
         lastSeenAt: '2026-04-29T17:30:00Z',
@@ -62,7 +62,7 @@ export const mockTeamActivity: readonly MockTeamActivityEntry[] = [
         role: 'admin',
         action: 'Publication article',
         targetType: 'journal',
-        targetLabel: 'Le lin breton — circuit court',
+        targetLabel: 'Le lin breton - circuit court',
         timestamp: '2026-04-29T14:08:00Z',
     },
     {
@@ -78,11 +78,11 @@ export const mockTeamActivity: readonly MockTeamActivityEntry[] = [
     {
         id: 'act-004',
         actorId: 'usr-adm-ops',
-        actorName: 'Camille — DevOps',
+        actorName: 'Camille - DevOps',
         role: 'admin',
         action: 'Validation KYC retoucheur',
         targetType: 'repairer',
-        targetLabel: 'Mehdi Bouzid — Lyon',
+        targetLabel: 'Mehdi Bouzid - Lyon',
         timestamp: '2026-04-28T09:55:00Z',
     },
     {
@@ -92,7 +92,7 @@ export const mockTeamActivity: readonly MockTeamActivityEntry[] = [
         role: 'admin',
         action: 'Onboarding artisan',
         targetType: 'artisan',
-        targetLabel: 'Pauline Roux Mode — Nantes',
+        targetLabel: 'Pauline Roux Mode - Nantes',
         timestamp: '2026-04-27T15:14:00Z',
     },
 ];

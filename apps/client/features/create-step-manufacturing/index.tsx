@@ -1,19 +1,19 @@
 'use client';
 
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ArrowDown, ArrowUp, ImagePlus, Plus, Trash2 } from 'lucide-react';
 import type { ProductionStep, StageKind } from '@lumiris/types';
 import { Button } from '@lumiris/ui/components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@lumiris/ui/components/card';
 import { Input } from '@lumiris/ui/components/input';
 import { Label } from '@lumiris/ui/components/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@lumiris/ui/components/select';
-import { WizardShell } from '@/features/wizard-shell';
+import { WizardStepFrame } from '@/features/wizard-shell/step-frame';
+import { useStepNavigation } from '@/features/wizard-shell/use-step-navigation';
 import { useDraftStore } from '@/lib/draft-store';
 import { COUNTRIES } from '@/lib/countries';
 import { currentArtisan } from '@/lib/current-artisan';
+import { readFileAsDataUrl } from '@/lib/file-utils';
 
 const STEP_KINDS: ReadonlyArray<{ value: StageKind; label: string }> = [
     { value: 'weaving', label: 'Tissage' },
@@ -42,26 +42,13 @@ function newStep(idPrefix: string, idx: number): ProductionStep {
 }
 
 export function CreateStepManufacturing({ draftId }: { draftId: string }) {
-    const router = useRouter();
     const draft = useDraftStore((s) => s.drafts[draftId]);
     const setSteps = useDraftStore((s) => s.setProductionSteps);
-    const setLastStep = useDraftStore((s) => s.setLastStep);
+    const { goNext, goTo } = useStepNavigation(draftId);
 
     const [items, setItems] = useState<ProductionStep[]>(
         draft?.steps.length ? [...draft.steps] : [newStep(draftId, 0)],
     );
-
-    useEffect(() => {
-        if (draft && draft.steps.length > 0) setItems([...draft.steps]);
-    }, [draft]);
-
-    if (!draft) {
-        return (
-            <WizardShell draftId={draftId} step="manufacturing">
-                {null}
-            </WizardShell>
-        );
-    }
 
     const updateItem = (idx: number, patch: Partial<ProductionStep>) => {
         setItems((cur) => cur.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
@@ -83,51 +70,43 @@ export function CreateStepManufacturing({ draftId }: { draftId: string }) {
     const handleNext = () => {
         if (items.length === 0) return;
         setSteps(draftId, items);
-        setLastStep(draftId, 'manufacturing');
-        router.push(`/create/${draftId}/certifications`);
+        goNext('manufacturing', 'certifications');
     };
 
     const valid = items.length >= 1;
 
     return (
-        <WizardShell
+        <WizardStepFrame
             draftId={draftId}
             step="manufacturing"
-            onPrev={() => router.push(`/create/${draftId}/invoice`)}
+            title="Étapes de fabrication"
+            subtitle="Au moins une étape requise. Chaque étape précise qui l’a réalisée et où."
+            onPrev={() => goTo('invoice')}
             onNext={handleNext}
             nextDisabled={!valid}
+            contentClassName="space-y-3"
         >
-            <Card>
-                <CardHeader>
-                    <CardTitle>Étapes de fabrication</CardTitle>
-                    <p className="text-muted-foreground text-sm">
-                        Au moins une étape requise. Chaque étape précise qui l’a réalisée et où.
-                    </p>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                    {items.map((item, idx) => (
-                        <ManufacturingRow
-                            key={item.id}
-                            step={item}
-                            idx={idx}
-                            count={items.length}
-                            onChange={(patch) => updateItem(idx, patch)}
-                            onMoveUp={() => move(idx, -1)}
-                            onMoveDown={() => move(idx, 1)}
-                            onRemove={() => remove(idx)}
-                        />
-                    ))}
+            {items.map((item, idx) => (
+                <ManufacturingRow
+                    key={item.id}
+                    step={item}
+                    idx={idx}
+                    count={items.length}
+                    onChange={(patch) => updateItem(idx, patch)}
+                    onMoveUp={() => move(idx, -1)}
+                    onMoveDown={() => move(idx, 1)}
+                    onRemove={() => remove(idx)}
+                />
+            ))}
 
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setItems((cur) => [...cur, newStep(draftId, cur.length)])}
-                    >
-                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Ajouter une étape
-                    </Button>
-                </CardContent>
-            </Card>
-        </WizardShell>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setItems((cur) => [...cur, newStep(draftId, cur.length)])}
+            >
+                <Plus className="mr-1.5 h-3.5 w-3.5" /> Ajouter une étape
+            </Button>
+        </WizardStepFrame>
     );
 }
 
@@ -142,15 +121,10 @@ interface ManufacturingRowProps {
 }
 
 function ManufacturingRow({ step, idx, count, onChange, onMoveUp, onMoveDown, onRemove }: ManufacturingRowProps) {
-    const handlePhoto = (file: File | undefined) => {
+    const handlePhoto = async (file: File | undefined) => {
         if (!file || step.photos.length >= MAX_PHOTOS) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-            if (typeof reader.result === 'string') {
-                onChange({ photos: [...step.photos, reader.result] });
-            }
-        };
-        reader.readAsDataURL(file);
+        const dataUrl = await readFileAsDataUrl(file);
+        onChange({ photos: [...step.photos, dataUrl] });
     };
 
     return (
@@ -235,7 +209,7 @@ function ManufacturingRow({ step, idx, count, onChange, onMoveUp, onMoveDown, on
                         <div key={i} className="relative">
                             <Image
                                 src={src}
-                                alt={`Étape ${step.label || 'en cours'} — visuel ${i + 1}`}
+                                alt={`Étape ${step.label || 'en cours'} - visuel ${i + 1}`}
                                 width={64}
                                 height={64}
                                 unoptimized

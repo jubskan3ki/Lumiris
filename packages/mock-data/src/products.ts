@@ -2,7 +2,7 @@ import type { Passport, IrisGrade } from '@lumiris/types';
 import { mockArtisanById } from './artisans';
 import { featuredPassport, mockPassports } from './passports';
 
-// vue produit vitrine/Vision — projection Passport + grade pré-calculé pour pages statiques
+// vue produit vitrine/Vision - projection Passport + grade pré-calculé pour pages statiques
 
 export type ProductCategory = 'sweater' | 'shirt' | 'shoe' | 'jacket' | 'trouser' | 'accessory' | 'other';
 
@@ -22,7 +22,7 @@ export interface MockProduct {
     score: number;
 }
 
-// heuristique vitrine — ne remplace PAS computeScore(), juste un grade plausible sans embarquer core
+// heuristique vitrine - ne remplace PAS computeScore(), juste un grade plausible sans embarquer core
 function previewGrade(passport: Passport): { grade: IrisGrade; score: number } {
     if (passport.status !== 'Published') return { grade: 'D', score: 38 };
     const compositionComplete =

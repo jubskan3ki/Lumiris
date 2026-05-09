@@ -1,4 +1,4 @@
-// retoucheur — alimente `repairability` (≥3 autour de la ville artisan) ; ne produit pas de passeports
+// retoucheur - alimente `repairability` (≥3 autour de la ville artisan) ; ne produit pas de passeports
 
 import type { FrenchRegion } from './artisan';
 import type { CertificationRef } from './certificate';
@@ -18,9 +18,9 @@ export interface Repairer {
     atelierName?: string;
     city: string;
     region: FrenchRegion;
-    /** Distance au consommateur en km — souvent calculée côté client à partir de la géoloc. Optionnel sur le mock. */
+    /** Distance au consommateur en km - souvent calculée côté client à partir de la géoloc. Optionnel sur le mock. */
     distanceKm?: number;
-    /** Optionnel — quand fourni, alimente le tri par distance côté `<RepairersNearby />`. */
+    /** Optionnel - quand fourni, alimente le tri par distance côté `<RepairersNearby />`. */
     coordinates?: Coordinates;
     specialities: readonly RepairerSpecialty[];
     certifications: readonly CertificationRef[];

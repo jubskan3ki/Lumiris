@@ -1,6 +1,6 @@
 'use client';
 
-// Garde-Robe locale — persistance localStorage anonyme. Pas de sync, pas d'auth.
+// Garde-Robe locale - persistance localStorage anonyme. Pas de sync, pas d'auth.
 // Format versionné (`lumiris.wardrobe.v1`) pour pouvoir migrer plus tard sans casser
 // l'historique d'un utilisateur.
 
@@ -29,13 +29,31 @@ function notify() {
     subscribers.forEach((cb) => cb());
 }
 
+function isCareLogEntry(value: unknown): value is CareLogEntry {
+    if (!value || typeof value !== 'object') return false;
+    const v = value as Record<string, unknown>;
+    return typeof v.date === 'string' && typeof v.action === 'string';
+}
+
+function isWardrobeEntry(value: unknown): value is WardrobeEntry {
+    if (!value || typeof value !== 'object') return false;
+    const v = value as Record<string, unknown>;
+    return (
+        typeof v.passportId === 'string' &&
+        typeof v.addedAt === 'string' &&
+        Array.isArray(v.careLog) &&
+        v.careLog.every(isCareLogEntry)
+    );
+}
+
 function read(): WardrobeEntry[] {
     if (typeof window === 'undefined') return [];
     try {
         const raw = window.localStorage.getItem(KEY);
         if (!raw) return [];
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? (parsed as WardrobeEntry[]) : [];
+        const parsed: unknown = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.filter(isWardrobeEntry);
     } catch {
         return [];
     }
@@ -45,14 +63,6 @@ function write(entries: readonly WardrobeEntry[]): void {
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(KEY, JSON.stringify(entries));
     notify();
-}
-
-export function getWardrobe(): readonly WardrobeEntry[] {
-    return read();
-}
-
-export function isInWardrobe(passportId: string): boolean {
-    return read().some((entry) => entry.passportId === passportId);
 }
 
 export function addToWardrobe(passportId: string): void {
@@ -65,20 +75,7 @@ export function removeFromWardrobe(passportId: string): void {
     write(read().filter((entry) => entry.passportId !== passportId));
 }
 
-export function logCare(passportId: string, action: string): void {
-    const current = read();
-    const next = current.map((entry) =>
-        entry.passportId === passportId
-            ? {
-                  ...entry,
-                  careLog: [...entry.careLog, { date: new Date().toISOString(), action }],
-              }
-            : entry,
-    );
-    write(next);
-}
-
-// Snapshot stable — useSyncExternalStore re-render seulement si la référence change.
+// Snapshot stable - useSyncExternalStore re-render seulement si la référence change.
 let snapshotCache: readonly WardrobeEntry[] = [];
 let snapshotSerialized = '';
 

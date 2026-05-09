@@ -3,7 +3,7 @@ import { buildGS1Identifier } from '@lumiris/types';
 import { mockCertificateById } from './certificates';
 import { CHAUSSURE_CUIR_STEPS, CHEMISE_LIN_STEPS, PULL_LIN_STEPS, instantiateSteps } from './manufacturing-steps';
 
-// care helpers AGEC — texte clair par fibre dominante, pictogrammes officiels viendront en UI v2
+// care helpers AGEC - texte clair par fibre dominante, pictogrammes officiels viendront en UI v2
 
 const CARE_LINEN: CareInstructions = {
     washing: 'Lavage 30 °C, programme délicat, lessive sans phosphates.',
@@ -28,7 +28,7 @@ const CARE_COTTON: CareInstructions = {
 
 const CARE_SILK: CareInstructions = {
     washing: 'Nettoyage à sec uniquement. Pas de lavage en machine.',
-    drying: 'Pressing professionnel — éviter exposition prolongée au soleil.',
+    drying: 'Pressing professionnel - éviter exposition prolongée au soleil.',
     ironing: "Fer froid sur l'envers, à travers un linge fin.",
     storage: 'Stocker plié dans du papier de soie, à plat.',
 };
@@ -40,7 +40,7 @@ const CARE_LEATHER: CareInstructions = {
     storage: 'Embauchoirs en bois pour les chaussures, housse coton pour le reste.',
 };
 
-// 20 passeports : 3 Draft / 5 InCompletion / 12 Published — grades émergent de computeScore()
+// 20 passeports : 3 Draft / 5 InCompletion / 12 Published - grades émergent de computeScore()
 
 const certs = (...ids: readonly string[]) =>
     ids.map(mockCertificateById).filter((c): c is NonNullable<typeof c> => !!c);
@@ -242,7 +242,7 @@ export const mockPassports: readonly Passport[] = [
         carbonKg: 22.0,
         waterLiters: 2515,
         recycledPct: 0,
-        // Cachemire mongol — empreinte transport élevée mais déclarée publiquement.
+        // Cachemire mongol - empreinte transport élevée mais déclarée publiquement.
         transportKm: 7100,
         moderation: { status: 'Approved', reviewerId: 'usr-fdr-juba', reviewedAt: '2026-04-02T10:00:00Z' },
     },
@@ -828,7 +828,7 @@ export function mockPassportById(id: string): Passport | undefined {
     return mockPassports.find((p) => p.id === id);
 }
 
-/** Lookup passeport par GTIN — tolère le leading zero manquant pour scanners qui le droppent. */
+/** Lookup passeport par GTIN - tolère le leading zero manquant pour scanners qui le droppent. */
 export function mockPassportByGtin(gtin: string): Passport | undefined {
     if (!gtin) return undefined;
     const normalized = gtin.replace(/\D/g, '');

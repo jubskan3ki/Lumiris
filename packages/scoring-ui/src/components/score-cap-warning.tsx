@@ -10,7 +10,7 @@ export interface ScoreCapWarningProps extends HTMLAttributes<HTMLDivElement> {
     cap: ScoreCap;
 }
 
-/** Alerte plafond D — affichée dès que cap.applied, pour que l'artisan puisse compléter. */
+/** Alerte plafond D - affichée dès que cap.applied, pour que l'artisan puisse compléter. */
 export function ScoreCapWarning({ cap, className, ...rest }: ScoreCapWarningProps) {
     if (!cap.applied) return null;
 

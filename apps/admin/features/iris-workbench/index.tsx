@@ -17,16 +17,7 @@ import {
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { computeScore, IRIS_THRESHOLDS } from '@lumiris/core/scoring';
 import { mockAdminAuditLog, mockArtisans, mockPassports, mockRepairers } from '@lumiris/mock-data';
-import type {
-    AdminAuditLogEntry,
-    Passport,
-    CertificationKind,
-    IrisAxis,
-    IrisGrade,
-    Material,
-    ProductionStep,
-    ScoreResult,
-} from '@lumiris/types';
+import type { AdminAuditLogEntry, Passport, IrisAxis, IrisGrade, ScoreResult } from '@lumiris/types';
 import {
     IrisGrade as IrisGradeBadge,
     MissingFieldsBadge,
@@ -47,6 +38,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@lumiris/ui/hooks/use-toast';
 import { cn } from '@lumiris/ui/lib/cn';
 import { RequirePermission, useAdminAuditLog, useLogAction, usePermission } from '@/lib/auth';
+import { applySimulatorChanges, type SimulatorChanges } from '@/lib/iris-simulator';
 import { GovernanceBanner } from '../_shared/governance-banner';
 
 const SCORING_NOW = new Date('2026-04-30T08:00:00Z');
@@ -88,7 +80,7 @@ function IrisWorkbenchInner() {
                 <div>
                     <h2 className="text-foreground text-xl font-semibold">Iris Workbench</h2>
                     <p className="text-muted-foreground mt-1 text-sm">
-                        Inspecter, simuler, auditer le score Iris — outil interne, lecture seule.
+                        Inspecter, simuler, auditer le score Iris - outil interne, lecture seule.
                     </p>
                 </div>
             </div>
@@ -279,7 +271,7 @@ function ContributionTable({ score }: { score: ScoreResult }) {
             raw,
             weight,
             weighted,
-            reason: reasonForAxis?.message ?? '—',
+            reason: reasonForAxis?.message ?? '-',
         };
     });
 
@@ -315,7 +307,7 @@ function ContributionTable({ score }: { score: ScoreResult }) {
                                             Coefficient appliqué : {(r.weight * 100).toFixed(0)} %
                                         </p>
                                         <p className="text-muted-foreground mt-1">
-                                            Source : pondérations canoniques 40/25/25/10 — modifiable uniquement via PR
+                                            Source : pondérations canoniques 40/25/25/10 - modifiable uniquement via PR
                                             sur <code className="bg-muted rounded px-1">@lumiris/core</code>.
                                         </p>
                                     </HoverCardContent>
@@ -336,13 +328,6 @@ function ContributionTable({ score }: { score: ScoreResult }) {
 }
 
 // ─── Simulator ──────────────────────────────────────────────────────────────
-
-interface SimulatorChanges {
-    addGotsCertOnFiber?: number;
-    markInvoiceVerified?: boolean;
-    addProductionStep?: boolean;
-    fillCare?: boolean;
-}
 
 function SimulatorView({ passport }: { passport: Passport }) {
     const log = useLogAction();
@@ -388,7 +373,7 @@ function SimulatorView({ passport }: { passport: Passport }) {
             <div className="space-y-4">
                 <div className="border-lumiris-amber/30 bg-lumiris-amber/5 rounded-xl border p-3 text-xs">
                     <p className="text-lumiris-amber inline-flex items-center gap-1.5 font-semibold">
-                        <Beaker className="h-3.5 w-3.5" /> Mode simulation — aucun side-effect
+                        <Beaker className="h-3.5 w-3.5" /> Mode simulation - aucun side-effect
                     </p>
                     <p className="text-muted-foreground mt-1">
                         Le passeport en mémoire est modifié pour le calcul, jamais persisté.
@@ -469,7 +454,7 @@ function SimulatorView({ passport }: { passport: Passport }) {
                     <p className="text-foreground mb-3 text-sm font-semibold">Axes affectés</p>
                     {affectedAxes.length === 0 ? (
                         <p className="text-muted-foreground text-xs">
-                            Aucune modification de score — activez un what-if à gauche.
+                            Aucune modification de score - activez un what-if à gauche.
                         </p>
                     ) : (
                         <ul className="space-y-2 text-xs">
@@ -614,7 +599,7 @@ function OverridesView() {
     if (!canViewOverrides) {
         return (
             <div className="border-border bg-muted/30 text-muted-foreground rounded-xl border p-6 text-sm">
-                Section restreinte — réservée aux rôles disposant de la permission{' '}
+                Section restreinte - réservée aux rôles disposant de la permission{' '}
                 <code className="bg-muted rounded px-1">passport.override_score</code> ou{' '}
                 <code className="bg-muted rounded px-1">governance.read_audit_log</code>.
             </div>
@@ -707,14 +692,14 @@ function OverridesView() {
                                     </span>
                                 </TableCell>
                                 <TableCell className="text-muted-foreground text-[11px]">
-                                    {String(e.payload.reason ?? '—')}
+                                    {String(e.payload.reason ?? '-')}
                                 </TableCell>
                             </TableRow>
                         ))}
                         {filtered.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={5} className="text-muted-foreground py-8 text-center text-xs">
-                                    Aucun override sur la période — c&apos;est plutôt sain.
+                                    Aucun override sur la période - c&apos;est plutôt sain.
                                 </TableCell>
                             </TableRow>
                         ) : null}
@@ -766,7 +751,7 @@ function DistributionView() {
                     </p>
                     <p className="text-muted-foreground mt-1">
                         {(data.recentAShare * 100).toFixed(0)} % des 30 derniers passeports validés sont en A. Vérifier
-                        la rigueur de curation — seuils canoniques A {IRIS_THRESHOLDS.A} / B {IRIS_THRESHOLDS.B} / C{' '}
+                        la rigueur de curation - seuils canoniques A {IRIS_THRESHOLDS.A} / B {IRIS_THRESHOLDS.B} / C{' '}
                         {IRIS_THRESHOLDS.C} / D {IRIS_THRESHOLDS.D}.
                     </p>
                 </motion.div>
@@ -810,7 +795,7 @@ function DistributionView() {
                 <div className="border-border bg-card rounded-xl border p-4">
                     <p className="text-foreground mb-3 text-sm font-medium">
                         <TrendingUp className="text-lumiris-cyan mr-1.5 inline h-3.5 w-3.5" />
-                        Moyenne Iris — 6 mois
+                        Moyenne Iris - 6 mois
                     </p>
                     <ChartContainer config={lineConfig} className="h-56 w-full">
                         <BarChart data={data.avg6Months}>
@@ -825,83 +810,6 @@ function DistributionView() {
             </div>
         </>
     );
-}
-
-// ─── Helpers (pure) ─────────────────────────────────────────────────────────
-
-function applySimulatorChanges(passport: Passport, changes: SimulatorChanges): Passport {
-    let composition: readonly Material[] = passport.materials.map((m) => ({
-        ...m,
-        certifications: m.certifications.map((c) => ({ ...c })),
-    }));
-
-    if (changes.addGotsCertOnFiber !== undefined) {
-        const idx = changes.addGotsCertOnFiber;
-        if (composition[idx]) {
-            composition = composition.map(
-                (m, i): Material =>
-                    i === idx
-                        ? {
-                              ...m,
-                              certifications: [
-                                  ...m.certifications,
-                                  {
-                                      id: `sim-gots-${Date.now()}`,
-                                      kind: 'GOTS' as CertificationKind,
-                                      issuer: 'Control Union (sim)',
-                                      issuedAt: '2025-09-01',
-                                      expiresAt: '2027-09-01',
-                                      verified: true,
-                                      fileUrl: 'simulated://gots',
-                                      scope: `Fibre ${m.fiber} — simulation`,
-                                  },
-                              ],
-                          }
-                        : m,
-            );
-        }
-    }
-
-    if (changes.markInvoiceVerified) {
-        composition = composition.map(
-            (m): Material => ({
-                ...m,
-                certifications: m.certifications.map((c) => ({ ...c, verified: true })),
-            }),
-        );
-    }
-
-    let manufacturingSteps = passport.steps;
-    if (changes.addProductionStep) {
-        const newStep: ProductionStep = {
-            id: `sim-step-${Date.now()}`,
-            kind: 'assembly',
-            label: 'Assemblage final (simulation)',
-            performedBy: passport.artisanId,
-            locationCity: 'Atelier',
-            locationCountry: 'FR',
-            photos: ['simulated://photo'],
-            performedAt: '2026-04-29T10:00:00Z',
-        };
-        manufacturingSteps = [...passport.steps, newStep];
-    }
-
-    let care = passport.care;
-    if (changes.fillCare) {
-        care = {
-            washing: 'Lavage à 30°C, programme délicat (simulation).',
-            drying: 'Séchage à plat à l’ombre.',
-            ironing: 'Repassage à basse température.',
-            storage: 'Conserver à l’abri de la lumière directe.',
-        };
-    }
-
-    return {
-        ...passport,
-        materials: composition,
-        steps: manufacturingSteps,
-        ...(care !== undefined ? { care } : {}),
-    };
 }
 
 export const IrisWorkbench = memo(IrisWorkbenchComponent);

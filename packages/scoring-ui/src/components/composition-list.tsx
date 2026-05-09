@@ -11,7 +11,7 @@ export interface CompositionListProps extends HTMLAttributes<HTMLDivElement> {
     composition: readonly Material[];
     /** Date utilisée pour calculer le statut effectif des certifications. */
     now: Date;
-    /** Optionnel — résolveur d'un fournisseur depuis son id (pour afficher le nom). */
+    /** Optionnel - résolveur d'un fournisseur depuis son id (pour afficher le nom). */
     resolveSupplier?: (supplierId: string) => string | undefined;
 }
 
@@ -41,7 +41,7 @@ export function CompositionList({ composition, now, resolveSupplier, className, 
             {composition.map((entry, idx) => {
                 const supplierName = entry.supplierId
                     ? (resolveSupplier?.(entry.supplierId) ?? entry.supplierId)
-                    : '— fournisseur manquant';
+                    : '- fournisseur manquant';
                 return (
                     <div key={`${idx}-${entry.fiber}`} className="border-border bg-card rounded-xl border p-4">
                         <div className="flex items-baseline justify-between gap-3">
@@ -50,7 +50,7 @@ export function CompositionList({ composition, now, resolveSupplier, className, 
                                     {FIBER_LABEL[entry.fiber]}
                                 </p>
                                 <p className="text-muted-foreground mt-0.5 truncate text-xs">
-                                    {supplierName} · {entry.originCountry || '—'}
+                                    {supplierName} · {entry.originCountry || '-'}
                                 </p>
                             </div>
                             <span className="text-foreground font-mono text-sm font-bold">{entry.percentage}%</span>

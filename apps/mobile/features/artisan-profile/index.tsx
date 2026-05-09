@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -9,6 +10,7 @@ import { ArtisanCard, IrisGrade } from '@lumiris/scoring-ui';
 import { mockPassportsByArtisan } from '@lumiris/mock-data';
 import type { Artisan } from '@lumiris/types';
 import { scorePassport } from '@/lib/passport-score';
+import { AtelierMap } from './atelier-map';
 
 export function ArtisanProfile({ artisan }: { artisan: Artisan }) {
     const router = useRouter();
@@ -50,6 +52,8 @@ export function ArtisanProfile({ artisan }: { artisan: Artisan }) {
             <div className="flex flex-col gap-5 px-4">
                 <ArtisanCard artisan={artisan} />
 
+                <AtelierMap city={artisan.city} atelierName={artisan.atelierName} />
+
                 {artisan.websiteUrl ? (
                     <a
                         href={artisan.websiteUrl}
@@ -78,11 +82,13 @@ export function ArtisanProfile({ artisan }: { artisan: Artisan }) {
                                 >
                                     <div className="bg-secondary/40 aspect-3/4 relative">
                                         {passport.garment.mainPhotoUrl ? (
-                                            // eslint-disable-next-line @next/next/no-img-element
-                                            <img
+                                            <Image
                                                 src={passport.garment.mainPhotoUrl}
                                                 alt={passport.garment.reference}
-                                                className="h-full w-full object-cover"
+                                                fill
+                                                unoptimized
+                                                sizes="(max-width: 768px) 50vw, 200px"
+                                                className="object-cover"
                                             />
                                         ) : null}
                                         <div className="absolute right-2 top-2">

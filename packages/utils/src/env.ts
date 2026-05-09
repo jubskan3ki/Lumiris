@@ -1,4 +1,4 @@
-// Crash-early env validator: never silently coerce — required-but-missing or parse failure throws EnvValidationError.
+// Crash-early env validator: never silently coerce - required-but-missing or parse failure throws EnvValidationError.
 
 export interface EnvSpecBase<TRequired extends boolean> {
     required?: TRequired;
@@ -32,7 +32,7 @@ export type EnvSpec = StringSpec<boolean> | NumberSpec<boolean> | BooleanSpec<bo
 
 export type EnvSchema = Record<string, EnvSpec>;
 
-// fragment partagé Next.js (API base URL + web-vitals sample rate + NODE_ENV) — à étaler par app
+// fragment partagé Next.js (API base URL + web-vitals sample rate + NODE_ENV) - à étaler par app
 export const NEXT_APP_BASE_ENV_SCHEMA = {
     NEXT_PUBLIC_API_BASE_URL: {
         kind: 'string',

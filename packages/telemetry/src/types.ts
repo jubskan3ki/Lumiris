@@ -14,6 +14,6 @@ export interface WebVitalPayload {
     /** Templated path (e.g. `/dpp/[id]`), never the raw URL. */
     route: string;
     navigationType?: string;
-    /** Wall-clock ms — never tied to identifying user data. */
+    /** Wall-clock ms - never tied to identifying user data. */
     timestamp: number;
 }

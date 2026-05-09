@@ -1,6 +1,6 @@
 /**
  * Lighthouse CI — Web Vitals budget for the LUMIRIS public surfaces.
- * Runs against `bun start` of @lumiris/web by default; admin & mobile
+ * Runs against `bun start` of @lumiris/site by default; admin & mobile
  * can be added via the `urls` array as they reach a stable preview.
  *
  * Local execution requires Node 18+ (`lhci` is a Node binary). When the dev
@@ -12,7 +12,7 @@
 module.exports = {
     ci: {
         collect: {
-            startServerCommand: 'bun --filter @lumiris/web start',
+            startServerCommand: 'bun --filter @lumiris/site start',
             startServerReadyPattern: 'Ready in',
             url: ['http://localhost:3000/'],
             numberOfRuns: 3,

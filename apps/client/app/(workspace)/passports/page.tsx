@@ -9,7 +9,7 @@ export default function PassportsPage() {
         <>
             <WorkspaceHeader
                 title="Mes passeports"
-                description="Tous les passeports actifs de votre atelier — brouillons inclus."
+                description="Tous les passeports actifs de votre atelier - brouillons inclus."
                 actions={
                     <Button asChild className="bg-lumiris-emerald hover:bg-lumiris-emerald/90 text-white">
                         <Link href="/create">

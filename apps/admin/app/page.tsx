@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
+import { assertNever } from '@lumiris/utils';
 import { AdminUserProvider, AuditLogProvider } from '@/lib/auth';
 import { Sidebar, type NavSection } from '@/features/sidebar';
 import { TopBar } from '@/features/top-bar';
@@ -44,19 +45,20 @@ function renderSection(section: NavSection) {
             return <Blog />;
         case 'governance':
             return <Governance />;
+        default:
+            return assertNever(section);
     }
 }
 
 export default function LumirisCommand() {
     const [activeSection, setActiveSection] = useState<NavSection>('overview');
-    const handleNavigate = useCallback((section: NavSection) => setActiveSection(section), []);
 
     return (
         <AdminUserProvider>
             <AuditLogProvider>
                 <div className="bg-background min-h-screen">
-                    <Sidebar activeSection={activeSection} onNavigate={handleNavigate} />
-                    <TopBar onNavigate={handleNavigate} />
+                    <Sidebar activeSection={activeSection} onNavigate={setActiveSection} />
+                    <TopBar onNavigate={setActiveSection} />
                     <main className="ml-60 pt-14">
                         <div className="p-6 lg:p-8">
                             <AnimatePresence mode="wait">

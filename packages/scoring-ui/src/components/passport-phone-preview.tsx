@@ -12,11 +12,11 @@ export interface PassportPhonePreviewProps extends HTMLAttributes<HTMLDivElement
     artisan?: Artisan;
     /** Score calculé en amont par l'appelant via `computeScore()`. */
     score: ScoreResult;
-    /** Lettre éventuellement overridée par un curator senior — overlay visuel uniquement. */
+    /** Lettre éventuellement overridée par un curator senior - overlay visuel uniquement. */
     overrideGrade?: IrisGradeLetter;
 }
 
-/** Aperçu téléphone — composant pur, score injecté par le caller. */
+/** Aperçu téléphone - composant pur, score injecté par le caller. */
 export function PassportPhonePreview({
     passport,
     artisan,
@@ -59,7 +59,7 @@ export function PassportPhonePreview({
                 <div className="space-y-2 p-4">
                     <p className="text-foreground truncate text-sm font-semibold">{passport.garment.reference}</p>
                     <p className="text-muted-foreground truncate text-xs">
-                        {artisan?.atelierName ?? artisan?.displayName ?? '—'}
+                        {artisan?.atelierName ?? artisan?.displayName ?? '-'}
                     </p>
                     <div className="flex items-baseline justify-between pt-2">
                         <span className="text-foreground text-base font-bold">

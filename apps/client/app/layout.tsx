@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
     title: {
-        default: 'LUMIRIS Atelier — DPP textile artisanal',
+        default: 'LUMIRIS Atelier - DPP textile artisanal',
         template: '%s · LUMIRIS Atelier',
     },
     description:

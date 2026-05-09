@@ -1,5 +1,10 @@
-import { AppShell } from '@/features/app-shell';
+import { ScanPassport } from '@/features/scan-passport';
+import { Splash } from '@/features/splash';
 
 export default function Home() {
-    return <AppShell />;
+    return (
+        <Splash>
+            <ScanPassport />
+        </Splash>
+    );
 }

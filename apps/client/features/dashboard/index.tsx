@@ -77,7 +77,7 @@ export function Dashboard() {
         <div className="space-y-6 p-8">
             <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <KpiCard label="Publiés" value={stats.published} hint="Passeports vivants" />
-                <KpiCard label="En complétion" value={stats.incompletion} hint="Plafonnés D — à compléter" />
+                <KpiCard label="En complétion" value={stats.incompletion} hint="Plafonnés D - à compléter" />
                 <KpiCard label="Brouillons" value={stats.drafts} hint="En cours de création" />
                 <KpiCard
                     label="Score Iris moyen"
@@ -117,7 +117,7 @@ export function Dashboard() {
                                 Bienvenue {currentArtisan.displayName.split(' ')[0]}
                             </CardTitle>
                             <p className="text-muted-foreground mt-1 text-xs">
-                                {currentArtisan.atelierName} — {currentArtisan.city}
+                                {currentArtisan.atelierName} - {currentArtisan.city}
                             </p>
                         </div>
                     </CardHeader>
@@ -150,7 +150,7 @@ export function Dashboard() {
                         {recent.length === 0 && (
                             <p className="text-muted-foreground py-6 text-center text-sm">
                                 <FileText className="mx-auto mb-2 h-6 w-6 opacity-40" />
-                                Aucun passeport — démarrez par la création.
+                                Aucun passeport - démarrez par la création.
                             </p>
                         )}
                         {recent.map(({ passport, score }) => (

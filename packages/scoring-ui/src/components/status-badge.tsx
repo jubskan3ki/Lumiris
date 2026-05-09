@@ -25,7 +25,7 @@ const SIZE: Record<StatusBadgeSize, string> = {
 };
 
 const FALLBACK: StatusConfig = {
-    label: '—',
+    label: '-',
     tone: 'bg-muted text-muted-foreground border-border',
 };
 

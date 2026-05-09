@@ -12,7 +12,7 @@ export default {
             'always',
             [
                 'admin',
-                'web',
+                'site',
                 'mobile',
                 'ui',
                 'core',

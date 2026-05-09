@@ -22,7 +22,7 @@ export function QrModal({ passport, onClose }: QrModalProps) {
         <Dialog open onOpenChange={(open) => (!open ? onClose() : undefined)}>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>QR — {passport.garment.reference}</DialogTitle>
+                    <DialogTitle>QR - {passport.garment.reference}</DialogTitle>
                     <DialogDescription>
                         Identifiant GS1 Digital Link mock pour la pièce {passport.garment.reference}.
                     </DialogDescription>

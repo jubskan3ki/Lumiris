@@ -9,7 +9,7 @@ export default async function Page({ params }: PageProps) {
     const { id } = await params;
     return (
         <>
-            <WorkspaceHeader title="Création — Certifications" description="Étape 5 sur 6" />
+            <WorkspaceHeader title="Création - Certifications" description="Étape 5 sur 6" />
             <CreateStepCertifications draftId={id} />
         </>
     );

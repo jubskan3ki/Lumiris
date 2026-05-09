@@ -1,9 +1,9 @@
-// factures fournisseurs uploadées sur ATELIER+ — alimentent le sous-score transparency
+// factures fournisseurs uploadées sur ATELIER+ - alimentent le sous-score transparency
 
 import type { Fiber } from './passport';
 
 export interface OcrLineItem {
-    /** Détecté par l'OCR — souvent imprécis, l'artisan peut corriger. */
+    /** Détecté par l'OCR - souvent imprécis, l'artisan peut corriger. */
     fiber?: Fiber;
     label: string;
     qty: number;

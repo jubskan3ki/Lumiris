@@ -6,13 +6,13 @@ import type { IrisGrade as IrisGradeLetter } from '@lumiris/types';
 import { cn } from '@lumiris/ui/lib/cn';
 import { gradeBackgroundSolid, gradeColor } from '../theme/grade-color';
 
-/** Item Garde-Robe — projection Passport ou fallback manuel injecté par le caller. */
+/** Item Garde-Robe - projection Passport ou fallback manuel injecté par le caller. */
 export interface WardrobeCardItem {
     id: string;
     name: string;
     brand: string;
     grade: IrisGradeLetter;
-    /** 0–100 — drives the bar fill. */
+    /** 0–100 - drives the bar fill. */
     score: number;
     price?: number;
     currencySymbol?: string;

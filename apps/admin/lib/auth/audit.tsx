@@ -41,10 +41,7 @@ function generateId(): string {
     return `LOG-RT-${Date.now().toString(36)}-${nextId}`;
 }
 
-/**
- * Returns a curried logger pre-bound to the current admin user. Call from event handlers like
- * `logAction({ action: 'passport.curate', targetType: 'passport', targetId: 'PASS-042', payload: {} })`.
- */
+// Logger curried pré-bindé sur le current admin user - à appeler depuis les event handlers.
 export function useLogAction(): (input: LogActionInput) => AdminAuditLogEntry {
     const ctx = useContext(AuditContext);
     if (!ctx) throw new Error('useLogAction must be used inside <AuditLogProvider>.');

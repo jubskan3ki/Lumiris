@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import type { Fiber, Material } from '@lumiris/types';
@@ -8,12 +7,12 @@ import { mockCertificates, mockInvoices } from '@lumiris/mock-data';
 import { Alert, AlertDescription, AlertTitle } from '@lumiris/ui/components/alert';
 import { Badge } from '@lumiris/ui/components/badge';
 import { Button } from '@lumiris/ui/components/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@lumiris/ui/components/card';
 import { Checkbox } from '@lumiris/ui/components/checkbox';
 import { Input } from '@lumiris/ui/components/input';
 import { Label } from '@lumiris/ui/components/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@lumiris/ui/components/select';
-import { WizardShell } from '@/features/wizard-shell';
+import { WizardStepFrame } from '@/features/wizard-shell/step-frame';
+import { useStepNavigation } from '@/features/wizard-shell/use-step-navigation';
 import { useDraftStore } from '@/lib/draft-store';
 import { COUNTRIES } from '@/lib/countries';
 import { SUPPLIERS } from '@/lib/suppliers';
@@ -41,10 +40,9 @@ function newRow(): Material {
 }
 
 export function CreateStepComposition({ draftId }: { draftId: string }) {
-    const router = useRouter();
     const draft = useDraftStore((s) => s.drafts[draftId]);
     const setMaterials = useDraftStore((s) => s.setMaterials);
-    const setLastStep = useDraftStore((s) => s.setLastStep);
+    const { goNext, goTo } = useStepNavigation(draftId);
 
     const [rows, setRows] = useState<Material[]>(draft?.materials.length ? [...draft.materials] : [newRow()]);
 
@@ -55,14 +53,6 @@ export function CreateStepComposition({ draftId }: { draftId: string }) {
     const total = useMemo(() => rows.reduce((sum, r) => sum + (Number(r.percentage) || 0), 0), [rows]);
     const sumValid = Math.abs(total - 100) < 1;
 
-    if (!draft) {
-        return (
-            <WizardShell draftId={draftId} step="composition">
-                {null}
-            </WizardShell>
-        );
-    }
-
     const updateRow = (idx: number, patch: Partial<Material>) => {
         setRows((rs) => rs.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
     };
@@ -70,53 +60,43 @@ export function CreateStepComposition({ draftId }: { draftId: string }) {
     const handleNext = () => {
         if (!sumValid) return;
         setMaterials(draftId, rows);
-        setLastStep(draftId, 'composition');
-        router.push(`/create/${draftId}/invoice`);
+        goNext('composition', 'invoice');
     };
 
     return (
-        <WizardShell
+        <WizardStepFrame
             draftId={draftId}
             step="composition"
-            onPrev={() => router.push(`/create/${draftId}/identification`)}
+            title="Composition fibres"
+            subtitle="La somme des pourcentages doit valoir 100. Chaque fibre référence un fournisseur et un pays."
+            onPrev={() => goTo('identification')}
             onNext={handleNext}
             nextDisabled={!sumValid}
+            contentClassName="space-y-4"
         >
-            <Card>
-                <CardHeader>
-                    <CardTitle>Composition fibres</CardTitle>
-                    <p className="text-muted-foreground text-sm">
-                        La somme des pourcentages doit valoir 100. Chaque fibre référence un fournisseur et un pays.
-                    </p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {!sumValid && (
-                        <Alert className="border-lumiris-amber/30 bg-lumiris-amber/5 text-lumiris-amber">
-                            <AlertTitle>Somme des pourcentages : {total.toFixed(0)}%</AlertTitle>
-                            <AlertDescription>
-                                Ajustez pour atteindre 100% avant de passer à l’étape suivante.
-                            </AlertDescription>
-                        </Alert>
-                    )}
+            {!sumValid && (
+                <Alert className="border-lumiris-amber/30 bg-lumiris-amber/5 text-lumiris-amber">
+                    <AlertTitle>Somme des pourcentages : {total.toFixed(0)}%</AlertTitle>
+                    <AlertDescription>Ajustez pour atteindre 100% avant de passer à l’étape suivante.</AlertDescription>
+                </Alert>
+            )}
 
-                    <div className="space-y-3">
-                        {rows.map((row, idx) => (
-                            <FiberRow
-                                key={idx}
-                                row={row}
-                                idx={idx}
-                                onChange={(patch) => updateRow(idx, patch)}
-                                onRemove={() => setRows((rs) => rs.filter((_, i) => i !== idx))}
-                            />
-                        ))}
-                    </div>
+            <div className="space-y-3">
+                {rows.map((row, idx) => (
+                    <FiberRow
+                        key={idx}
+                        row={row}
+                        idx={idx}
+                        onChange={(patch) => updateRow(idx, patch)}
+                        onRemove={() => setRows((rs) => rs.filter((_, i) => i !== idx))}
+                    />
+                ))}
+            </div>
 
-                    <Button variant="outline" size="sm" onClick={() => setRows((rs) => [...rs, newRow()])}>
-                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Ajouter une fibre
-                    </Button>
-                </CardContent>
-            </Card>
-        </WizardShell>
+            <Button variant="outline" size="sm" onClick={() => setRows((rs) => [...rs, newRow()])}>
+                <Plus className="mr-1.5 h-3.5 w-3.5" /> Ajouter une fibre
+            </Button>
+        </WizardStepFrame>
     );
 }
 
@@ -180,7 +160,7 @@ function FiberRow({ row, idx, onChange, onRemove }: FiberRowProps) {
                             <SelectValue placeholder="Choisir…" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="__none">— Aucun</SelectItem>
+                            <SelectItem value="__none">- Aucun</SelectItem>
                             {(supplierMatchesFiber.length > 0 ? supplierMatchesFiber : SUPPLIERS).map((s) => (
                                 <SelectItem key={s.id} value={s.id}>
                                     {s.name}
@@ -224,7 +204,7 @@ function FiberRow({ row, idx, onChange, onRemove }: FiberRowProps) {
                                         }}
                                     />
                                     <span className="text-foreground">{c.kind}</span>
-                                    <span className="text-muted-foreground truncate">— {c.scope ?? c.issuer}</span>
+                                    <span className="text-muted-foreground truncate">- {c.scope ?? c.issuer}</span>
                                 </label>
                             );
                         })}
@@ -240,7 +220,7 @@ function FiberRow({ row, idx, onChange, onRemove }: FiberRowProps) {
                             <SelectValue placeholder="Aucune" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="__none">— Aucune</SelectItem>
+                            <SelectItem value="__none">- Aucune</SelectItem>
                             {linkedInvoices.map((i) => (
                                 <SelectItem key={i.id} value={i.id}>
                                     {i.id} {i.ocrExtracted ? `· ${i.ocrExtracted.supplierName}` : ''}

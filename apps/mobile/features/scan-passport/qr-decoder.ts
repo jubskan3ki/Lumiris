@@ -7,7 +7,7 @@
 import { mockPassportById, mockPassportByGtin } from '@lumiris/mock-data';
 import type { Passport } from '@lumiris/types';
 
-export type DecodedScan =
+type DecodedScan =
     | { kind: 'passport-id'; id: string }
     | { kind: 'gs1-gtin'; gtin: string; serial?: string }
     | { kind: 'unknown'; raw: string };
@@ -37,7 +37,7 @@ export function decodeQrPayload(payload: string): DecodedScan {
             return { kind: 'gs1-gtin', gtin, serial };
         }
     } catch {
-        // payload n'est pas une URL — on continue
+        // payload n'est pas une URL - on continue
     }
 
     return { kind: 'unknown', raw: trimmed };

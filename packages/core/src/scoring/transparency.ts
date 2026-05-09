@@ -1,4 +1,4 @@
-// transparence 40 % — complétude composition (40) + factures (25) + photos étapes (20) + certifs fibres (15)
+// transparence 40 % - complétude composition (40) + factures (25) + photos étapes (20) + certifs fibres (15)
 
 import type { Passport, ScoreReason } from '@lumiris/types';
 import { getEffectiveWeight } from '@lumiris/types';
@@ -11,7 +11,7 @@ export function scoreTransparency(passport: Passport, now: Date): AxisResult {
     if (composition.length === 0) {
         reasons.push({
             axis: 'transparency',
-            message: 'Composition vide — impossible de tracer la matière.',
+            message: 'Composition vide - impossible de tracer la matière.',
             severity: 'error',
         });
         return { score: 0, reasons };

@@ -12,7 +12,7 @@ interface TopBarProps {
 
 const SEARCHABLE: ReadonlyArray<{ label: string; section: NavSection; keywords: string }> = [
     { label: 'Overview', section: 'overview', keywords: 'home stats kpi metrics' },
-    { label: 'Passports — file de curation', section: 'passports', keywords: 'passport curate review queue' },
+    { label: 'Passports - file de curation', section: 'passports', keywords: 'passport curate review queue' },
     { label: 'Artisans', section: 'artisans', keywords: 'artisans atelier maison' },
     { label: 'Repairers (LUMIRIS Local)', section: 'retoucheurs', keywords: 'retoucheur local annuaire' },
     { label: 'Vision Users', section: 'vision-users', keywords: 'consumer scan vision rgpd' },
@@ -20,7 +20,7 @@ const SEARCHABLE: ReadonlyArray<{ label: string; section: NavSection; keywords: 
     { label: 'Affiliation', section: 'affiliation', keywords: 'affiliation payout commission' },
     { label: 'Iris Workbench', section: 'iris-workbench', keywords: 'score override iris weights' },
     { label: 'Blog', section: 'blog', keywords: 'journal articles cms blog' },
-    { label: 'Governance — audit log', section: 'governance', keywords: 'audit governance log rgpd' },
+    { label: 'Governance - audit log', section: 'governance', keywords: 'audit governance log rgpd' },
 ];
 
 function TopBarComponent({ onNavigate }: TopBarProps) {

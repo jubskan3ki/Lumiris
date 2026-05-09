@@ -2,7 +2,7 @@
     "name": "@lumiris/admin",
     "version": "0.1.0",
     "private": true,
-    "description": "LUMIRIS Admin — internal back-office dashboard. Light, clinical, transparent.",
+    "description": "LUMIRIS Admin - internal back-office dashboard. Light, clinical, transparent.",
     "scripts": {
         "dev": "next dev --port 3001",
         "build": "next build",

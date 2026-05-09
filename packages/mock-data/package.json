@@ -2,7 +2,7 @@
     "name": "@lumiris/mock-data",
     "version": "0.1.0",
     "private": true,
-    "description": "LUMIRIS demo fixtures — passports textile artisanal, artisans, retoucheurs, journal. Pure data, typed against @lumiris/types.",
+    "description": "LUMIRIS demo fixtures - passports textile artisanal, artisans, retoucheurs, journal. Pure data, typed against @lumiris/types.",
     "type": "module",
     "main": "./src/index.ts",
     "types": "./src/index.ts",

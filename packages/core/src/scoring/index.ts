@@ -1,4 +1,4 @@
-// scoring 40/25/25/10 — pur, déterministe, `now` toujours injecté ; identique admin/web/vision/atelier/Tauri
+// scoring 40/25/25/10 - pur, déterministe, `now` toujours injecté ; identique admin/web/vision/atelier/Tauri
 
 import type {
     Artisan,
@@ -30,10 +30,10 @@ export { scoreRepairability } from './repairability';
 export interface ComputeScoreOptions {
     /** Catalogue plat des certifications connues (artisan + composition + passport). */
     certificates: readonly CertificationRef[];
-    /** Annuaire local des retoucheurs — alimente le sous-score `repairability`. */
+    /** Annuaire local des retoucheurs - alimente le sous-score `repairability`. */
     retoucheurs?: readonly Repairer[];
     artisan?: Artisan;
-    /** Toujours requis — pas de `Date.now()` implicite, le scoring reste déterministe. */
+    /** Toujours requis - pas de `Date.now()` implicite, le scoring reste déterministe. */
     now: Date;
     /** Surcharge partielle des poids ; renormalisée à 1. */
     weights?: Partial<ScoreWeights>;
@@ -81,7 +81,7 @@ export function computeScore(passport: Passport, options: ComputeScoreOptions): 
     if (capDecision.capped) {
         reasons.push({
             axis: 'transparency',
-            message: `Score plafonné à D — ${capDecision.reason ?? 'champ obligatoire manquant'}.`,
+            message: `Score plafonné à D - ${capDecision.reason ?? 'champ obligatoire manquant'}.`,
             severity: 'error',
         });
     }

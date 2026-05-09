@@ -1,7 +1,7 @@
 # @lumiris/utils
 
 Pure runtime helpers that all three Lumiris surfaces share. No JSX, no DOM
-beyond what an entry advertises — if you reach for React, you want
+beyond what an entry advertises - if you reach for React, you want
 `@lumiris/ui` or `@lumiris/scoring-ui` instead.
 
 ## Entries
@@ -13,7 +13,7 @@ beyond what an entry advertises — if you reach for React, you want
 | `@lumiris/utils/format`     | `formatDate`, `formatPercent`, `formatScoreTotal`, `formatGrade`, … |
 | `@lumiris/utils/analytics`  | `AnalyticsClient` interface + `noopAnalytics` stub, app-injected.   |
 
-The barrel `@lumiris/utils` re-exports everything, but prefer subpath imports —
+The barrel `@lumiris/utils` re-exports everything, but prefer subpath imports -
 they keep the dead-code elimination crisp for Next.
 
 ## Decision rule

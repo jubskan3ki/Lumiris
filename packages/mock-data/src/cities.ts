@@ -1,4 +1,4 @@
-// villes des fixtures — pins carte SVG + distance approx à vol d'oiseau pour /local
+// villes des fixtures - pins carte SVG + distance approx à vol d'oiseau pour /local
 
 export interface CityCoords {
     name: string;

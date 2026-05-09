@@ -1,6 +1,17 @@
 // Locale-stable defaults so admin, web, and mobile render the same string for the same input.
 
-import type { IrisGrade } from '@lumiris/types';
+import type { GarmentKind, IrisGrade } from '@lumiris/types';
+
+/** Libellés FR canoniques des types de vêtements - partagés entre apps. */
+export const KIND_LABEL_FR: Record<GarmentKind, string> = {
+    sweater: 'Pull',
+    shirt: 'Chemise',
+    shoe: 'Chaussure',
+    jacket: 'Veste',
+    trouser: 'Pantalon',
+    accessory: 'Accessoire',
+    other: 'Autre',
+};
 
 export const DEFAULT_LOCALE = 'en-US';
 
@@ -10,7 +21,7 @@ export interface FormatOptions {
 
 export function formatDate(value: string | Date, options: FormatOptions = {}): string {
     const date = value instanceof Date ? value : new Date(value);
-    if (Number.isNaN(date.getTime())) return '—';
+    if (Number.isNaN(date.getTime())) return '-';
     return new Intl.DateTimeFormat(options.locale ?? DEFAULT_LOCALE, {
         month: 'short',
         day: 'numeric',
@@ -24,7 +35,7 @@ export function formatRelativeDate(
     options: FormatOptions = {},
 ): string {
     const date = value instanceof Date ? value : new Date(value);
-    if (Number.isNaN(date.getTime())) return '—';
+    if (Number.isNaN(date.getTime())) return '-';
     const diffMs = date.getTime() - reference.getTime();
     const rtf = new Intl.RelativeTimeFormat(options.locale ?? DEFAULT_LOCALE, { numeric: 'auto' });
     const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
@@ -47,7 +58,7 @@ export function formatPercent(
     value: number,
     options: FormatOptions & { fromUnit?: boolean; digits?: number } = {},
 ): string {
-    if (!Number.isFinite(value)) return '—';
+    if (!Number.isFinite(value)) return '-';
     const ratio = options.fromUnit ? value : value / 100;
     return new Intl.NumberFormat(options.locale ?? DEFAULT_LOCALE, {
         style: 'percent',
@@ -57,13 +68,13 @@ export function formatPercent(
 }
 
 export function formatScoreTotal(total: number): string {
-    if (!Number.isFinite(total)) return '— / 100';
+    if (!Number.isFinite(total)) return '- / 100';
     return `${roundTo(total, 1)} / 100`;
 }
 
 /** Passthrough today; exists so callers route through one helper if formatting evolves. */
 export function formatGrade(grade: IrisGrade | null | undefined): string {
-    return grade ?? '—';
+    return grade ?? '-';
 }
 
 function roundTo(n: number, digits: number): number {

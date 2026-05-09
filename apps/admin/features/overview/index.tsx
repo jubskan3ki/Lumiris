@@ -5,7 +5,7 @@ import { motion, type Variants } from 'framer-motion';
 import { ArrowDownRight, ArrowUpRight, BarChart3, Coins, FileText, Sparkles, Store } from 'lucide-react';
 import { computeScore } from '@lumiris/core/scoring';
 import { mockArtisans, mockPassports } from '@lumiris/mock-data';
-import type { Artisan, ArtisanTier, IrisGrade } from '@lumiris/types';
+import { IRIS_GRADES, type Artisan, type ArtisanTier, type IrisGrade } from '@lumiris/types';
 import { cn } from '@lumiris/ui/lib/cn';
 import { useAdminAuditLog } from '@/lib/auth';
 
@@ -19,7 +19,7 @@ const itemAnim: Variants = {
     show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
 };
 
-// MRR by tier — kept inline since billing types live in api-client (roadmap).
+// MRR by tier - kept inline since billing types live in api-client (roadmap).
 const TIER_MRR_EUR: Record<ArtisanTier, number> = {
     Solo: 29,
     Studio: 79,
@@ -34,7 +34,7 @@ const SCORING_NOW = new Date('2026-04-30T08:00:00Z');
 function OverviewComponent() {
     const auditLog = useAdminAuditLog();
 
-    // 1. Artisans actifs — split par tier + churn 30j (stub : 0 sur les fixtures actuelles).
+    // 1. Artisans actifs - split par tier + churn 30j (stub : 0 sur les fixtures actuelles).
     const artisanKpi = useMemo(() => {
         const total = mockArtisans.length;
         const splitByTier: Record<ArtisanTier, number> = {
@@ -45,7 +45,7 @@ function OverviewComponent() {
         return { total, splitByTier, churn30d: 0 };
     }, []);
 
-    // 2. Passeports en file de curation — basé sur Passport.status + moderation.
+    // 2. Passeports en file de curation - basé sur Passport.status + moderation.
     const curationKpi = useMemo(() => {
         const pending = mockPassports.filter(
             (p) => p.status !== 'Published' || p.moderation?.status === 'PendingReview',
@@ -59,7 +59,8 @@ function OverviewComponent() {
     const irisKpi = useMemo(() => {
         const published = mockPassports.filter((p) => p.status === 'Published');
         if (published.length === 0) {
-            return { avg: 0, dominantGrade: '—' as IrisGrade | '—', cappedCount: 0, sampleSize: 0 };
+            const dominantGrade: IrisGrade | '-' = '-';
+            return { avg: 0, dominantGrade, cappedCount: 0, sampleSize: 0 };
         }
         const results = published.map((passport) => {
             const artisan = mockArtisans.find((a) => a.id === passport.artisanId);
@@ -75,7 +76,7 @@ function OverviewComponent() {
         results.forEach((r) => {
             gradeCount[r.grade] += 1;
         });
-        const dominantGrade = (Object.keys(gradeCount) as IrisGrade[]).reduce(
+        const dominantGrade = IRIS_GRADES.reduce<IrisGrade>(
             (best, g) => (gradeCount[g] > gradeCount[best] ? g : best),
             'A',
         );
@@ -112,13 +113,13 @@ function OverviewComponent() {
             accentClass: 'text-lumiris-amber',
             bgClass: 'bg-lumiris-amber/8',
             borderClass: 'border-lumiris-amber/15',
-            trend: 'Délai moyen — à venir',
+            trend: 'Délai moyen - à venir',
             trendUp: false,
         },
         {
             label: 'Score Iris moyen',
             icon: Sparkles,
-            value: irisKpi.sampleSize === 0 ? '—' : irisKpi.avg.toFixed(1),
+            value: irisKpi.sampleSize === 0 ? '-' : irisKpi.avg.toFixed(1),
             subLabel:
                 irisKpi.sampleSize === 0
                     ? 'Aucun passeport publié'
@@ -202,7 +203,7 @@ function OverviewComponent() {
                     <div>
                         <h3 className="text-foreground text-sm font-semibold">Activité de curation</h3>
                         <p className="text-muted-foreground mt-0.5 text-xs">
-                            Validations, flags, overrides — alimenté par l&apos;audit log live
+                            Validations, flags, overrides - alimenté par l&apos;audit log live
                         </p>
                     </div>
                     <BarChart3 className="text-muted-foreground/50 h-4 w-4" aria-hidden />

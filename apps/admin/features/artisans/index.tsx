@@ -1,49 +1,22 @@
 'use client';
 
 import { memo, useMemo, useState } from 'react';
-import { AlertTriangle, Award, Filter, Mail, PauseCircle, Search } from 'lucide-react';
-import { computeScore } from '@lumiris/core/scoring';
-import { mockAdminAuditLog, mockArtisans, mockPassports, mockRepairers } from '@lumiris/mock-data';
-import type { Artisan, ArtisanTier, IrisGrade } from '@lumiris/types';
-import { Wardrobe, type WardrobeCardItem } from '@lumiris/scoring-ui';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@lumiris/ui/components/alert-dialog';
+import { AlertTriangle, Filter, Search } from 'lucide-react';
+import { mockArtisans, mockPassports, mockRepairers } from '@lumiris/mock-data';
+import { type Artisan, type ArtisanTier, type IrisGrade } from '@lumiris/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@lumiris/ui/components/avatar';
 import { Badge } from '@lumiris/ui/components/badge';
 import { Button } from '@lumiris/ui/components/button';
 import { Input } from '@lumiris/ui/components/input';
 import { Progress } from '@lumiris/ui/components/progress';
-import { ScrollArea } from '@lumiris/ui/components/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@lumiris/ui/components/select';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@lumiris/ui/components/sheet';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lumiris/ui/components/tabs';
-import { Textarea } from '@lumiris/ui/components/textarea';
+import { Sheet, SheetContent } from '@lumiris/ui/components/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@lumiris/ui/components/table';
-import { RequirePermission, useAdminAuditLog, useLogAction, usePermission } from '@/lib/auth';
+import { RequirePermission } from '@/lib/auth';
+import { buildArtisanRows, type ArtisanRow } from '@/lib/artisan-analytics';
+import { ArtisanDrawerBody } from './drawer-body';
 
 const SCORING_NOW = new Date('2026-04-30T08:00:00Z');
-
-const TIER_MRR: Record<ArtisanTier, number> = { Solo: 29, Studio: 79, Maison: 149 };
-const PLUS_ADDON = 19;
-
-interface ArtisanRow {
-    artisan: Artisan;
-    publishedCount: number;
-    avgGrade: IrisGrade | '—';
-    avgScore: number;
-    cappedShare: number;
-    flaggedShare: number;
-    qualityRisk: boolean;
-    mrr: number;
-}
 
 function ArtisansComponent() {
     return (
@@ -60,46 +33,10 @@ function ArtisansInner() {
     const [plusFilter, setPlusFilter] = useState<'all' | 'on' | 'off'>('all');
     const [selected, setSelected] = useState<Artisan | null>(null);
 
-    const rows: readonly ArtisanRow[] = useMemo(() => {
-        return mockArtisans.map((artisan) => {
-            const passports = mockPassports.filter((p) => p.artisanId === artisan.id);
-            const published = passports.filter((p) => p.status === 'Published');
-            const scores = published.map((p) =>
-                computeScore(p, {
-                    certificates: p.materials.flatMap((m) => m.certifications),
-                    artisan,
-                    retoucheurs: mockRepairers,
-                    now: SCORING_NOW,
-                }),
-            );
-            const cappedShare =
-                scores.length === 0
-                    ? 0
-                    : scores.filter((s) => s.cap?.applied || s.grade === 'D').length / scores.length;
-            const avgScore = scores.length === 0 ? 0 : scores.reduce((sum, s) => sum + s.total, 0) / scores.length;
-            const gradeCounts: Record<IrisGrade, number> = { A: 0, B: 0, C: 0, D: 0, E: 0 };
-            scores.forEach((s) => {
-                gradeCounts[s.grade] += 1;
-            });
-            const dominantGrade =
-                scores.length === 0
-                    ? '—'
-                    : (Object.keys(gradeCounts) as IrisGrade[]).reduce(
-                          (best, g) => (gradeCounts[g] > gradeCounts[best] ? g : best),
-                          'A',
-                      );
-            return {
-                artisan,
-                publishedCount: published.length,
-                avgGrade: dominantGrade as IrisGrade | '—',
-                avgScore,
-                cappedShare,
-                flaggedShare: 0,
-                qualityRisk: cappedShare > 0.3,
-                mrr: TIER_MRR[artisan.tier] + (artisan.plus ? PLUS_ADDON : 0),
-            } satisfies ArtisanRow;
-        });
-    }, []);
+    const rows: readonly ArtisanRow[] = useMemo(
+        () => buildArtisanRows(mockArtisans, mockPassports, mockRepairers, SCORING_NOW),
+        [],
+    );
 
     const filtered = useMemo(() => {
         return rows.filter((r) => {
@@ -123,7 +60,7 @@ function ArtisansInner() {
             <div>
                 <h2 className="text-foreground text-xl font-semibold">Artisans</h2>
                 <p className="text-muted-foreground mt-1 text-sm">
-                    {mockArtisans.length} ateliers — Solo / Studio / Maison · ATELIER+ flag visible sans privilège de
+                    {mockArtisans.length} ateliers - Solo / Studio / Maison · ATELIER+ flag visible sans privilège de
                     file.
                 </p>
             </div>
@@ -285,8 +222,8 @@ function ArtisanTable({ rows, onSelect }: { rows: readonly ArtisanRow[]; onSelec
                                 </TableCell>
                                 <TableCell>
                                     <span className="font-mono text-xs">
-                                        {row.avgScore === 0 ? '—' : row.avgScore.toFixed(1)}
-                                        {row.avgGrade !== '—' ? (
+                                        {row.avgScore === 0 ? '-' : row.avgScore.toFixed(1)}
+                                        {row.avgGrade !== '-' ? (
                                             <span className="text-muted-foreground"> · {row.avgGrade}</span>
                                         ) : null}
                                     </span>
@@ -323,329 +260,6 @@ function ArtisanDrawer({ artisan, onClose }: { artisan: Artisan | null; onClose:
             </SheetContent>
         </Sheet>
     );
-}
-
-function ArtisanDrawerBody({ artisan, onClose }: { artisan: Artisan; onClose: () => void }) {
-    const log = useLogAction();
-    const auditLog = useAdminAuditLog();
-    const canSuspend = usePermission('artisan.suspend');
-    const canContact = usePermission('artisan.contact');
-    const canDunning = usePermission('billing.dunning');
-    const [suspendOpen, setSuspendOpen] = useState(false);
-    const [suspendReason, setSuspendReason] = useState('');
-    const [contactOpen, setContactOpen] = useState(false);
-    const [contactMessage, setContactMessage] = useState(
-        `Bonjour ${artisan.displayName}, l'équipe LUMIRIS souhaite faire un point avec vous concernant votre atelier.`,
-    );
-    const [suspended, setSuspended] = useState(false);
-
-    const passports = mockPassports.filter((p) => p.artisanId === artisan.id);
-    const wardrobeItems: WardrobeCardItem[] = passports
-        .filter((p) => p.status === 'Published')
-        .map((p) => {
-            const score = computeScore(p, {
-                certificates: p.materials.flatMap((m) => m.certifications),
-                artisan,
-                retoucheurs: mockRepairers,
-                now: SCORING_NOW,
-            });
-            return {
-                id: p.id,
-                name: p.garment.reference,
-                brand: artisan.atelierName,
-                grade: score.grade,
-                score: score.total,
-                price: p.garment.retailPrice,
-                passportId: p.id,
-            } satisfies WardrobeCardItem;
-        });
-
-    const localActivity = useMemo(
-        () =>
-            [...auditLog, ...mockAdminAuditLog].filter(
-                (entry) => entry.targetId === artisan.id || entry.payload?.artisanId === artisan.id,
-            ),
-        [auditLog, artisan.id],
-    );
-
-    const handleSuspend = () => {
-        if (suspendReason.trim().length === 0) return;
-        log({
-            action: 'artisan.suspend',
-            targetType: 'artisan',
-            targetId: artisan.id,
-            payload: { reason: suspendReason },
-        });
-        setSuspended(true);
-        setSuspendOpen(false);
-        setSuspendReason('');
-    };
-
-    const handleContact = () => {
-        log({
-            action: 'artisan.contact',
-            targetType: 'artisan',
-            targetId: artisan.id,
-            payload: { channel: 'email', message: contactMessage.slice(0, 240) },
-        });
-        setContactOpen(false);
-    };
-
-    const handleDunning = () => {
-        log({
-            action: 'billing.dunning',
-            targetType: 'artisan',
-            targetId: artisan.id,
-            payload: { stage: 'reminder-1', triggeredFrom: 'artisans-module' },
-        });
-    };
-
-    return (
-        <div className="flex h-full flex-col">
-            <SheetHeader className="border-border border-b p-5">
-                <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
-                        <AvatarImage src={artisan.photoUrl} alt="" />
-                        <AvatarFallback>{artisan.displayName.slice(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                        <SheetTitle className="truncate">{artisan.atelierName}</SheetTitle>
-                        <p className="text-muted-foreground truncate text-xs">
-                            {artisan.displayName} · {artisan.city} · {artisan.region}
-                        </p>
-                    </div>
-                    {suspended ? (
-                        <Badge
-                            variant="outline"
-                            className="border-lumiris-rose/40 bg-lumiris-rose/10 text-lumiris-rose font-mono text-[10px]"
-                        >
-                            Suspendu
-                        </Badge>
-                    ) : null}
-                </div>
-            </SheetHeader>
-
-            <Tabs defaultValue="profile" className="flex flex-1 flex-col overflow-hidden">
-                <TabsList className="border-border w-full justify-start gap-1 rounded-none border-b bg-transparent px-3">
-                    <TabsTrigger value="profile">Profil</TabsTrigger>
-                    <TabsTrigger value="passports">Passeports ({passports.length})</TabsTrigger>
-                    <TabsTrigger value="subscription">Abonnement</TabsTrigger>
-                    <TabsTrigger value="activity">Activité</TabsTrigger>
-                </TabsList>
-                <ScrollArea className="flex-1">
-                    <div className="p-5">
-                        <TabsContent value="profile" className="m-0 space-y-3 text-xs">
-                            <Card label="SIRET (vérification CMA mockée)">
-                                <p className="font-mono text-[11px]">FR-{artisan.id.toUpperCase()}-PROXY</p>
-                            </Card>
-                            <Card label="Atelier">
-                                <p>
-                                    {artisan.atelierName} — {artisan.city}, {artisan.region}
-                                </p>
-                            </Card>
-                            <Card label="Spécialités">
-                                <ul className="flex flex-wrap gap-1.5">
-                                    {artisan.specialities.map((s) => (
-                                        <Badge key={s} variant="outline" className="text-[10px]">
-                                            {s}
-                                        </Badge>
-                                    ))}
-                                </ul>
-                            </Card>
-                            <Card label="Labels">
-                                <div className="flex flex-wrap gap-1.5">
-                                    {artisan.epvLabeled ? (
-                                        <Badge
-                                            variant="outline"
-                                            className="border-lumiris-emerald/40 text-lumiris-emerald gap-1 text-[10px]"
-                                        >
-                                            <Award className="h-3 w-3" /> EPV depuis 2018
-                                        </Badge>
-                                    ) : null}
-                                    {artisan.ofgLabeled ? (
-                                        <Badge
-                                            variant="outline"
-                                            className="border-lumiris-amber/40 text-lumiris-amber gap-1 text-[10px]"
-                                        >
-                                            <Award className="h-3 w-3" /> OFG (Origine France)
-                                        </Badge>
-                                    ) : null}
-                                    {!artisan.epvLabeled && !artisan.ofgLabeled ? (
-                                        <p className="text-muted-foreground italic">Aucun label métier.</p>
-                                    ) : null}
-                                </div>
-                            </Card>
-                            <Card label="Bio">
-                                <p>{artisan.story}</p>
-                            </Card>
-                        </TabsContent>
-
-                        <TabsContent value="passports" className="m-0">
-                            {wardrobeItems.length === 0 ? (
-                                <p className="text-muted-foreground text-xs italic">Aucun passeport publié.</p>
-                            ) : (
-                                <Wardrobe items={wardrobeItems} density="cozy" />
-                            )}
-                        </TabsContent>
-
-                        <TabsContent value="subscription" className="m-0 space-y-3 text-xs">
-                            <Card label="Plan actif">
-                                <div className="flex items-baseline justify-between">
-                                    <p className="text-foreground font-medium">
-                                        ATELIER {artisan.tier}{' '}
-                                        {artisan.plus ? <span className="text-lumiris-cyan">+ ATELIER+</span> : null}
-                                    </p>
-                                    <p className="font-mono">
-                                        {TIER_MRR[artisan.tier] + (artisan.plus ? PLUS_ADDON : 0)} €/mois
-                                    </p>
-                                </div>
-                            </Card>
-                            <Card label="Méthode de paiement (mock)">
-                                <p className="font-mono text-[11px]">Visa · last4 4242 · expire 12/29</p>
-                            </Card>
-                            <Card label="Prochain prélèvement">
-                                <p className="font-mono text-[11px]">2026-05-15</p>
-                            </Card>
-                            <Card label="Historique tier">
-                                <ol className="relative space-y-2 border-l border-dashed pl-4">
-                                    <li>
-                                        <span className="bg-foreground -left-1.25 absolute mt-1 block h-2 w-2 rounded-full" />
-                                        <p>
-                                            {fmt(artisan.joinedAt)} — création compte ({artisan.tier})
-                                        </p>
-                                    </li>
-                                </ol>
-                            </Card>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={handleDunning}
-                                disabled={!canDunning}
-                                className="gap-1.5"
-                            >
-                                Relancer dunning
-                            </Button>
-                            {!canDunning ? (
-                                <p className="text-muted-foreground text-[10px]">
-                                    Permission <code>billing.dunning</code> requise.
-                                </p>
-                            ) : null}
-                        </TabsContent>
-
-                        <TabsContent value="activity" className="m-0">
-                            {localActivity.length === 0 ? (
-                                <p className="text-muted-foreground text-xs italic">
-                                    Aucune action admin sur ce profil.
-                                </p>
-                            ) : (
-                                <ol className="relative space-y-2 border-l border-dashed pl-4 text-xs">
-                                    {localActivity.slice(0, 30).map((entry) => (
-                                        <li key={entry.id} className="relative">
-                                            <span className="bg-foreground -left-1.25 absolute mt-1 block h-2 w-2 rounded-full" />
-                                            <p className="text-foreground">
-                                                <span className="font-mono">{entry.action}</span> par{' '}
-                                                <strong>{entry.actorId}</strong>
-                                            </p>
-                                            <p className="text-muted-foreground text-[10px]">{fmt(entry.ts)}</p>
-                                        </li>
-                                    ))}
-                                </ol>
-                            )}
-                        </TabsContent>
-                    </div>
-                </ScrollArea>
-            </Tabs>
-
-            <div className="border-border bg-card flex flex-wrap gap-2 border-t p-4">
-                <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setContactOpen(true)}
-                    disabled={!canContact}
-                    className="gap-1.5"
-                >
-                    <Mail className="h-3.5 w-3.5" /> Contacter
-                </Button>
-                <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setSuspendOpen(true)}
-                    disabled={!canSuspend}
-                    className="border-lumiris-rose/40 text-lumiris-rose hover:bg-lumiris-rose/10 gap-1.5"
-                >
-                    <PauseCircle className="h-3.5 w-3.5" /> Suspendre
-                </Button>
-                <Button size="sm" variant="ghost" onClick={onClose} className="ml-auto">
-                    Fermer
-                </Button>
-            </div>
-
-            <AlertDialog open={suspendOpen} onOpenChange={setSuspendOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Suspendre {artisan.atelierName} ?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Tous les passeports actifs passeront en archived côté file de curation. Action tracée.
-                            Précisez la raison (obligatoire).
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <Textarea
-                        value={suspendReason}
-                        onChange={(e) => setSuspendReason(e.target.value)}
-                        placeholder="Raison de la suspension"
-                        className="min-h-20"
-                    />
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleSuspend}
-                            disabled={suspendReason.trim().length === 0}
-                            className="bg-lumiris-rose hover:bg-lumiris-rose/90"
-                        >
-                            Suspendre
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            <AlertDialog open={contactOpen} onOpenChange={setContactOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Contacter {artisan.displayName}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Le message sera envoyé par email (mock) — l&apos;action sera tracée.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <Textarea
-                        value={contactMessage}
-                        onChange={(e) => setContactMessage(e.target.value)}
-                        className="min-h-32"
-                    />
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleContact}>Envoyer</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </div>
-    );
-}
-
-function Card({ label, children }: { label: string; children: React.ReactNode }) {
-    return (
-        <div className="border-border bg-card rounded-xl border p-3">
-            <p className="text-muted-foreground mb-1 text-[10px] uppercase tracking-wider">{label}</p>
-            <div className="text-foreground">{children}</div>
-        </div>
-    );
-}
-
-function fmt(iso: string): string {
-    return new Date(iso).toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-    });
 }
 
 export const Artisans = memo(ArtisansComponent);

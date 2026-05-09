@@ -2,7 +2,7 @@
     "name": "@lumiris/core",
     "version": "0.1.0",
     "private": true,
-    "description": "LUMIRIS business logic — algorithme Iris Score 40/25/25/10 (transparence / savoir-faire / impact / réparabilité). Pur, déterministe, identique sur admin / web / mobile / Tauri.",
+    "description": "LUMIRIS business logic - algorithme Iris Score 40/25/25/10 (transparence / savoir-faire / impact / réparabilité). Pur, déterministe, identique sur admin / web / mobile / Tauri.",
     "type": "module",
     "main": "./src/index.ts",
     "types": "./src/index.ts",

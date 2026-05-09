@@ -56,10 +56,10 @@ export function Subscription() {
                     </Button>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-3">
-                    <Field label="Tarif mensuel" value={currentPlan ? `${currentPlan.monthlyEur} €/mois` : '—'} />
+                    <Field label="Tarif mensuel" value={currentPlan ? `${currentPlan.monthlyEur} €/mois` : '-'} />
                     <Field
                         label="Tarif annuel"
-                        value={currentPlan ? `${currentPlan.yearlyEur} €/an (2 mois offerts)` : '—'}
+                        value={currentPlan ? `${currentPlan.yearlyEur} €/an (2 mois offerts)` : '-'}
                     />
                     <Field label="Passeports actifs" value={`${passportCount} / ${limitLabel}`} emphasize />
                 </CardContent>

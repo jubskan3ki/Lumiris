@@ -1,4 +1,4 @@
-// identités côté consumer — back-office utilise AdminUserRole (cf. admin-rbac.ts)
+// identités côté consumer - back-office utilise AdminUserRole (cf. admin-rbac.ts)
 
 export type UserRole = 'consumer' | 'artisan' | 'admin';
 

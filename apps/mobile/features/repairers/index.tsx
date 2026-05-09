@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useId, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, MapPin, Star, Clock, Phone, Mail, X, Search } from 'lucide-react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Award, Clock, MapPin, Search, Star } from 'lucide-react';
 import { Badge } from '@lumiris/ui/components/badge';
 import { mockRepairers, CITY_COORDS, distanceKm } from '@lumiris/mock-data';
 import type { Coordinates, Repairer, RepairerSpecialty } from '@lumiris/types';
+import { isLumirisLocal, repairerSlug } from '@/lib/repairers/badge';
+import { RepairersMap } from './repairers-map';
 
 const SPECIALITY_LABEL: Record<RepairerSpecialty, string> = {
     alteration: 'Retouche',
@@ -20,19 +22,24 @@ const SPECIALITIES: readonly RepairerSpecialty[] = ['alteration', 'embroidery', 
 
 export function RepairersDirectory() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const forParam = searchParams.get('for');
+    const forQuery = forParam ? `?for=${encodeURIComponent(forParam)}` : '';
+
     const [city, setCity] = useState('');
     const [activeSpecs, setActiveSpecs] = useState<Set<RepairerSpecialty>>(new Set());
     const [maxPrice, setMaxPrice] = useState<number>(200);
     const [maxDelay, setMaxDelay] = useState<number>(14);
     const [userCoords, setUserCoords] = useState<Coordinates | null>(null);
-    const [selected, setSelected] = useState<Repairer | null>(null);
+    const [highlightedId, setHighlightedId] = useState<string | null>(null);
+    const cardRefs = useRef<Map<string, HTMLLIElement>>(new Map());
 
     useEffect(() => {
         if (typeof navigator === 'undefined' || !navigator.geolocation) return;
         navigator.geolocation.getCurrentPosition(
             (pos) => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
             () => {
-                /* refus = tri par note (cf. memo ci-dessous) */
+                // Refus géoloc → fallback tri par note (cf. memo ci-dessous).
             },
             { timeout: 5000, maximumAge: 60_000 },
         );
@@ -69,6 +76,20 @@ export function RepairersDirectory() {
             .map((r) => ({ repairer: r, distance: undefined as number | undefined }))
             .sort((a, b) => b.repairer.avgRating - a.repairer.avgRating);
     }, [city, activeSpecs, maxPrice, maxDelay, userCoords]);
+
+    const filteredRepairers = useMemo(() => items.map((it) => it.repairer), [items]);
+
+    const onMarkerClick = (repairerId: string) => {
+        setHighlightedId(repairerId);
+        const node = cardRefs.current.get(repairerId);
+        if (node) {
+            node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    };
+
+    const onCardTap = (repairer: Repairer) => {
+        router.push(`/retoucheurs/${repairerSlug(repairer)}${forQuery}`);
+    };
 
     return (
         <div className="bg-background flex h-full flex-col">
@@ -149,6 +170,8 @@ export function RepairersDirectory() {
                         onChange={setMaxDelay}
                     />
                 </div>
+
+                <RepairersMap repairers={filteredRepairers} activeId={highlightedId} onMarkerClick={onMarkerClick} />
             </div>
 
             <ul className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pb-24">
@@ -157,57 +180,76 @@ export function RepairersDirectory() {
                         Aucun retoucheur ne correspond à ces filtres.
                     </li>
                 ) : (
-                    items.map(({ repairer, distance }) => (
-                        <li key={repairer.id}>
-                            <button
-                                type="button"
-                                onClick={() => setSelected(repairer)}
-                                className="border-border/60 bg-card flex w-full flex-col gap-2 rounded-2xl border p-4 text-left"
+                    items.map(({ repairer, distance }) => {
+                        const highlighted = highlightedId === repairer.id;
+                        const isLocal = isLumirisLocal(repairer);
+                        return (
+                            <li
+                                key={repairer.id}
+                                ref={(node) => {
+                                    if (node) cardRefs.current.set(repairer.id, node);
+                                    else cardRefs.current.delete(repairer.id);
+                                }}
                             >
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                        <p className="text-foreground truncate text-sm font-semibold">
-                                            {repairer.displayName}
-                                        </p>
-                                        <p className="text-muted-foreground inline-flex items-center gap-1 text-xs">
-                                            <MapPin className="h-3 w-3" />
-                                            {repairer.city}
-                                            {typeof distance === 'number' ? (
-                                                <span className="text-muted-foreground/70 font-mono">
-                                                    · {distance.toFixed(0)} km
-                                                </span>
-                                            ) : null}
-                                        </p>
+                                <button
+                                    type="button"
+                                    onClick={() => onCardTap(repairer)}
+                                    className={`flex w-full flex-col gap-2 rounded-2xl border p-4 text-left transition-colors ${
+                                        highlighted
+                                            ? 'border-lumiris-cyan bg-lumiris-cyan/5 ring-lumiris-cyan/20 ring-2'
+                                            : 'border-border/60 bg-card'
+                                    }`}
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <p className="text-foreground inline-flex items-center gap-1.5 truncate text-sm font-semibold">
+                                                {repairer.displayName}
+                                                {isLocal ? (
+                                                    <span
+                                                        className="text-lumiris-amber inline-flex items-center"
+                                                        aria-label="LUMIRIS Local"
+                                                        title="LUMIRIS Local"
+                                                    >
+                                                        <Award className="h-3.5 w-3.5" />
+                                                    </span>
+                                                ) : null}
+                                            </p>
+                                            <p className="text-muted-foreground inline-flex items-center gap-1 text-xs">
+                                                <MapPin className="h-3 w-3" />
+                                                {repairer.city}
+                                                {typeof distance === 'number' ? (
+                                                    <span className="text-muted-foreground/70 font-mono">
+                                                        · {distance.toFixed(0)} km
+                                                    </span>
+                                                ) : null}
+                                            </p>
+                                        </div>
+                                        <div className="text-foreground inline-flex items-center gap-1 text-sm font-semibold">
+                                            <Star className="text-lumiris-amber h-3.5 w-3.5 fill-current" />
+                                            {repairer.avgRating.toFixed(1)}
+                                        </div>
                                     </div>
-                                    <div className="text-foreground inline-flex items-center gap-1 text-sm font-semibold">
-                                        <Star className="text-lumiris-amber h-3.5 w-3.5 fill-current" />
-                                        {repairer.avgRating.toFixed(1)}
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {repairer.specialities.map((s) => (
+                                            <Badge key={s} variant="secondary" className="text-[10px]">
+                                                {SPECIALITY_LABEL[s]}
+                                            </Badge>
+                                        ))}
                                     </div>
-                                </div>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {repairer.specialities.map((s) => (
-                                        <Badge key={s} variant="secondary" className="text-[10px]">
-                                            {SPECIALITY_LABEL[s]}
-                                        </Badge>
-                                    ))}
-                                </div>
-                                <div className="text-muted-foreground flex items-center justify-between text-xs">
-                                    <span className="inline-flex items-center gap-1">
-                                        <Clock className="h-3 w-3" /> ~{repairer.avgDelayDays} j
-                                    </span>
-                                    <span className="font-mono">
-                                        {repairer.priceRange.min}–{repairer.priceRange.max} €
-                                    </span>
-                                </div>
-                            </button>
-                        </li>
-                    ))
+                                    <div className="text-muted-foreground flex items-center justify-between text-xs">
+                                        <span className="inline-flex items-center gap-1">
+                                            <Clock className="h-3 w-3" /> ~{repairer.avgDelayDays} j
+                                        </span>
+                                        <span className="font-mono">
+                                            {repairer.priceRange.min}–{repairer.priceRange.max} €
+                                        </span>
+                                    </div>
+                                </button>
+                            </li>
+                        );
+                    })
                 )}
             </ul>
-
-            <AnimatePresence>
-                {selected ? <RepairerDetail repairer={selected} onClose={() => setSelected(null)} /> : null}
-            </AnimatePresence>
         </div>
     );
 }
@@ -251,81 +293,5 @@ function RangeInput({
                 aria-label={`${label} (${value}${suffix})`}
             />
         </label>
-    );
-}
-
-function RepairerDetail({ repairer, onClose }: { repairer: Repairer; onClose: () => void }) {
-    return (
-        <motion.div
-            className="absolute inset-0 z-40 flex items-end justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-        >
-            <div className="bg-background/70 absolute inset-0 backdrop-blur-sm" onClick={onClose} role="presentation" />
-            <motion.div
-                role="dialog"
-                aria-label={repairer.displayName}
-                className="border-border bg-card relative mx-4 mb-8 w-full max-w-sm rounded-3xl border p-5 shadow-2xl"
-                initial={{ y: 60 }}
-                animate={{ y: 0 }}
-                exit={{ y: 60 }}
-                transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-            >
-                <button
-                    type="button"
-                    onClick={onClose}
-                    aria-label="Fermer"
-                    className="border-border/60 bg-card text-foreground absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border"
-                >
-                    <X className="h-3.5 w-3.5" />
-                </button>
-
-                <h2 className="text-foreground text-base font-semibold">{repairer.displayName}</h2>
-                <p className="text-muted-foreground text-xs">
-                    {repairer.atelierName ?? '—'} · {repairer.city}
-                </p>
-
-                <div className="mt-3 flex items-center gap-3 text-xs">
-                    <span className="inline-flex items-center gap-1">
-                        <Star className="text-lumiris-amber h-3.5 w-3.5 fill-current" />
-                        {repairer.avgRating.toFixed(1)} ({repairer.reviewCount})
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5" /> ~{repairer.avgDelayDays} j
-                    </span>
-                    <span className="font-mono">
-                        {repairer.priceRange.min}–{repairer.priceRange.max} €
-                    </span>
-                </div>
-
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                    {repairer.specialities.map((s) => (
-                        <Badge key={s} variant="secondary" className="text-[10px]">
-                            {SPECIALITY_LABEL[s]}
-                        </Badge>
-                    ))}
-                </div>
-
-                <div className="mt-5 grid grid-cols-2 gap-2">
-                    <a
-                        href={`tel:+33000000000`}
-                        className="bg-foreground text-primary-foreground inline-flex items-center justify-center gap-2 rounded-full py-2 text-xs font-semibold"
-                    >
-                        <Phone className="h-3.5 w-3.5" /> Appeler
-                    </a>
-                    <a
-                        href={`mailto:contact@${repairer.id}.fr`}
-                        className="border-border bg-card text-foreground inline-flex items-center justify-center gap-2 rounded-full border py-2 text-xs font-medium"
-                    >
-                        <Mail className="h-3.5 w-3.5" /> Email
-                    </a>
-                </div>
-
-                <p className="text-muted-foreground/80 mt-3 text-center text-[10px]">
-                    Prise de RDV en ligne — bientôt disponible.
-                </p>
-            </motion.div>
-        </motion.div>
     );
 }

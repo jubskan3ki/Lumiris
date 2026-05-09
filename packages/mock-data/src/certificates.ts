@@ -10,7 +10,7 @@ export const mockCertificates: readonly CertificationRef[] = [
         expiresAt: '2027-03-12T00:00:00Z',
         verified: true,
         fileUrl: 'https://lumiris.fr/mock/cert/gots-marie-lin.pdf',
-        scope: 'Lin breton — filature Quimper',
+        scope: 'Lin breton - filature Quimper',
     },
     {
         id: 'cert-oeko-claire-laine',
@@ -20,7 +20,7 @@ export const mockCertificates: readonly CertificationRef[] = [
         expiresAt: '2027-01-05T00:00:00Z',
         verified: true,
         fileUrl: 'https://lumiris.fr/mock/cert/oeko-claire-laine.pdf',
-        scope: 'Laine mérinos — Tarn',
+        scope: 'Laine mérinos - Tarn',
     },
     {
         id: 'cert-epv-paul',
@@ -30,7 +30,7 @@ export const mockCertificates: readonly CertificationRef[] = [
         expiresAt: '2028-06-20T00:00:00Z',
         verified: true,
         fileUrl: 'https://lumiris.fr/mock/cert/epv-paul.pdf',
-        scope: 'Tannerie Chevreau — Graulhet',
+        scope: 'Tannerie Chevreau - Graulhet',
     },
     {
         id: 'cert-ofg-marie',
@@ -40,7 +40,7 @@ export const mockCertificates: readonly CertificationRef[] = [
         expiresAt: '2027-09-01T00:00:00Z',
         verified: true,
         fileUrl: 'https://lumiris.fr/mock/cert/ofg-marie.pdf',
-        scope: 'Atelier de Marie — Quimper',
+        scope: 'Atelier de Marie - Quimper',
     },
     {
         id: 'cert-grs-jules',
@@ -50,7 +50,7 @@ export const mockCertificates: readonly CertificationRef[] = [
         expiresAt: '2027-04-10T00:00:00Z',
         verified: true,
         fileUrl: 'https://lumiris.fr/mock/cert/grs-jules.pdf',
-        scope: 'Coton recyclé — filière Hauts-de-France',
+        scope: 'Coton recyclé - filière Hauts-de-France',
     },
     {
         id: 'cert-bluesign-romain',
@@ -60,7 +60,7 @@ export const mockCertificates: readonly CertificationRef[] = [
         expiresAt: '2026-12-01T00:00:00Z',
         verified: true,
         fileUrl: 'https://lumiris.fr/mock/cert/bluesign-romain.pdf',
-        scope: 'Tissage Mazamet — chaîne énergétique',
+        scope: 'Tissage Mazamet - chaîne énergétique',
     },
     {
         id: 'cert-iso14001-laurens',
@@ -70,7 +70,7 @@ export const mockCertificates: readonly CertificationRef[] = [
         expiresAt: '2027-05-15T00:00:00Z',
         verified: true,
         fileUrl: 'https://lumiris.fr/mock/cert/iso14001-laurens.pdf',
-        scope: 'Maison Laurens — Paris',
+        scope: 'Maison Laurens - Paris',
     },
     {
         id: 'cert-custom-amelie',
@@ -81,10 +81,10 @@ export const mockCertificates: readonly CertificationRef[] = [
         expiresAt: '2032-09-01T00:00:00Z',
         verified: true,
         fileUrl: 'https://lumiris.fr/mock/cert/custom-amelie.pdf',
-        scope: 'Amélie Berthier — Lyon',
+        scope: 'Amélie Berthier - Lyon',
     },
 
-    // expired — ignorées par le scoring
+    // expired - ignorées par le scoring
     {
         id: 'cert-gots-pauline-expired',
         kind: 'GOTS',
@@ -93,7 +93,7 @@ export const mockCertificates: readonly CertificationRef[] = [
         expiresAt: '2025-02-10T00:00:00Z',
         verified: true,
         fileUrl: 'https://lumiris.fr/mock/cert/gots-pauline-expired.pdf',
-        scope: 'Lin breton — Pauline Roux',
+        scope: 'Lin breton - Pauline Roux',
     },
     {
         id: 'cert-oeko-soraya-expired',
@@ -106,7 +106,7 @@ export const mockCertificates: readonly CertificationRef[] = [
         scope: 'Laine vierge Reims',
     },
 
-    // unverified — comptées ×0.5
+    // unverified - comptées ×0.5
     {
         id: 'cert-custom-leila-unverified',
         kind: 'CUSTOM',
@@ -116,7 +116,7 @@ export const mockCertificates: readonly CertificationRef[] = [
         expiresAt: '2031-06-30T00:00:00Z',
         verified: false,
         fileUrl: 'https://lumiris.fr/mock/cert/custom-leila.pdf',
-        scope: 'Leïla Benamar — diplôme initial',
+        scope: 'Leïla Benamar - diplôme initial',
     },
     {
         id: 'cert-ofg-nicolas-unverified',
@@ -126,7 +126,7 @@ export const mockCertificates: readonly CertificationRef[] = [
         expiresAt: '2028-07-01T00:00:00Z',
         verified: false,
         fileUrl: 'https://lumiris.fr/mock/cert/ofg-nicolas.pdf',
-        scope: 'Atelier Faure — en cours de vérification',
+        scope: 'Atelier Faure - en cours de vérification',
     },
 ];
 

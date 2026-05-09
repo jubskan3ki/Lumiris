@@ -2,7 +2,7 @@
     "name": "@lumiris/telemetry",
     "version": "0.1.0",
     "private": true,
-    "description": "LUMIRIS telemetry — OpenTelemetry traces/metrics, Sentry errors, Web Vitals. Identical wiring across admin, web, mobile, api.",
+    "description": "LUMIRIS telemetry - OpenTelemetry traces/metrics, Sentry errors, Web Vitals. Identical wiring across admin, web, mobile, api.",
     "type": "module",
     "main": "./src/index.ts",
     "types": "./src/index.ts",

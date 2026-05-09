@@ -31,10 +31,7 @@ const ROLE_TONE: Record<AdminUserRole, string> = {
     dpo: 'text-lumiris-rose',
 };
 
-/**
- * Dev-only switcher — lets the developer impersonate any AdminUser to verify permissions in the UI.
- * Production builds should hide this with a `process.env.NODE_ENV` check at the integration site.
- */
+// Dev-only - à wrapper sous `process.env.NODE_ENV` côté intégration pour ne pas leaker en prod.
 export function DevUserSwitcher() {
     const { currentUser, setCurrentUser, availableUsers } = useAdminUserSwitcher();
 
@@ -57,7 +54,7 @@ export function DevUserSwitcher() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-72">
                 <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-wider">
-                    Dev — impersonate
+                    Dev - impersonate
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {availableUsers.map((user) => (

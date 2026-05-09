@@ -10,11 +10,11 @@ import { ScoreCapWarning } from './score-cap-warning';
 
 export interface IrisScoreCardProps extends HTMLAttributes<HTMLDivElement> {
     score: ScoreResult;
-    /** Si vrai, affiche en grisé — passeport en cours de complétion. */
+    /** Si vrai, affiche en grisé - passeport en cours de complétion. */
     muted?: boolean;
 }
 
-// carte synthèse Score Iris (vitrine + atelier) — DOM statique, pas d'animation above-the-fold (Lighthouse)
+// carte synthèse Score Iris (vitrine + atelier) - DOM statique, pas d'animation above-the-fold (Lighthouse)
 export function IrisScoreCard({ score, muted = false, className, ...rest }: IrisScoreCardProps) {
     return (
         <div
@@ -33,7 +33,7 @@ export function IrisScoreCard({ score, muted = false, className, ...rest }: Iris
                         Score Iris LUMIRIS
                     </p>
                     <p className="text-foreground mt-1 text-2xl font-semibold">
-                        {GRADE_LABEL[score.grade]} — {score.total.toFixed(1)} / 100
+                        {GRADE_LABEL[score.grade]} - {score.total.toFixed(1)} / 100
                     </p>
                     <p className="text-muted-foreground mt-1 text-sm">Calculé sur 4 piliers · 40 / 25 / 25 / 10</p>
                 </div>

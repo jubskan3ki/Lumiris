@@ -1,6 +1,6 @@
 import type { IrisGrade } from '@lumiris/types';
 
-// KPIs admin/founder — création/publication passeports + distribution grades
+// KPIs admin/founder - création/publication passeports + distribution grades
 
 export interface MockKpi {
     /** Période de référence (mois en cours). */

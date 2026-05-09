@@ -41,59 +41,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lumiris/ui/components
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@lumiris/ui/components/table';
 import { cn } from '@lumiris/ui/lib/cn';
 import { RequirePermission, useLogAction, usePermission } from '@/lib/auth';
+import {
+    ANONYMISATION_THRESHOLD_DAYS,
+    NOW_REF,
+    anonymiseUserId,
+    buildSuspicionMap,
+    type SuspiciousFlag,
+} from '@/lib/affiliation-fraud';
+import { KpiCard } from '@/components/kpi-card';
 import { GovernanceBanner } from '../_shared/governance-banner';
-
-const ANONYMISATION_THRESHOLD_DAYS = 30;
-const NOW_REF = new Date('2026-04-30T08:00:00Z').getTime();
-
-function anonymiseUserId(userId: string, occurredAt: string): string {
-    const ageDays = (NOW_REF - new Date(occurredAt).getTime()) / 86_400_000;
-    if (ageDays < ANONYMISATION_THRESHOLD_DAYS) return userId;
-    let hash = 0;
-    for (let i = 0; i < userId.length; i++) {
-        hash = (hash * 31 + userId.charCodeAt(i)) >>> 0;
-    }
-    return `user_anon_${(hash & 0xfff).toString(16).padStart(3, '0')}`;
-}
-
-interface SuspiciousFlag {
-    burst?: { count: number };
-    selfBooking?: boolean;
-}
-
-function buildSuspicionMap(events: readonly AffiliationEvent[]): Map<string, SuspiciousFlag> {
-    const out = new Map<string, SuspiciousFlag>();
-
-    // burst: > 5 conversions par jour pour le même userId
-    const dayKey = (e: AffiliationEvent) => `${e.userId}:${e.occurredAt.slice(0, 10)}`;
-    const counts = new Map<string, AffiliationEvent[]>();
-    for (const e of events) {
-        const k = dayKey(e);
-        const list = counts.get(k) ?? [];
-        list.push(e);
-        counts.set(k, list);
-    }
-    for (const [, list] of counts) {
-        if (list.length > 5) {
-            for (const e of list) {
-                const flag = out.get(e.id) ?? {};
-                flag.burst = { count: list.length };
-                out.set(e.id, flag);
-            }
-        }
-    }
-
-    // self-booking: retoucheur === userId
-    for (const e of events) {
-        if (e.kind === 'repair_booking' && e.userId === e.beneficiaryId) {
-            const flag = out.get(e.id) ?? {};
-            flag.selfBooking = true;
-            out.set(e.id, flag);
-        }
-    }
-
-    return out;
-}
 
 function AffiliationComponent() {
     return (
@@ -175,7 +131,7 @@ function OverviewTab({ events }: { events: readonly AffiliationEvent[] }) {
         const purchaseEur = purchases.reduce((s, e) => s + e.commission.amountEur, 0);
         const repairEur = repairs.reduce((s, e) => s + e.commission.amountEur, 0);
         const conversions = last30.length;
-        // Mock scans 30j — taux de transformation = conversions / scans
+        // Mock scans 30j - taux de transformation = conversions / scans
         const mockScans = 1200;
         const transformPct = (conversions / mockScans) * 100;
 
@@ -252,7 +208,7 @@ function OverviewTab({ events }: { events: readonly AffiliationEvent[] }) {
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <div className="border-border bg-card rounded-xl border p-4 lg:col-span-2">
                     <div className="mb-3 flex items-center justify-between">
-                        <p className="text-foreground text-sm font-medium">Commissions par mois — 6 mois</p>
+                        <p className="text-foreground text-sm font-medium">Commissions par mois - 6 mois</p>
                         <Badge variant="outline" className="font-mono text-[10px]">
                             empilé achat / retouche
                         </Badge>
@@ -303,31 +259,6 @@ function OverviewTab({ events }: { events: readonly AffiliationEvent[] }) {
                 </div>
             </div>
         </>
-    );
-}
-
-function KpiCard({
-    label,
-    value,
-    sub,
-    icon,
-    tone,
-}: {
-    label: string;
-    value: string;
-    sub?: string;
-    icon: React.ReactNode;
-    tone: string;
-}) {
-    return (
-        <div className="border-border bg-card flex flex-col rounded-xl border p-4">
-            <div className="flex items-center justify-between">
-                <p className="text-muted-foreground text-[10px] uppercase tracking-wider">{label}</p>
-                <span className={cn('opacity-70', tone)}>{icon}</span>
-            </div>
-            <p className={cn('mt-1 font-mono text-2xl font-bold', tone)}>{value}</p>
-            {sub ? <p className="text-muted-foreground mt-0.5 text-[11px]">{sub}</p> : null}
-        </div>
     );
 }
 
@@ -568,7 +499,7 @@ function EventsTab({
                         <AlertDialogTitle>Annuler la commission ?</AlertDialogTitle>
                         <AlertDialogDescription>
                             La commission de {target?.commission.amountEur.toFixed(2)} € pour{' '}
-                            <strong>{target?.beneficiaryDisplayName}</strong> sera annulée. L&apos;action est tracée —
+                            <strong>{target?.beneficiaryDisplayName}</strong> sera annulée. L&apos;action est tracée -
                             précisez la raison ci-dessous.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
@@ -629,7 +560,7 @@ function SuspiciousPanel({
             ) : null}
             {selfBooking.length > 0 ? (
                 <p className="text-muted-foreground text-xs">
-                    <strong className="text-foreground">{selfBooking.length} auto-RDV détectés</strong> — le retoucheur
+                    <strong className="text-foreground">{selfBooking.length} auto-RDV détectés</strong> - le retoucheur
                     est identique à l&apos;utilisateur.
                 </p>
             ) : null}
@@ -727,7 +658,7 @@ function PayoutsTab({
             <div className="border-border bg-card rounded-xl border p-5">
                 <div className="flex items-baseline justify-between gap-3">
                     <div>
-                        <p className="text-foreground text-sm font-semibold">Mois en cours — avril 2026</p>
+                        <p className="text-foreground text-sm font-semibold">Mois en cours - avril 2026</p>
                         <p className="text-muted-foreground mt-1 text-xs">
                             {stats.beneficiaryCount} bénéficiaires · {stats.eligible.length} événements éligibles ·{' '}
                             {stats.excluded.length} exclusions suspectes.
@@ -795,10 +726,10 @@ function PayoutsTab({
                                 </TableCell>
                                 <TableCell className="text-right font-mono text-sm">{p.beneficiaryCount}</TableCell>
                                 <TableCell className="font-mono text-[11px]">
-                                    {p.preparedAt ? new Date(p.preparedAt).toLocaleDateString('fr-FR') : '—'}
+                                    {p.preparedAt ? new Date(p.preparedAt).toLocaleDateString('fr-FR') : '-'}
                                 </TableCell>
                                 <TableCell className="font-mono text-[11px]">
-                                    {p.paidAt ? new Date(p.paidAt).toLocaleDateString('fr-FR') : '—'}
+                                    {p.paidAt ? new Date(p.paidAt).toLocaleDateString('fr-FR') : '-'}
                                 </TableCell>
                                 <TableCell className="text-right">
                                     {p.status === 'paid' ? (
@@ -816,7 +747,7 @@ function PayoutsTab({
             <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Préparer le payout — avril 2026</AlertDialogTitle>
+                        <AlertDialogTitle>Préparer le payout - avril 2026</AlertDialogTitle>
                         <AlertDialogDescription className="space-y-2">
                             <p>
                                 <strong>{stats.beneficiaryCount} bénéficiaires</strong> ·{' '}

@@ -1,4 +1,4 @@
-// blog v2 (CMS admin) — succède à JournalArticle, 5 catégories + workflow Draft/Review/Scheduled/Published/Archived
+// blog v2 (CMS admin) - succède à JournalArticle, 5 catégories + workflow Draft/Review/Scheduled/Published/Archived
 
 export type BlogCategory = 'regulation' | 'portrait_artisan' | 'savoir_faire' | 'mode_responsable' | 'guide_retouche';
 
@@ -11,7 +11,7 @@ export interface BlogArticle {
     category: BlogCategory;
     status: BlogStatus;
     author: string;
-    /** Lien fort vers un Artisan — lui dédie une page auto-générée côté apps/web. */
+    /** Lien fort vers un Artisan - lui dédie une page auto-générée côté apps/site. */
     artisanId?: string;
     excerpt: string;
     /** Texte long (markdown light). */
@@ -25,9 +25,9 @@ export interface BlogArticle {
 
     createdAt: string;
     updatedAt: string;
-    /** ISO — date de publication effective. */
+    /** ISO - date de publication effective. */
     publishedAt?: string;
-    /** ISO — date programmée. Si > now → status='Scheduled'. */
+    /** ISO - date programmée. Si > now → status='Scheduled'. */
     scheduledAt?: string;
 }
 

@@ -91,7 +91,7 @@ export function PassportDetail({ passportId }: { passportId: string }) {
                         <CardTitle>Composition</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-1 text-sm">
-                        {passport.materials.length === 0 && <p className="text-muted-foreground">—</p>}
+                        {passport.materials.length === 0 && <p className="text-muted-foreground">-</p>}
                         {passport.materials.map((m, i) => (
                             <p key={i} className="text-foreground">
                                 <span className="font-mono">{m.percentage}%</span> {m.fiber} · {m.originCountry} ·{' '}
@@ -106,10 +106,10 @@ export function PassportDetail({ passportId }: { passportId: string }) {
                         <CardTitle>Étapes ({passport.steps.length})</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-1 text-sm">
-                        {passport.steps.length === 0 && <p className="text-muted-foreground">—</p>}
+                        {passport.steps.length === 0 && <p className="text-muted-foreground">-</p>}
                         {passport.steps.map((s) => (
                             <p key={s.id} className="text-foreground">
-                                {s.kind} — {s.label || '(sans libellé)'} · {s.locationCity}
+                                {s.kind} - {s.label || '(sans libellé)'} · {s.locationCity}
                             </p>
                         ))}
                     </CardContent>

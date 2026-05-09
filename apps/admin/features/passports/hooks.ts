@@ -9,14 +9,14 @@ import type { EffectiveStatus, PassportRow } from './types';
 
 const SCORING_NOW = new Date('2026-04-30T08:00:00Z');
 
-function deriveEffectiveStatus(passport: Passport, overlayStatus: EffectiveStatus | undefined): EffectiveStatus {
+export function deriveEffectiveStatus(passport: Passport, overlayStatus: EffectiveStatus | undefined): EffectiveStatus {
     if (overlayStatus) return overlayStatus;
     if (passport.moderation?.status === 'Approved') return 'validated';
     if (passport.moderation?.status === 'Rejected') return 'flagged';
     return 'pending';
 }
 
-/** Retourne les rows enrichis (passport + status + délai) — base pour la file de curation. */
+/** Retourne les rows enrichis (passport + status + délai) - base pour la file de curation. */
 export function usePassportRows(passports: readonly Passport[]): readonly PassportRow[] {
     const { overlays } = useCurationStore();
     return useMemo(() => {
