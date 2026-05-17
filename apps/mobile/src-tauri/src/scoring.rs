@@ -1,13 +1,13 @@
 use serde_json::Value;
 
-// Tauri-side bridge for the LUMIRIS 50/30/20 scoring algorithm.
+// Tauri-side bridge for the LUMIRIS Iris V2 scoring algorithm (40/25/25/10 :
+// Transparence · Savoir-faire · Impact · Réparabilité — cf. cahier §8).
 //
-// The canonical implementation lives in `@lumiris/core` (TypeScript). To respect
-// the single-source-of-truth rule, this command does NOT re-implement the
-// algorithm in Rust. It validates the DPP payload and hands it back to the JS
-// layer, which then calls `computeScore` from `@lumiris/core`. Keeping the
-// command on the Rust side gives us a stable native entry point that can later
-// gain telemetry, caching, or offline persistence without touching the algo.
+// L'implémentation canonique vit dans @lumiris/core (TypeScript). Pour respecter
+// la SSOT, cette commande NE réimplémente PAS l'algo en Rust : elle valide le
+// JSON DPP entrant et le repasse au front, qui appelle `computeScore`. Garder la
+// command côté Rust offre un point d'entrée natif stable pour de la télémétrie,
+// du cache ou de la persistance offline futurs sans toucher à l'algo.
 #[tauri::command]
 pub fn compute_score(dpp_json: String) -> Result<Value, String> {
     serde_json::from_str::<Value>(&dpp_json).map_err(|e| format!("invalid DPP JSON: {e}"))

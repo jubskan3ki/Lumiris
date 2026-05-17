@@ -1,19 +1,10 @@
 import { ImageResponse } from 'next/og';
 import { mockPassportsPublic, passportPublicByIdOrSlug } from '@lumiris/mock-data';
+import { KIND_LABEL_FR } from '@lumiris/utils';
 
 export const alt = 'Passeport LUMIRIS';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
-
-const KIND_LABEL: Record<string, string> = {
-    sweater: 'Pull',
-    shirt: 'Chemise',
-    shoe: 'Chaussures',
-    jacket: 'Veste',
-    trouser: 'Pantalon',
-    accessory: 'Accessoire',
-    other: 'Pièce',
-};
 
 export function generateStaticParams() {
     return mockPassportsPublic.map((view) => ({ id: view.passport.id }));
@@ -26,7 +17,7 @@ interface OgProps {
 export default async function Image({ params }: OgProps) {
     const { id } = await params;
     const view = passportPublicByIdOrSlug(id);
-    const kind = view ? (KIND_LABEL[view.passport.garment.kind] ?? KIND_LABEL.other) : 'Pièce';
+    const kind = view ? (KIND_LABEL_FR[view.passport.garment.kind] ?? KIND_LABEL_FR.other) : 'Pièce';
     const title = view ? `${kind} ${view.passport.garment.reference}` : 'Passeport LUMIRIS';
     const sub = view ? `${view.artisan.atelierName} · ${view.artisan.city}` : '';
     const grade = view?.irisScore?.grade ?? null;

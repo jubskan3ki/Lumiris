@@ -1,9 +1,10 @@
 // Persistance locale du flag onboarding (clé `lumiris.onboarding.completed.v1`).
 // Stocke uniquement '1' / absence - pas besoin de structure plus riche pour un boolean.
+// Bucket device-global : l'onboarding produit n'est pas une donnée perso.
 
-import { STORAGE_KEYS } from '../storage-keys';
+import { DEVICE_KEYS } from '../storage-keys';
 
-const KEY = STORAGE_KEYS.onboardingCompleted;
+const KEY = DEVICE_KEYS.onboardingCompleted;
 
 export function hasCompletedOnboarding(): boolean {
     if (typeof window === 'undefined') return false;

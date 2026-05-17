@@ -2,7 +2,19 @@
 
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
+import type { GarmentInfo, Material, ProductionStep, PassportWarranty, CertificationRef } from '@lumiris/types';
 import { useDraftStore, type WizardStep } from '@/lib/draft-store';
+
+/** Subset d'un draft que les schémas Zod valident sans dépendre de draft-store (évite la dépendance circulaire). */
+export interface DraftLike {
+    garment: GarmentInfo;
+    materials: readonly Material[];
+    steps: readonly ProductionStep[];
+    certifications: readonly CertificationRef[];
+    warranty: PassportWarranty;
+}
+
+export type ValidateStepResult = { ok: true } | { ok: false; missing: string[] };
 
 export function useStepNavigation(draftId: string) {
     const router = useRouter();

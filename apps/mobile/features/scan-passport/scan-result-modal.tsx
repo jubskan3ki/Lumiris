@@ -3,28 +3,52 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, RefreshCw, X } from 'lucide-react';
 import { GRADE_LABEL, IrisGrade, gradeBackgroundSolid, gradeBorder2px } from '@lumiris/scoring-ui';
-import type { Artisan, Passport, ScoreResult } from '@lumiris/types';
+import type { Artisan, ExternalDpp, Passport, ScoreResult } from '@lumiris/types';
 import { SPRING_OVERLAY } from '@/lib/motion';
 
-// Bottom-sheet 70vh qui apparaît quand un passeport est lu. Mise en avant :
+// Bottom-sheet 70vh qui apparaît quand un DPP est lu - LUMIRIS ou externe ESPR.
+// Mise en avant :
 //   - cercle de grade 96px (border 2px, glow couleur grade)
-//   - référence produit + atelier
-//   - 2 CTA empilés : "Voir le passeport" (primaire) + "Scanner un autre" (secondaire)
+//   - référence produit + atelier / émetteur
+//   - 2 CTA empilés : "Voir le passeport / le DPP" (primaire) + "Scanner un autre" (secondaire)
 // Le wrapper porte un `layoutId="scan-result-<id>"` pour préparer la transition partagée
-// vers la fiche passeport (Section C).
+// vers la fiche.
 
-interface ScanResultModalProps {
+interface LumirisVariant {
+    kind: 'lumiris-passport';
     passport: Passport;
     artisan?: Artisan;
-    score: ScoreResult;
-    onClose: () => void;
-    onOpenPassport: (passportId: string) => void;
 }
 
-export function ScanResultModal({ passport, artisan, score, onClose, onOpenPassport }: ScanResultModalProps) {
+interface ExternalVariant {
+    kind: 'external-dpp';
+    dpp: ExternalDpp;
+}
+
+type ResultVariant = LumirisVariant | ExternalVariant;
+
+interface ScanResultModalProps {
+    result: ResultVariant;
+    score: ScoreResult;
+    onClose: () => void;
+    onOpen: () => void;
+}
+
+export function ScanResultModal({ result, score, onClose, onOpen }: ScanResultModalProps) {
     const gradeBg = gradeBackgroundSolid(score.grade);
     const gradeLabel = GRADE_LABEL[score.grade];
     const gradeBorder2pxClass = gradeBorder2px(score.grade);
+
+    const isExternal = result.kind === 'external-dpp';
+    const layoutKey = isExternal ? `external-${result.dpp.gtin}` : `lumiris-${result.passport.id}`;
+
+    const captionTop = isExternal ? `DPP détecté · ${result.dpp.emitter}` : 'Passeport détecté';
+    const productLabel = isExternal ? result.dpp.productName : result.passport.garment.reference;
+    const subLabel = isExternal
+        ? `${result.dpp.brand}${result.dpp.origin?.country ? ` · ${result.dpp.origin.country}` : ''}`
+        : `${result.artisan?.atelierName ?? '-'}${result.artisan?.city ? ` · ${result.artisan.city}` : ''}`;
+
+    const ctaLabel = isExternal ? 'Voir le DPP' : 'Voir le passeport';
 
     return (
         <AnimatePresence>
@@ -59,16 +83,15 @@ export function ScanResultModal({ passport, artisan, score, onClose, onOpenPassp
 
                 {/* Bottom sheet - hauteur cible 70vh */}
                 <motion.div
-                    layoutId={`scan-result-${passport.id}`}
+                    layoutId={`scan-result-${layoutKey}`}
                     className="border-border/50 bg-card/95 relative flex max-h-[70vh] w-full max-w-md flex-col gap-5 rounded-t-3xl border-x border-t p-6 pb-8 shadow-2xl backdrop-blur-2xl"
                     role="dialog"
-                    aria-label="Passeport détecté"
+                    aria-label={isExternal ? 'DPP détecté' : 'Passeport détecté'}
                     initial={{ y: '100%' }}
                     animate={{ y: 0 }}
                     exit={{ y: '100%' }}
                     transition={SPRING_OVERLAY}
                 >
-                    {/* Drag handle */}
                     <div
                         className="bg-border/60 absolute left-1/2 top-2 h-1 w-10 -translate-x-1/2 rounded-full"
                         aria-hidden
@@ -83,19 +106,15 @@ export function ScanResultModal({ passport, artisan, score, onClose, onOpenPassp
                         <X className="h-3.5 w-3.5" />
                     </button>
 
-                    {/* Hero - grade circle géant 96px */}
                     <div className="flex flex-col items-center gap-3 pt-2">
                         <p className="text-muted-foreground font-mono text-[10px] uppercase tracking-[0.2em]">
-                            Passeport détecté
+                            {captionTop}
                         </p>
                         <div className="relative h-24 w-24">
-                            {/* Glow */}
                             <span
                                 className={`absolute inset-0 -z-10 rounded-full opacity-50 blur-2xl ${gradeBg}`}
                                 aria-hidden
                             />
-                            {/* IrisGrade XL = 90px - on étire à 96px (h-24/w-24) via className et on impose
-                                la border 2px dans la couleur du grade (override du `border-transparent` de tone=solid). */}
                             <IrisGrade
                                 grade={score.grade}
                                 size="xl"
@@ -105,27 +124,21 @@ export function ScanResultModal({ passport, artisan, score, onClose, onOpenPassp
                             />
                         </div>
                         <div className="flex flex-col items-center gap-0.5">
-                            <p className="text-foreground text-center text-base font-semibold">
-                                {passport.garment.reference}
-                            </p>
-                            <p className="text-muted-foreground text-center text-xs">
-                                {artisan?.atelierName ?? '-'}
-                                {artisan?.city ? ` · ${artisan.city}` : ''}
-                            </p>
+                            <p className="text-foreground text-center text-base font-semibold">{productLabel}</p>
+                            <p className="text-muted-foreground text-center text-xs">{subLabel}</p>
                             <p className="text-muted-foreground/80 mt-1 text-[11px] font-medium uppercase tracking-[0.15em]">
                                 {gradeLabel}
                             </p>
                         </div>
                     </div>
 
-                    {/* CTAs */}
                     <div className="flex flex-col gap-2">
                         <button
                             type="button"
-                            onClick={() => onOpenPassport(passport.id)}
+                            onClick={onOpen}
                             className="bg-foreground text-primary-foreground inline-flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-semibold"
                         >
-                            Voir le passeport
+                            {ctaLabel}
                             <ArrowRight className="h-4 w-4" />
                         </button>
                         <button

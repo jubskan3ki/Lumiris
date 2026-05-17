@@ -1,0 +1,110 @@
+// Fixtures DPP non-LUMIRIS lus par VISION (cahier §3 - scanner universel).
+// Multi-secteurs : électronique, électroménager, batterie, mobilier - couvrent les
+// principales catégories ESPR pour exercer la grille adaptée.
+
+import type { ExternalDpp } from '@lumiris/types';
+
+export const mockExternalDpps: readonly ExternalDpp[] = [
+    {
+        source: 'external-espr',
+        emitter: 'Fairphone B.V.',
+        gtin: '8718819372042',
+        serial: 'FP5-A1-2024-019283',
+        sector: 'electronics',
+        productName: 'Fairphone 5',
+        brand: 'Fairphone',
+        manufacturedAt: '2024-08-12T00:00:00Z',
+        origin: { country: 'NL', region: 'Amsterdam' },
+        materials: [
+            { name: 'Plastique recyclé (boîtier)', percentage: 42, recycledShare: 70 },
+            { name: 'Aluminium (cadre)', percentage: 18, recycledShare: 35 },
+            { name: 'Verre Gorilla', percentage: 12 },
+            { name: 'Métaux rares (lithium, cobalt, étain Fairtrade)', percentage: 18, recycledShare: 20 },
+            { name: 'Autres composants', percentage: 10 },
+        ],
+        certifications: [
+            { name: 'Fairtrade Gold', issuer: 'Fairtrade International', validUntil: '2027-08-12T00:00:00Z' },
+            { name: 'TCO Certified', issuer: 'TCO Development', validUntil: '2026-12-31T00:00:00Z' },
+        ],
+        warrantyMonths: 60,
+        repairabilityIndex: 9.3,
+        carbonFootprintKg: 42.4,
+    },
+    {
+        source: 'external-espr',
+        emitter: 'BSH Hausgeräte GmbH',
+        gtin: '4242005189203',
+        serial: 'WAU28T64FF-082341',
+        sector: 'appliance',
+        productName: 'Lave-linge i-DOS 9 kg',
+        brand: 'Bosch',
+        manufacturedAt: '2025-03-04T00:00:00Z',
+        origin: { country: 'DE', region: 'Bavière' },
+        materials: [
+            { name: 'Acier (cuve, châssis)', percentage: 65, recycledShare: 28 },
+            { name: 'Plastiques techniques', percentage: 22, recycledShare: 12 },
+            { name: 'Cuivre / aluminium (moteur)', percentage: 8 },
+            { name: 'Verre & élastomères', percentage: 5 },
+        ],
+        certifications: [
+            { name: 'EU Energy Label A', issuer: 'European Commission' },
+            { name: 'Blue Angel', issuer: 'RAL gGmbH', validUntil: '2028-03-04T00:00:00Z' },
+        ],
+        warrantyMonths: 24,
+        repairabilityIndex: 7.8,
+        carbonFootprintKg: 510,
+    },
+    {
+        source: 'external-espr',
+        emitter: 'VanMoof Cycle B.V.',
+        gtin: '8718868001934',
+        serial: 'S5-BAT-2024-771203',
+        sector: 'battery',
+        productName: 'Batterie Li-Ion vélo électrique',
+        brand: 'VanMoof',
+        manufacturedAt: '2024-11-22T00:00:00Z',
+        origin: { country: 'TW', region: 'Taoyuan' },
+        materials: [
+            { name: 'Lithium (cathode)', percentage: 22, recycledShare: 8 },
+            { name: 'Graphite (anode)', percentage: 18 },
+            { name: 'Cobalt', percentage: 6 },
+            { name: 'Nickel', percentage: 14 },
+            { name: 'Aluminium (boîtier)', percentage: 25, recycledShare: 40 },
+            { name: 'Électrolyte / séparateur', percentage: 15 },
+        ],
+        certifications: [
+            { name: 'UN 38.3', issuer: 'UN Test Lab', validUntil: '2027-11-22T00:00:00Z' },
+            { name: 'IEC 62133-2', issuer: 'TÜV Rheinland', validUntil: '2027-05-15T00:00:00Z' },
+        ],
+        warrantyMonths: 24,
+        repairabilityIndex: 4.2,
+        carbonFootprintKg: 78,
+    },
+    {
+        source: 'external-espr',
+        emitter: 'Tikamoon SA',
+        gtin: '3760241730019',
+        serial: 'TBL-CHE-FR-002841',
+        sector: 'furniture',
+        productName: 'Table de salle à manger en chêne massif',
+        brand: 'Tikamoon',
+        manufacturedAt: '2025-07-09T00:00:00Z',
+        origin: { country: 'FR', region: 'Bourgogne' },
+        materials: [
+            { name: 'Chêne massif PEFC', percentage: 92 },
+            { name: 'Vernis à base d’eau', percentage: 5 },
+            { name: 'Visserie acier', percentage: 3, recycledShare: 30 },
+        ],
+        certifications: [
+            { name: 'PEFC', issuer: 'PEFC France', validUntil: '2028-07-09T00:00:00Z' },
+            { name: 'NF Environnement Ameublement', issuer: 'AFNOR Certification', validUntil: '2027-04-30T00:00:00Z' },
+        ],
+        warrantyMonths: 60,
+        repairabilityIndex: 8.5,
+        carbonFootprintKg: 96,
+    },
+];
+
+export function mockExternalDppByGtin(gtin: string): ExternalDpp | undefined {
+    return mockExternalDpps.find((dpp) => dpp.gtin === gtin);
+}

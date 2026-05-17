@@ -1,5 +1,7 @@
 'use client';
 
+import { ExternalLink, Printer } from 'lucide-react';
+import Link from 'next/link';
 import { QRCodeCanvas } from 'qrcode.react';
 import type { Passport } from '@lumiris/types';
 import { Button } from '@lumiris/ui/components/button';
@@ -41,10 +43,18 @@ export function QrModal({ passport, onClose }: QrModalProps) {
                         {passport.gs1.verificationUrl}
                     </p>
                 </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={onClose}>
-                        Fermer
+                <DialogFooter className="flex flex-row flex-wrap justify-end gap-2">
+                    <Button variant="ghost" asChild>
+                        <Link href={`/preview/${passport.id}`} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> Aperçu client
+                        </Link>
                     </Button>
+                    <Button variant="outline" asChild>
+                        <Link href={`/print/${passport.id}`} target="_blank">
+                            <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimer l&apos;étiquette
+                        </Link>
+                    </Button>
+                    <Button onClick={onClose}>Fermer</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

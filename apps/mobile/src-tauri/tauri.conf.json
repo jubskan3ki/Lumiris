@@ -31,8 +31,8 @@
         "active": true,
         "targets": "all",
         "category": "Lifestyle",
-        "shortDescription": "Lumiris - the X-Ray transparency scanner.",
-        "longDescription": "LUMIRIS Mobile turns your phone into a transparency lens: scan a garment, reveal its DPP, and read its 50/30/20 IrisScore.",
+        "shortDescription": "Lumiris Vision - le scanner universel de DPP européens.",
+        "longDescription": "LUMIRIS Vision transforme votre téléphone en lentille de transparence : scannez n'importe quel passeport numérique de produit (textile, électronique, électroménager, mobilier, batterie) et lisez son score Iris V2 sur quatre piliers (40/25/25/10).",
         "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
         "linux": {
             "deb": {

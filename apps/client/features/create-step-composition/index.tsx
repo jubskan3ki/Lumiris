@@ -1,9 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
-import type { Fiber, Material } from '@lumiris/types';
-import { mockCertificates, mockInvoices } from '@lumiris/mock-data';
+import Link from 'next/link';
+import { Plus, ScanLine, Trash2 } from 'lucide-react';
+import { getEffectiveStatus } from '@lumiris/types';
+import type { CertificationRef, Fiber, Material } from '@lumiris/types';
+import { mockInvoices, mockSuppliers } from '@lumiris/mock-data';
+import { COUNTRIES } from '@lumiris/utils';
 import { Alert, AlertDescription, AlertTitle } from '@lumiris/ui/components/alert';
 import { Badge } from '@lumiris/ui/components/badge';
 import { Button } from '@lumiris/ui/components/button';
@@ -13,9 +16,12 @@ import { Label } from '@lumiris/ui/components/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@lumiris/ui/components/select';
 import { WizardStepFrame } from '@/features/wizard-shell/step-frame';
 import { useStepNavigation } from '@/features/wizard-shell/use-step-navigation';
+import { InvoiceScanPicker } from '@/features/invoice-scan-picker';
+import { mergeMaterials } from '@/features/invoice-scan-picker/merge';
+import { useCertificatesForArtisan } from '@/lib/certificates-store';
+import { useCurrentArtisan } from '@/lib/current-artisan';
 import { useDraftStore } from '@/lib/draft-store';
-import { COUNTRIES } from '@/lib/countries';
-import { SUPPLIERS } from '@/lib/suppliers';
+import { validateStep } from './schema';
 
 const FIBERS: ReadonlyArray<{ value: Fiber; label: string }> = [
     { value: 'wool', label: 'Laine' },
@@ -23,7 +29,6 @@ const FIBERS: ReadonlyArray<{ value: Fiber; label: string }> = [
     { value: 'cotton', label: 'Coton' },
     { value: 'silk', label: 'Soie' },
     { value: 'hemp', label: 'Chanvre' },
-    { value: 'leather', label: 'Cuir' },
     { value: 'cashmere', label: 'Cachemire' },
     { value: 'recycled-polyester', label: 'Polyester recyclé' },
     { value: 'other', label: 'Autre' },
@@ -43,8 +48,22 @@ export function CreateStepComposition({ draftId }: { draftId: string }) {
     const draft = useDraftStore((s) => s.drafts[draftId]);
     const setMaterials = useDraftStore((s) => s.setMaterials);
     const { goNext, goTo } = useStepNavigation(draftId);
+    const artisan = useCurrentArtisan();
+    const artisanCerts = useCertificatesForArtisan(artisan.id);
+
+    const now = useMemo(() => new Date(), []);
+    const availableCerts = useMemo<CertificationRef[]>(
+        () =>
+            artisanCerts.filter((c) => {
+                if (getEffectiveStatus(c, now) === 'Expired') return false;
+                if (c.kind === 'CUSTOM' && !c.customName) return false;
+                return true;
+            }),
+        [artisanCerts, now],
+    );
 
     const [rows, setRows] = useState<Material[]>(draft?.materials.length ? [...draft.materials] : [newRow()]);
+    const [scanOpen, setScanOpen] = useState(false);
 
     useEffect(() => {
         if (draft && draft.materials.length > 0) setRows([...draft.materials]);
@@ -53,12 +72,31 @@ export function CreateStepComposition({ draftId }: { draftId: string }) {
     const total = useMemo(() => rows.reduce((sum, r) => sum + (Number(r.percentage) || 0), 0), [rows]);
     const sumValid = Math.abs(total - 100) < 1;
 
+    const validation = useMemo(
+        () =>
+            validateStep({
+                garment: draft?.garment ?? {
+                    kind: 'sweater',
+                    reference: '',
+                    mainPhotoUrl: '',
+                    dimensions: {},
+                    retailPrice: 0,
+                    currency: 'EUR',
+                },
+                materials: rows,
+                steps: draft?.steps ?? [],
+                certifications: draft?.certifications ?? [],
+                warranty: draft?.warranty ?? { durationMonths: 0, terms: '' },
+            }),
+        [rows, draft],
+    );
+    const nextMissing = validation.ok ? [] : validation.missing;
+
     const updateRow = (idx: number, patch: Partial<Material>) => {
         setRows((rs) => rs.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
     };
 
     const handleNext = () => {
-        if (!sumValid) return;
         setMaterials(draftId, rows);
         goNext('composition', 'invoice');
     };
@@ -71,7 +109,7 @@ export function CreateStepComposition({ draftId }: { draftId: string }) {
             subtitle="La somme des pourcentages doit valoir 100. Chaque fibre référence un fournisseur et un pays."
             onPrev={() => goTo('identification')}
             onNext={handleNext}
-            nextDisabled={!sumValid}
+            nextMissing={nextMissing}
             contentClassName="space-y-4"
         >
             {!sumValid && (
@@ -81,12 +119,40 @@ export function CreateStepComposition({ draftId }: { draftId: string }) {
                 </Alert>
             )}
 
+            <div className="border-lumiris-emerald/30 bg-lumiris-emerald/5 flex flex-col gap-2 rounded-lg border border-dashed p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p className="text-foreground text-sm font-medium">Accélérateur — pré-remplir depuis une facture</p>
+                    <p className="text-muted-foreground text-[11px]">
+                        Scannez une facture fournisseur pour générer une amorce de composition (extraction simulée en
+                        mode démo).
+                    </p>
+                </div>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setScanOpen(true)}
+                    className="border-lumiris-emerald/40 text-lumiris-emerald hover:bg-lumiris-emerald/10 shrink-0"
+                >
+                    <ScanLine className="mr-1.5 h-3.5 w-3.5" />
+                    Scanner une facture
+                </Button>
+            </div>
+
+            <InvoiceScanPicker
+                artisanId={artisan.id}
+                open={scanOpen}
+                onOpenChange={setScanOpen}
+                onInject={(extracted) => setRows((cur) => mergeMaterials(cur, extracted))}
+            />
+
             <div className="space-y-3">
                 {rows.map((row, idx) => (
                     <FiberRow
                         key={idx}
                         row={row}
                         idx={idx}
+                        availableCerts={availableCerts}
                         onChange={(patch) => updateRow(idx, patch)}
                         onRemove={() => setRows((rs) => rs.filter((_, i) => i !== idx))}
                     />
@@ -103,13 +169,14 @@ export function CreateStepComposition({ draftId }: { draftId: string }) {
 interface FiberRowProps {
     row: Material;
     idx: number;
+    availableCerts: readonly CertificationRef[];
     onChange: (patch: Partial<Material>) => void;
     onRemove: () => void;
 }
 
-function FiberRow({ row, idx, onChange, onRemove }: FiberRowProps) {
+function FiberRow({ row, idx, availableCerts, onChange, onRemove }: FiberRowProps) {
     const linkedInvoices = mockInvoices.filter((i) => i.supplierId === row.supplierId);
-    const supplierMatchesFiber = SUPPLIERS.filter((s) => s.fibers.includes(row.fiber));
+    const supplierMatchesFiber = mockSuppliers.filter((s) => s.fibers.includes(row.fiber));
 
     return (
         <div className="border-border bg-muted/30 space-y-3 rounded-lg border p-4">
@@ -161,7 +228,7 @@ function FiberRow({ row, idx, onChange, onRemove }: FiberRowProps) {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="__none">- Aucun</SelectItem>
-                            {(supplierMatchesFiber.length > 0 ? supplierMatchesFiber : SUPPLIERS).map((s) => (
+                            {(supplierMatchesFiber.length > 0 ? supplierMatchesFiber : mockSuppliers).map((s) => (
                                 <SelectItem key={s.id} value={s.id}>
                                     {s.name}
                                 </SelectItem>
@@ -190,24 +257,35 @@ function FiberRow({ row, idx, onChange, onRemove }: FiberRowProps) {
                 <div className="space-y-1.5">
                     <Label>Certifications fibre</Label>
                     <div className="bg-card space-y-1.5 rounded-md border p-2">
-                        {mockCertificates.slice(0, 6).map((c) => {
-                            const checked = row.certifications.some((rc) => rc.id === c.id);
-                            return (
-                                <label key={c.id} className="flex items-center gap-2 text-xs">
-                                    <Checkbox
-                                        checked={checked}
-                                        onCheckedChange={(v) => {
-                                            const next = v
-                                                ? [...row.certifications, c]
-                                                : row.certifications.filter((rc) => rc.id !== c.id);
-                                            onChange({ certifications: next });
-                                        }}
-                                    />
-                                    <span className="text-foreground">{c.kind}</span>
-                                    <span className="text-muted-foreground truncate">- {c.scope ?? c.issuer}</span>
-                                </label>
-                            );
-                        })}
+                        {availableCerts.length === 0 ? (
+                            <p className="text-muted-foreground px-1 py-0.5 text-xs">
+                                Aucun certificat d’atelier disponible — ajoutez-en depuis{' '}
+                                <Link href="/certifications" className="text-foreground underline">
+                                    Mes certifications
+                                </Link>
+                                .
+                            </p>
+                        ) : (
+                            availableCerts.map((c) => {
+                                const checked = row.certifications.some((rc) => rc.id === c.id);
+                                const label = c.kind === 'CUSTOM' ? (c.customName ?? c.kind) : c.kind;
+                                return (
+                                    <label key={c.id} className="flex items-center gap-2 text-xs">
+                                        <Checkbox
+                                            checked={checked}
+                                            onCheckedChange={(v) => {
+                                                const next = v
+                                                    ? [...row.certifications, c]
+                                                    : row.certifications.filter((rc) => rc.id !== c.id);
+                                                onChange({ certifications: next });
+                                            }}
+                                        />
+                                        <span className="text-foreground">{label}</span>
+                                        <span className="text-muted-foreground truncate">- {c.scope ?? c.issuer}</span>
+                                    </label>
+                                );
+                            })
+                        )}
                     </div>
                 </div>
                 <div className="space-y-1.5">

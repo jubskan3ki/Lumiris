@@ -11,7 +11,9 @@
         "./journal": "./src/journal.ts",
         "./regulatory": "./src/regulatory.ts",
         "./artisans": "./src/artisans.ts",
-        "./retoucheurs": "./src/retoucheurs.ts"
+        "./retoucheurs": "./src/retoucheurs.ts",
+        "./suppliers": "./src/suppliers.ts",
+        "./team": "./src/team.ts"
     },
     "scripts": {
         "lint": "eslint src",

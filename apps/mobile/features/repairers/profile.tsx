@@ -16,6 +16,12 @@ const SPECIALITY_LABEL: Record<RepairerSpecialty, string> = {
     'shoe-repair': 'Cordonnerie',
     leather: 'Cuir',
     lining: 'Doublure',
+    'electronics-repair': 'Électronique',
+    'phone-repair': 'Téléphonie',
+    'computer-repair': 'Informatique',
+    cabinetmaking: 'Ébénisterie',
+    upholstery: 'Tapisserie',
+    'appliance-repair': 'Électroménager',
 };
 
 interface RepairerProfileProps {
@@ -128,20 +134,28 @@ export function RepairerProfile({ repairer }: RepairerProfileProps) {
                         Demander une retouche
                     </Link>
 
-                    <div className="grid grid-cols-2 gap-2">
-                        <a
-                            href="tel:+33000000000"
-                            className="border-border bg-card text-foreground inline-flex items-center justify-center gap-2 rounded-full border py-2.5 text-xs font-medium"
+                    {repairer.phone || repairer.email ? (
+                        <div
+                            className={`grid gap-2 ${repairer.phone && repairer.email ? 'grid-cols-2' : 'grid-cols-1'}`}
                         >
-                            <Phone className="h-3.5 w-3.5" /> Appeler
-                        </a>
-                        <a
-                            href={`mailto:contact@${repairer.id}.fr`}
-                            className="border-border bg-card text-foreground inline-flex items-center justify-center gap-2 rounded-full border py-2.5 text-xs font-medium"
-                        >
-                            <Mail className="h-3.5 w-3.5" /> Email
-                        </a>
-                    </div>
+                            {repairer.phone ? (
+                                <a
+                                    href={`tel:${repairer.phone}`}
+                                    className="border-border bg-card text-foreground inline-flex items-center justify-center gap-2 rounded-full border py-2.5 text-xs font-medium"
+                                >
+                                    <Phone className="h-3.5 w-3.5" /> Appeler
+                                </a>
+                            ) : null}
+                            {repairer.email ? (
+                                <a
+                                    href={`mailto:${repairer.email}`}
+                                    className="border-border bg-card text-foreground inline-flex items-center justify-center gap-2 rounded-full border py-2.5 text-xs font-medium"
+                                >
+                                    <Mail className="h-3.5 w-3.5" /> Email
+                                </a>
+                            ) : null}
+                        </div>
+                    ) : null}
 
                     <p className="text-muted-foreground/80 mt-1 text-center text-[10px]">
                         Affiliation LUMIRIS - commission 4-10 € ou 8 % du devis si la demande aboutit.

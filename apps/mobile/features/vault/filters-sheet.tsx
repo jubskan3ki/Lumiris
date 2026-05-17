@@ -7,16 +7,18 @@ import { RadioGroup, RadioGroupItem } from '@lumiris/ui/components/radio-group';
 import { cn } from '@lumiris/ui/lib/cn';
 import type { GarmentKind } from '@lumiris/types';
 import { KIND_LABEL_FR } from '@lumiris/utils';
+import { SECTOR_LABEL_FR, type WardrobeSector } from '@/lib/wardrobe-storage';
 
 export type VaultSort = 'recent' | 'oldest' | 'grade-desc' | 'price-asc' | 'price-desc';
 
 export interface VaultFilters {
+    sectors: readonly WardrobeSector[];
     kinds: readonly GarmentKind[];
     brands: readonly string[];
     sort: VaultSort;
 }
 
-export const VAULT_DEFAULT_FILTERS: VaultFilters = { kinds: [], brands: [], sort: 'recent' };
+export const VAULT_DEFAULT_FILTERS: VaultFilters = { sectors: [], kinds: [], brands: [], sort: 'recent' };
 
 const SORT_OPTIONS: ReadonlyArray<{ value: VaultSort; label: string }> = [
     { value: 'recent', label: 'Récents' },
@@ -29,6 +31,7 @@ const SORT_OPTIONS: ReadonlyArray<{ value: VaultSort; label: string }> = [
 interface FiltersSheetProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    availableSectors: readonly WardrobeSector[];
     availableKinds: readonly GarmentKind[];
     availableBrands: readonly string[];
     value: VaultFilters;
@@ -38,6 +41,7 @@ interface FiltersSheetProps {
 export function FiltersSheet({
     open,
     onOpenChange,
+    availableSectors,
     availableKinds,
     availableBrands,
     value,
@@ -50,11 +54,24 @@ export function FiltersSheet({
         if (open) setDraft(value);
     }, [open, value]);
 
+    const sortedSectors = useMemo(
+        () => [...availableSectors].sort((a, b) => SECTOR_LABEL_FR[a].localeCompare(SECTOR_LABEL_FR[b])),
+        [availableSectors],
+    );
     const sortedKinds = useMemo(
         () => [...availableKinds].sort((a, b) => KIND_LABEL_FR[a].localeCompare(KIND_LABEL_FR[b])),
         [availableKinds],
     );
     const sortedBrands = useMemo(() => [...availableBrands].sort((a, b) => a.localeCompare(b)), [availableBrands]);
+
+    const toggleSector = (sector: WardrobeSector) => {
+        setDraft((prev) => ({
+            ...prev,
+            sectors: prev.sectors.includes(sector)
+                ? prev.sectors.filter((s) => s !== sector)
+                : [...prev.sectors, sector],
+        }));
+    };
 
     const toggleKind = (kind: GarmentKind) => {
         setDraft((prev) => ({
@@ -77,17 +94,50 @@ export function FiltersSheet({
         onOpenChange(false);
     };
 
+    // La section « Catégorie textile » n'a de sens que si le secteur textile est dans
+    // l'inventaire visible. Si l'utilisateur a explicitement filtré sur d'autres secteurs,
+    // on la masque aussi.
+    const textileScope = sortedSectors.includes('textile');
+    const sectorFilteredOutTextile = draft.sectors.length > 0 && !draft.sectors.includes('textile');
+    const showKindsSection = textileScope && sortedKinds.length > 0 && !sectorFilteredOutTextile;
+
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent side="bottom" className="mx-auto max-h-[85vh] max-w-md overflow-y-auto rounded-t-2xl pb-8">
                 <SheetHeader className="pb-3 pt-5">
                     <SheetTitle className="text-foreground text-base">Filtres &amp; tri</SheetTitle>
-                    <SheetDescription>Affine ta garde-robe.</SheetDescription>
+                    <SheetDescription>Affine ton inventaire.</SheetDescription>
                 </SheetHeader>
 
                 <div className="flex flex-col gap-6 px-4">
-                    {sortedKinds.length > 0 ? (
-                        <Section title="Catégorie">
+                    {sortedSectors.length > 1 ? (
+                        <Section title="Secteur">
+                            <div className="flex flex-wrap gap-2">
+                                {sortedSectors.map((sector) => {
+                                    const active = draft.sectors.includes(sector);
+                                    return (
+                                        <button
+                                            key={sector}
+                                            type="button"
+                                            onClick={() => toggleSector(sector)}
+                                            aria-pressed={active}
+                                            className={cn(
+                                                'rounded-full border px-3 py-1.5 text-xs font-medium transition-colors',
+                                                active
+                                                    ? 'border-lumiris-cyan bg-lumiris-cyan/10 text-lumiris-cyan'
+                                                    : 'border-border bg-card text-foreground/80',
+                                            )}
+                                        >
+                                            {SECTOR_LABEL_FR[sector]}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </Section>
+                    ) : null}
+
+                    {showKindsSection ? (
+                        <Section title="Catégorie textile">
                             <ul className="grid grid-cols-2 gap-2">
                                 {sortedKinds.map((kind) => {
                                     const checked = draft.kinds.includes(kind);

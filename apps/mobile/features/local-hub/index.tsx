@@ -77,7 +77,9 @@ export function LocalHub({ artisans, repairers }: LocalHubProps) {
             <header className="flex shrink-0 items-start justify-between gap-3 px-5 pb-4 pt-12">
                 <div className="min-w-0">
                     <h1 className="text-foreground text-xl font-bold">Local</h1>
-                    <p className="text-muted-foreground text-sm">Ateliers et retoucheurs partenaires pres de toi</p>
+                    <p className="text-muted-foreground text-sm">
+                        Ateliers et retoucheurs/réparateurs partenaires près de toi
+                    </p>
                 </div>
                 <ViewToggle value={view} onChange={handleViewChange} />
             </header>

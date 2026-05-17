@@ -17,6 +17,12 @@ const SPECIALITY_LABEL: Record<RepairerSpecialty, string> = {
     'shoe-repair': 'Cordonnerie',
     leather: 'Cuir',
     lining: 'Doublure',
+    'electronics-repair': 'Électronique',
+    'phone-repair': 'Téléphonie',
+    'computer-repair': 'Informatique',
+    cabinetmaking: 'Ébénisterie',
+    upholstery: 'Tapisserie',
+    'appliance-repair': 'Électroménager',
 };
 
 const MAX_DESC = 500;
@@ -33,7 +39,10 @@ export function RepairRequestForm({ repairer, prefillPassportId }: RepairRequest
     const wardrobe = useWardrobe();
 
     const wardrobePassports = useMemo(
-        () => wardrobe.map((entry) => mockPassportById(entry.passportId)).filter((p): p is Passport => p !== undefined),
+        () =>
+            wardrobe
+                .map((item) => (item.kind === 'lumiris-passport' ? mockPassportById(item.passportId) : undefined))
+                .filter((p): p is Passport => p !== undefined),
         [wardrobe],
     );
 

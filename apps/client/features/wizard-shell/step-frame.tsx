@@ -13,7 +13,8 @@ interface WizardStepFrameProps {
     onPrev?: () => void;
     onNext?: () => void;
     nextLabel?: string;
-    nextDisabled?: boolean;
+    /** Missing field labels - when non-empty disables Next and surfaces tooltip. */
+    nextMissing?: string[];
     contentClassName?: string;
     children: React.ReactNode;
 }
@@ -26,7 +27,7 @@ export function WizardStepFrame({
     onPrev,
     onNext,
     nextLabel,
-    nextDisabled,
+    nextMissing,
     contentClassName,
     children,
 }: WizardStepFrameProps) {
@@ -37,7 +38,7 @@ export function WizardStepFrame({
             onPrev={onPrev}
             onNext={onNext}
             nextLabel={nextLabel}
-            nextDisabled={nextDisabled}
+            nextMissing={nextMissing}
         >
             <Card>
                 <CardHeader>

@@ -19,7 +19,17 @@ export {
     featuredPassport,
 } from './passports';
 export { mockKpi, type MockKpi } from './kpi';
-export { mockAdmins, mockTeamActivity, type MockTeamActivityEntry } from './team';
+export {
+    mockAdmins,
+    mockTeamActivity,
+    generateInitialTeam,
+    TIER_SEATS,
+    type MockTeamActivityEntry,
+    type TeamMember,
+    type TeamMemberRole,
+    type TeamMemberStatus,
+} from './team';
+export { mockSuppliers, type SupplierRef } from './suppliers';
 export { mockProducts, mockProductById, sampleProduct, type MockProduct, type ProductCategory } from './products';
 export { mockAdminUsers } from './admin-users';
 export { mockAdminAuditLog } from './admin-audit-log';
@@ -56,3 +66,4 @@ export {
     type AffiliationMonthBreakdown,
 } from './affiliation';
 export { mockBlogArticles, blogArticleById, blogArticlesByArtisan } from './blog';
+export { mockExternalDpps, mockExternalDppByGtin } from './external-dpp';

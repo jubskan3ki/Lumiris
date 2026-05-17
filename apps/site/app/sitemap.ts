@@ -11,7 +11,11 @@ const STATIC_PATHS: ReadonlyArray<{ path: string; priority: number; changeFreque
     { path: '/artisans', priority: 0.9, changeFrequency: 'weekly' },
     { path: '/journal', priority: 0.8, changeFrequency: 'weekly' },
     { path: '/reglementation', priority: 0.8, changeFrequency: 'monthly' },
+    { path: '/atelier', priority: 0.7, changeFrequency: 'monthly' },
     { path: '/charte-independance', priority: 0.6, changeFrequency: 'monthly' },
+    { path: '/mentions-legales', priority: 0.3, changeFrequency: 'monthly' },
+    { path: '/confidentialite', priority: 0.3, changeFrequency: 'monthly' },
+    { path: '/cgu', priority: 0.3, changeFrequency: 'monthly' },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -62,8 +62,9 @@ export function DiscoverForYou() {
 
     const scannedKinds = useMemo(() => {
         const set = new Set<string>();
-        for (const entry of wardrobe) {
-            const passport = mockPassports.find((p) => p.id === entry.passportId);
+        for (const item of wardrobe) {
+            if (item.kind !== 'lumiris-passport') continue;
+            const passport = mockPassports.find((p) => p.id === item.passportId);
             if (passport) set.add(passport.garment.kind);
         }
         return set;

@@ -37,7 +37,7 @@ interface DraftPassport {
     steps: ProductionStep[];
     certifications: CertificationRef[];
     warranty: PassportWarranty;
-    /** Last completed wizard step - used to resume from /create/[id]. */
+    /** Dernière étape complétée — point de reprise depuis /create/[id]. */
     lastStep?: WizardStep;
 }
 

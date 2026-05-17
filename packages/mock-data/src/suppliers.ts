@@ -1,5 +1,4 @@
-// Annuaire fournisseurs - partagé étapes 5.2/5.3, sera servi par apps/api en V5.
-interface SupplierRef {
+export interface SupplierRef {
     id: string;
     name: string;
     /** Pays ISO 3166-1 alpha-2. */
@@ -7,11 +6,10 @@ interface SupplierRef {
     fibers: readonly string[];
 }
 
-export const SUPPLIERS: readonly SupplierRef[] = [
+export const mockSuppliers: readonly SupplierRef[] = [
     { id: 'sup-filature-bretagne', name: 'Filature de Bretagne', country: 'FR', fibers: ['linen'] },
     { id: 'sup-laine-arles', name: "Coopérative Laine d'Arles", country: 'FR', fibers: ['wool'] },
     { id: 'sup-soie-cevennes', name: 'Magnanerie des Cévennes', country: 'FR', fibers: ['silk'] },
-    { id: 'sup-tannerie-roux', name: 'Tannerie Roux', country: 'FR', fibers: ['leather'] },
     {
         id: 'sup-coton-bio-belgique',
         name: 'BioCotton BV - Gent',

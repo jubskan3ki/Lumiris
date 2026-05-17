@@ -5,18 +5,23 @@
 // entre onglets via l'event `storage`.
 
 import { useSyncExternalStore } from 'react';
-import { STORAGE_KEYS } from '../storage-keys';
+import { readUser } from '../auth/storage';
+import { USER_KEYS, userScopedKey } from '../storage-keys';
 
-const KEY = STORAGE_KEYS.compare;
 const EVENT = 'lumiris:compare-changed';
+const USER_CHANGED = 'lumiris:user-changed';
 const MAX = 2;
 
 const subscribers = new Set<() => void>();
 
+function currentKey(): string {
+    return userScopedKey(readUser()?.id ?? null, USER_KEYS.compare);
+}
+
 function read(): readonly string[] {
     if (typeof window === 'undefined') return EMPTY;
     try {
-        const raw = window.localStorage.getItem(KEY);
+        const raw = window.localStorage.getItem(currentKey());
         if (!raw) return EMPTY;
         const parsed = JSON.parse(raw);
         if (!Array.isArray(parsed)) return EMPTY;
@@ -29,10 +34,11 @@ function read(): readonly string[] {
 
 function write(ids: readonly string[]): void {
     if (typeof window === 'undefined') return;
+    const key = currentKey();
     if (ids.length === 0) {
-        window.localStorage.removeItem(KEY);
+        window.localStorage.removeItem(key);
     } else {
-        window.localStorage.setItem(KEY, JSON.stringify(ids));
+        window.localStorage.setItem(key, JSON.stringify(ids));
     }
     notify();
 }
@@ -86,12 +92,14 @@ function subscribe(cb: () => void): () => void {
     if (typeof window !== 'undefined') {
         window.addEventListener(EVENT, cb);
         window.addEventListener('storage', cb);
+        window.addEventListener(USER_CHANGED, cb);
     }
     return () => {
         subscribers.delete(cb);
         if (typeof window !== 'undefined') {
             window.removeEventListener(EVENT, cb);
             window.removeEventListener('storage', cb);
+            window.removeEventListener(USER_CHANGED, cb);
         }
     };
 }

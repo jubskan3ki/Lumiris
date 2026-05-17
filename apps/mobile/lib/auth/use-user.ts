@@ -8,11 +8,16 @@ import { readUser, writeUser } from './storage';
 import type { MockUser } from './types';
 
 const EVENT = 'lumiris:auth-changed';
+// Évent dédié écouté par les hooks per-user pour invalider leur cache et relire
+// avec la bonne clé scope `lumiris.users.{userId}.{suffix}`. Distinct d'`auth-changed`
+// car il porte une sémantique forte : "le scope localStorage vient de changer".
+const USER_CHANGED_EVENT = 'lumiris:user-changed';
 const subscribers = new Set<() => void>();
 
 function notify(): void {
     if (typeof window === 'undefined') return;
     window.dispatchEvent(new CustomEvent(EVENT));
+    window.dispatchEvent(new CustomEvent(USER_CHANGED_EVENT));
     subscribers.forEach((cb) => cb());
 }
 

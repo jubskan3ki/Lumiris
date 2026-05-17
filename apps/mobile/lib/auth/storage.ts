@@ -1,10 +1,10 @@
 // Persistance mock du user (clé `lumiris.auth.user.v1`). Validation runtime
 // minimale - remplacé par un vrai endpoint quand l'API arrive.
 
-import { STORAGE_KEYS } from '../storage-keys';
+import { DEVICE_KEYS } from '../storage-keys';
 import type { MockUser } from './types';
 
-const KEY = STORAGE_KEYS.authUser;
+const KEY = DEVICE_KEYS.authUser;
 
 function isMockUser(value: unknown): value is MockUser {
     if (!value || typeof value !== 'object') return false;

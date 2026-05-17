@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { KeyRound } from 'lucide-react';
 import { mockArtisanById } from '@lumiris/mock-data';
-import type { Passport } from '@lumiris/types';
-import { scorePassport } from '@/lib/passport-score';
+import type { ExternalDpp, Passport } from '@lumiris/types';
+import { usePassportScore } from '@/lib/iris/use-passport-score';
+import { computeExternalScore } from '@/lib/iris/external-score';
 import { incrementScanCounter } from '@/lib/scan-counter';
 import { processVideoFrame } from '@/lib/scan/qr-processor';
 import { getCameraPermissionState, hasSeenCameraPrompt, markCameraPromptSeen } from '@/lib/camera/permission-storage';
@@ -38,7 +39,11 @@ export function ScanPassport() {
 
     const [status, setStatus] = useState<IrisRingStatus>('idle');
     const [phase, setPhase] = useState<'pre-prompt' | 'live'>('live');
-    const [match, setMatch] = useState<{ passport: Passport; raw: string } | null>(null);
+    const [match, setMatch] = useState<
+        | { kind: 'lumiris-passport'; passport: Passport; raw: string }
+        | { kind: 'external-dpp'; dpp: ExternalDpp; raw: string }
+        | null
+    >(null);
     const [unknownRaw, setUnknownRaw] = useState<string>('');
 
     const stopCamera = useCallback(() => {
@@ -86,7 +91,15 @@ export function ScanPassport() {
             if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(60);
             incrementScanCounter();
             stopCamera();
-            setMatch({ passport: result.passport, raw: result.raw });
+            setMatch({ kind: 'lumiris-passport', passport: result.passport, raw: result.raw });
+            setStatus('matched');
+            return;
+        }
+        if (result.kind === 'external') {
+            if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(60);
+            incrementScanCounter();
+            stopCamera();
+            setMatch({ kind: 'external-dpp', dpp: result.dpp, raw: result.raw });
             setStatus('matched');
             return;
         }
@@ -169,13 +182,34 @@ export function ScanPassport() {
         [router, stopCamera],
     );
 
+    const openExternalDpp = useCallback(
+        (gtin: string) => {
+            stopCamera();
+            router.push(`/dpp/${gtin}`);
+        },
+        [router, stopCamera],
+    );
+
     const openManualEntry = useCallback(() => {
         stopCamera();
         router.push('/scan/manual');
     }, [router, stopCamera]);
 
-    const matchScore = useMemo(() => (match ? scorePassport(match.passport, new Date()) : null), [match]);
-    const matchArtisan = match ? mockArtisanById(match.passport.artisanId) : undefined;
+    const [now] = useState(() => new Date());
+    // usePassportScore tolère un null - actif uniquement quand le match est LUMIRIS.
+    const lumirisMatch = match?.kind === 'lumiris-passport' ? match : null;
+    const lumirisScore = usePassportScore(lumirisMatch?.passport ?? null, now);
+    const externalScore = useMemo(
+        () => (match?.kind === 'external-dpp' ? computeExternalScore(match.dpp, now) : null),
+        [match, now],
+    );
+    const matchScore = match?.kind === 'external-dpp' ? externalScore : lumirisScore;
+    const matchArtisan = lumirisMatch ? mockArtisanById(lumirisMatch.passport.artisanId) : undefined;
+    const onOpenMatch = useCallback(() => {
+        if (!match) return;
+        if (match.kind === 'lumiris-passport') openPassport(match.passport.id);
+        else openExternalDpp(match.dpp.gtin);
+    }, [match, openPassport, openExternalDpp]);
 
     const chip = STATUS_CHIP[status];
 
@@ -248,11 +282,14 @@ export function ScanPassport() {
 
             {match && matchScore ? (
                 <ScanResultModal
-                    passport={match.passport}
-                    artisan={matchArtisan}
+                    result={
+                        match.kind === 'lumiris-passport'
+                            ? { kind: 'lumiris-passport', passport: match.passport, artisan: matchArtisan }
+                            : { kind: 'external-dpp', dpp: match.dpp }
+                    }
                     score={matchScore}
                     onClose={restart}
-                    onOpenPassport={openPassport}
+                    onOpen={onOpenMatch}
                 />
             ) : null}
         </div>

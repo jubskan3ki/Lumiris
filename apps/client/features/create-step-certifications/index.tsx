@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AlertTriangle, FileUp, Plus, ShieldAlert, Trash2 } from 'lucide-react';
 import { getEffectiveStatus } from '@lumiris/types';
 import type { CertificationKind, CertificationRef, PassportWarranty } from '@lumiris/types';
@@ -15,7 +15,8 @@ import { Textarea } from '@lumiris/ui/components/textarea';
 import { WizardShell } from '@/features/wizard-shell';
 import { useStepNavigation } from '@/features/wizard-shell/use-step-navigation';
 import { useDraftStore } from '@/lib/draft-store';
-import { readFileAsDataUrl } from '@/lib/file-utils';
+import { readFileAsDataUrl } from '@lumiris/utils';
+import { validateStep } from './schema';
 
 const CERT_KINDS: readonly CertificationKind[] = [
     'GOTS',
@@ -60,6 +61,26 @@ export function CreateStepCertifications({ draftId }: { draftId: string }) {
         setCerts((cur) => cur.map((c, i) => (i === idx ? { ...c, ...patch } : c)));
     };
 
+    const validation = useMemo(
+        () =>
+            validateStep({
+                garment: draft?.garment ?? {
+                    kind: 'sweater',
+                    reference: '',
+                    mainPhotoUrl: '',
+                    dimensions: {},
+                    retailPrice: 0,
+                    currency: 'EUR',
+                },
+                materials: draft?.materials ?? [],
+                steps: draft?.steps ?? [],
+                certifications: certs,
+                warranty,
+            }),
+        [certs, warranty, draft],
+    );
+    const nextMissing = validation.ok ? [] : validation.missing;
+
     const handleNext = () => {
         setCertifications(draftId, certs);
         setWarranty(draftId, warranty);
@@ -67,14 +88,29 @@ export function CreateStepCertifications({ draftId }: { draftId: string }) {
     };
 
     return (
-        <WizardShell draftId={draftId} step="certifications" onPrev={() => goTo('manufacturing')} onNext={handleNext}>
+        <WizardShell
+            draftId={draftId}
+            step="certifications"
+            onPrev={() => goTo('manufacturing')}
+            onNext={handleNext}
+            nextMissing={nextMissing}
+        >
             <div className="space-y-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Certifications du passeport</CardTitle>
+                        <CardTitle>Certifications &amp; garanties du produit</CardTitle>
                         <p className="text-muted-foreground text-sm">
-                            Différentes des certifications par fibre. Ici on rattache des certifs d’ensemble (AGEC, EPV
-                            de l’atelier, etc.).
+                            Certifications spécifiques à cette pièce (lot GOTS, attestation matière) et garantie offerte
+                            au client. Pour les certifications d’atelier réutilisables (EPV, OFG, ISO), utilisez{' '}
+                            <a
+                                href="/certifications"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-foreground underline-offset-2 hover:underline"
+                            >
+                                votre catalogue d’atelier
+                            </a>
+                            .
                         </p>
                     </CardHeader>
                     <CardContent className="space-y-3">

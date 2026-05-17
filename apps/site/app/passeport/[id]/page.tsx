@@ -1,18 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { mockPassportsPublic, passportPublicByIdOrSlug } from '@lumiris/mock-data';
+import { KIND_LABEL_FR } from '@lumiris/utils';
+import { JsonLd } from '@/features/json-ld';
 import { PassportPublicViewSection } from '@/features/passport-public-view';
 import { getArtisanById } from '@/lib/artisans';
-
-const KIND_LABEL: Record<string, string> = {
-    sweater: 'Pull',
-    shirt: 'Chemise',
-    shoe: 'Chaussures',
-    jacket: 'Veste',
-    trouser: 'Pantalon',
-    accessory: 'Accessoire',
-    other: 'Pièce textile',
-};
 
 export const dynamicParams = false;
 
@@ -29,7 +21,7 @@ export async function generateMetadata({ params }: RouteProps): Promise<Metadata
     const view = passportPublicByIdOrSlug(id);
     if (!view) return {};
 
-    const productLabel = KIND_LABEL[view.passport.garment.kind] ?? KIND_LABEL.other;
+    const productLabel = KIND_LABEL_FR[view.passport.garment.kind] ?? KIND_LABEL_FR.other;
     const grade = view.irisScore?.grade ?? null;
     const productName = `${productLabel} ${view.passport.garment.reference}`;
     const title = `${productName} | ${view.artisan.atelierName} - LUMIRIS`;
@@ -67,7 +59,7 @@ export default async function PassportPage({ params }: RouteProps) {
     const artisan = getArtisanById(view.artisan.id);
     const artisanSlug = artisan?.slug ?? view.artisan.id;
 
-    const productLabel = KIND_LABEL[view.passport.garment.kind] ?? KIND_LABEL.other;
+    const productLabel = KIND_LABEL_FR[view.passport.garment.kind] ?? KIND_LABEL_FR.other;
     const productName = `${productLabel} ${view.passport.garment.reference}`;
     const grade = view.irisScore?.grade;
 
@@ -112,7 +104,7 @@ export default async function PassportPage({ params }: RouteProps) {
 
     return (
         <>
-            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
+            <JsonLd data={productJsonLd} />
             <PassportPublicViewSection view={view} artisanSlug={artisanSlug} />
         </>
     );

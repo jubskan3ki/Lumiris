@@ -74,13 +74,10 @@ export function PassportNotFoundState({ raw, onRetry, onSubmitManualId }: Passpo
         [value, onSubmitManualId],
     );
     return (
-        <EmptyShell
-            icon={<ScanSearch className="text-lumiris-orange h-7 w-7" />}
-            title="Aucun passeport trouvé pour cet identifiant"
-        >
+        <EmptyShell icon={<ScanSearch className="text-lumiris-orange h-7 w-7" />} title="Aucun DPP reconnu">
             <p>
                 Le code lu (<span className="text-foreground/80 font-mono text-[10px]">{raw.slice(0, 32)}</span>)
-                n&apos;est pas relié à un passeport LUMIRIS. Saisis un identifiant manuel ou recommence.
+                n&apos;est pas un passeport ESPR valide. Saisis un identifiant manuel ou recommence.
             </p>
             <form onSubmit={handle} className="flex w-full max-w-xs flex-col gap-2">
                 <input

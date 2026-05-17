@@ -1,11 +1,12 @@
 import jsQR from 'jsqr';
-import type { Passport } from '@lumiris/types';
+import type { ExternalDpp, Passport } from '@lumiris/types';
 import { decodeQrPayload, resolvePassportFromScan } from '@/features/scan-passport/qr-decoder';
 
 type FrameResult =
     | { kind: 'no-frame' }
     | { kind: 'no-code' }
     | { kind: 'matched'; passport: Passport; raw: string }
+    | { kind: 'external'; dpp: ExternalDpp; raw: string }
     | { kind: 'unknown'; raw: string };
 
 // Pure - la boucle rAF et l'état de scan vivent côté composant.
@@ -27,7 +28,12 @@ export function processVideoFrame(video: HTMLVideoElement, canvas: HTMLCanvasEle
     if (!code?.data) return { kind: 'no-code' };
 
     const decoded = decodeQrPayload(code.data);
-    const passport = resolvePassportFromScan(decoded);
-    if (passport) return { kind: 'matched', passport, raw: code.data };
+    const resolved = resolvePassportFromScan(decoded);
+    if (resolved.kind === 'lumiris-passport') {
+        return { kind: 'matched', passport: resolved.passport, raw: code.data };
+    }
+    if (resolved.kind === 'external-dpp') {
+        return { kind: 'external', dpp: resolved.dpp, raw: code.data };
+    }
     return { kind: 'unknown', raw: code.data };
 }

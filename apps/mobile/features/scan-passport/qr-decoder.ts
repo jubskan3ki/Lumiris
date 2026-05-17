@@ -1,15 +1,21 @@
-// Décodage des QR LUMIRIS. Trois formats reconnus :
+// Décodage des QR ESPR. Trois formats reconnus :
 //   - URL passeport canonique : https://lumiris.fr/passeport/{id}
 //   - GS1 Digital Link        : https://id.lumiris.fr/01/{gtin}/21/{serial}
 //   - GS1 Digital Link élément : query gtin=… (rare, certains scanners aplatissent)
 // Tout autre payload retourne `kind: 'unknown'`. Le caller fait le lookup via mock-data.
 
-import { mockPassportById, mockPassportByGtin } from '@lumiris/mock-data';
-import type { Passport } from '@lumiris/types';
+import { mockExternalDppByGtin, mockPassportById, mockPassportByGtin } from '@lumiris/mock-data';
+import type { ExternalDpp, Passport } from '@lumiris/types';
 
 type DecodedScan =
     | { kind: 'passport-id'; id: string }
     | { kind: 'gs1-gtin'; gtin: string; serial?: string }
+    | { kind: 'unknown'; raw: string };
+
+/** Résultat de la résolution scan : LUMIRIS interne, DPP ESPR externe, ou inconnu. */
+export type ScanResult =
+    | { kind: 'lumiris-passport'; passport: Passport }
+    | { kind: 'external-dpp'; dpp: ExternalDpp }
     | { kind: 'unknown'; raw: string };
 
 export function decodeQrPayload(payload: string): DecodedScan {
@@ -43,9 +49,23 @@ export function decodeQrPayload(payload: string): DecodedScan {
     return { kind: 'unknown', raw: trimmed };
 }
 
-/** Résout un payload décodé en passeport mock. Renvoie undefined si introuvable. */
-export function resolvePassportFromScan(decoded: DecodedScan): Passport | undefined {
-    if (decoded.kind === 'passport-id') return mockPassportById(decoded.id);
-    if (decoded.kind === 'gs1-gtin') return mockPassportByGtin(decoded.gtin);
-    return undefined;
+/**
+ * Résout un payload décodé en passeport LUMIRIS, sinon en DPP externe ESPR,
+ * sinon `unknown`. L'ordre est volontaire : un GTIN LUMIRIS connu prime
+ * toujours sur la branche externe.
+ */
+export function resolvePassportFromScan(decoded: DecodedScan): ScanResult {
+    if (decoded.kind === 'passport-id') {
+        const passport = mockPassportById(decoded.id);
+        if (passport) return { kind: 'lumiris-passport', passport };
+        return { kind: 'unknown', raw: decoded.id };
+    }
+    if (decoded.kind === 'gs1-gtin') {
+        const passport = mockPassportByGtin(decoded.gtin);
+        if (passport) return { kind: 'lumiris-passport', passport };
+        const external = mockExternalDppByGtin(decoded.gtin);
+        if (external) return { kind: 'external-dpp', dpp: external };
+        return { kind: 'unknown', raw: decoded.gtin };
+    }
+    return { kind: 'unknown', raw: decoded.raw };
 }

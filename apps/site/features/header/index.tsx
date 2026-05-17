@@ -14,8 +14,7 @@ const navLinks = [
     { label: 'Réglementation', href: '/reglementation' },
 ];
 
-// Le placeholder `#` pour "Pour les artisans" pointera vers la landing ATELIER une fois publiée.
-const ATELIER_HREF = '#';
+const ATELIER_HREF = '/atelier';
 
 export function Header() {
     const [scrolled, setScrolled] = useState(false);

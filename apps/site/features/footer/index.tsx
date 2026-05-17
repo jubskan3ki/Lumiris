@@ -1,9 +1,9 @@
 import Link from 'next/link';
 
 const legalLinks = [
-    { label: 'Mentions légales', href: '#' },
-    { label: 'Politique de confidentialité', href: '#' },
-    { label: 'CGV / CGU', href: '#' },
+    { label: 'Mentions légales', href: '/mentions-legales' },
+    { label: 'Politique de confidentialité', href: '/confidentialite' },
+    { label: 'CGV / CGU', href: '/cgu' },
     { label: 'Charte d’indépendance', href: '/charte-independance' },
 ];
 

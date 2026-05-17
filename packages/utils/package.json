@@ -11,7 +11,10 @@
         "./env": "./src/env.ts",
         "./web-vitals": "./src/web-vitals.ts",
         "./format": "./src/format.ts",
-        "./analytics": "./src/analytics.ts"
+        "./analytics": "./src/analytics.ts",
+        "./gs1": "./src/gs1.ts",
+        "./file": "./src/file.ts",
+        "./countries": "./src/countries.ts"
     },
     "scripts": {
         "lint": "eslint src",

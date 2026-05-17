@@ -1,11 +1,12 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Scan, Archive, MapPin, Sparkles, User } from 'lucide-react';
 import { fadeInOut, SPRING_INDICATOR, SPRING_TAB } from '@/lib/motion';
+import { migrateLegacyKeys } from '@/lib/migrate-legacy-keys';
 import { OfflineBanner } from './offline-banner';
 
 type Tab = 'scan' | 'vault' | 'local' | 'discover' | 'me';
@@ -62,6 +63,13 @@ export function AppShell({ children, hideTabBar = false }: AppShellProps) {
     const pathname = usePathname() ?? '/';
     const activeTab = activeTabFor(pathname);
     const tabBarHidden = hideTabBar || shouldHideTabBar(pathname);
+
+    // Déplace une seule fois les buckets legacy (`lumiris.<suffix>`) vers leur scope
+    // par user (`lumiris.users.{id}.<suffix>`) ou anon. Idempotent : ré-appelé à
+    // chaque mount sans risque puisqu'il vérifie l'existence de la clé cible.
+    useEffect(() => {
+        migrateLegacyKeys();
+    }, []);
 
     return (
         <div className="bg-background relative mx-auto flex h-dvh max-w-md flex-col overflow-hidden">

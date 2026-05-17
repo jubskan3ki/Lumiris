@@ -2,10 +2,12 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useMemo } from 'react';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import { ArrowLeft, Copy, ExternalLink, FileText, Printer, Trash2 } from 'lucide-react';
 import { computeScore } from '@lumiris/core/scoring';
 import { mockCertificates, mockPassportById } from '@lumiris/mock-data';
+import { buildGS1Identifier } from '@lumiris/types';
 import {
     IrisGrade,
     MissingFieldsBadge,
@@ -14,17 +16,50 @@ import {
     ScoreReasonsList,
     AtelierStatusBadge,
 } from '@lumiris/scoring-ui';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@lumiris/ui/components/alert-dialog';
 import { Button } from '@lumiris/ui/components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@lumiris/ui/components/card';
-import { currentArtisan } from '@/lib/current-artisan';
+import { Toaster, toast } from '@lumiris/ui/components/sonner';
+import { useCurrentArtisan } from '@/lib/current-artisan';
 import { draftToPassport, useDraftStore } from '@/lib/draft-store';
 
 export function PassportDetail({ passportId }: { passportId: string }) {
-    const draft = useDraftStore((s) => s.drafts[passportId]);
+    const router = useRouter();
+    const artisan = useCurrentArtisan();
+    const drafts = useDraftStore((s) => s.drafts);
+    const draft = drafts[passportId];
+    const createDraft = useDraftStore((s) => s.createDraft);
+    const setDraft = useDraftStore((s) => s.setDraft);
+    const deleteDraft = useDraftStore((s) => s.deleteDraft);
+
     const fixed = useMemo(() => mockPassportById(passportId), [passportId]);
     const passport = useMemo(() => (draft ? draftToPassport(draft) : (fixed ?? null)), [draft, fixed]);
 
-    if (!passport) {
+    const [confirmDelete, setConfirmDelete] = useState(false);
+
+    const now = useMemo(() => new Date(), []);
+    const score = useMemo(
+        () =>
+            passport
+                ? computeScore(passport, {
+                      artisan,
+                      certificates: mockCertificates,
+                      now,
+                  })
+                : null,
+        [artisan, passport, now],
+    );
+
+    if (!passport || !score) {
         return (
             <div className="p-8">
                 <Card>
@@ -43,14 +78,38 @@ export function PassportDetail({ passportId }: { passportId: string }) {
         );
     }
 
-    const score = computeScore(passport, {
-        artisan: currentArtisan,
-        certificates: mockCertificates,
-        now: new Date(),
-    });
+    const isDraft = passport.status !== 'Published';
+
+    const handleDuplicate = () => {
+        const newId = createDraft(artisan.id);
+        setDraft(newId, {
+            status: 'Draft',
+            garment: { ...passport.garment, reference: '' },
+            materials: [...passport.materials],
+            steps: [...passport.steps],
+            certifications: [...passport.certifications],
+            warranty: { ...passport.warranty },
+            gs1: buildGS1Identifier('0000000000000', newId),
+            lastStep: undefined,
+        });
+        toast.success('Passeport dupliqué', {
+            description: `Brouillon créé à partir de "${passport.garment.reference || passport.id}".`,
+        });
+        router.push(`/create/${newId}/identification`);
+    };
+
+    const handleDelete = () => {
+        const ref = passport.garment.reference || passport.id;
+        deleteDraft(passport.id);
+        setConfirmDelete(false);
+        toast.success('Brouillon supprimé', { description: `"${ref}" a été retiré.` });
+        router.push('/passports');
+    };
 
     return (
         <div className="grid gap-6 p-8 lg:grid-cols-[1fr_360px]">
+            <Toaster position="bottom-right" />
+
             <div className="space-y-6">
                 <div className="flex items-center gap-3">
                     <Button asChild variant="ghost" size="sm">
@@ -135,11 +194,37 @@ export function PassportDetail({ passportId }: { passportId: string }) {
                             <span className="text-muted-foreground text-xs">Champs ESPR/AGEC</span>
                             <MissingFieldsBadge passport={passport} showWhenComplete />
                         </div>
-                        <Button asChild variant="outline" className="w-full">
-                            <Link href={`/print/${passport.id}`} target="_blank">
-                                <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> Imprimer étiquette
-                            </Link>
-                        </Button>
+                        <div className="space-y-2 border-t pt-3">
+                            <Button asChild variant="outline" className="w-full">
+                                <Link href={`/print/${passport.id}`} target="_blank">
+                                    <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimer étiquette
+                                </Link>
+                            </Button>
+                            {passport.status !== 'Draft' && (
+                                <Button asChild variant="outline" className="w-full">
+                                    <Link href={`/print/passport/${passport.id}`} target="_blank">
+                                        <FileText className="mr-1.5 h-3.5 w-3.5" /> Télécharger fiche PDF
+                                    </Link>
+                                </Button>
+                            )}
+                            <Button asChild variant="outline" className="w-full">
+                                <Link href={`/preview/${passport.id}`} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> Aperçu client
+                                </Link>
+                            </Button>
+                            <Button variant="outline" className="w-full" onClick={handleDuplicate}>
+                                <Copy className="mr-1.5 h-3.5 w-3.5" /> Dupliquer
+                            </Button>
+                            {isDraft && (
+                                <Button
+                                    variant="outline"
+                                    className="text-destructive hover:text-destructive hover:bg-destructive/5 w-full"
+                                    onClick={() => setConfirmDelete(true)}
+                                >
+                                    <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Supprimer
+                                </Button>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -152,6 +237,22 @@ export function PassportDetail({ passportId }: { passportId: string }) {
                     </CardContent>
                 </Card>
             </aside>
+
+            <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Supprimer ce brouillon ?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {passport.garment.reference || passport.id} sera retiré définitivement de votre atelier.
+                            Cette action est irréversible.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

@@ -1,22 +1,48 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ScanQrCode, Scissors, Shirt, Trash2 } from 'lucide-react';
+import {
+    Armchair,
+    BatteryCharging,
+    Puzzle,
+    Refrigerator,
+    ScanQrCode,
+    Scissors,
+    Shirt,
+    Smartphone,
+    Trash2,
+} from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@lumiris/ui/components/sheet';
-import type { Passport } from '@lumiris/types';
-import { removeFromWardrobe } from '@/lib/wardrobe-storage';
+import { removeFromWardrobe, type WardrobeSector } from '@/lib/wardrobe-storage';
+
+interface VaultActionTarget {
+    kind: 'scored' | 'manual';
+    key: string;
+    label: string;
+    sublabel: string;
+    sector: WardrobeSector;
+    passport?: { id: string };
+}
 
 interface ItemActionsSheetProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    passport: Passport | null;
-    artisanName: string;
+    target: VaultActionTarget | null;
 }
 
-export function ItemActionsSheet({ open, onOpenChange, passport, artisanName }: ItemActionsSheetProps) {
+const SECTOR_ICON: Record<WardrobeSector, typeof Shirt> = {
+    textile: Shirt,
+    electronics: Smartphone,
+    appliance: Refrigerator,
+    furniture: Armchair,
+    toy: Puzzle,
+    battery: BatteryCharging,
+};
+
+export function ItemActionsSheet({ open, onOpenChange, target }: ItemActionsSheetProps) {
     const router = useRouter();
 
-    if (!passport) return null;
+    if (!target) return null;
 
     const close = () => onOpenChange(false);
 
@@ -26,14 +52,18 @@ export function ItemActionsSheet({ open, onOpenChange, passport, artisanName }: 
     };
 
     const onRemove = () => {
-        removeFromWardrobe(passport.id);
+        removeFromWardrobe(target.key);
         close();
     };
 
     const onFindRetoucheur = () => {
+        if (!target.passport) return;
         close();
-        router.push(`/retoucheurs?for=${encodeURIComponent(passport.id)}`);
+        router.push(`/retoucheurs?for=${encodeURIComponent(target.passport.id)}`);
     };
+
+    const Icon = SECTOR_ICON[target.sector];
+    const isScored = target.kind === 'scored';
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
@@ -45,20 +75,20 @@ export function ItemActionsSheet({ open, onOpenChange, passport, artisanName }: 
                 <div className="flex flex-col gap-4 px-4">
                     <header className="border-border bg-card flex items-center gap-3 rounded-2xl border p-3">
                         <span className="bg-secondary/60 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
-                            <Shirt className="text-muted-foreground/60 h-5 w-5" aria-hidden />
+                            <Icon className="text-muted-foreground/60 h-5 w-5" aria-hidden />
                         </span>
                         <div className="min-w-0 flex-1">
-                            <p className="text-foreground truncate text-sm font-semibold">
-                                {passport.garment.reference}
-                            </p>
-                            <p className="text-muted-foreground truncate text-xs">{artisanName}</p>
+                            <p className="text-foreground truncate text-sm font-semibold">{target.label}</p>
+                            <p className="text-muted-foreground truncate text-xs">{target.sublabel}</p>
                         </div>
                     </header>
 
                     <ul className="flex flex-col gap-2">
-                        <ActionRow Icon={ScanQrCode} label="Re-scanner" onClick={onRescan} />
-                        <ActionRow Icon={Scissors} label="Trouver un retoucheur" onClick={onFindRetoucheur} />
-                        <ActionRow Icon={Trash2} label="Retirer de la garde-robe" onClick={onRemove} tone="danger" />
+                        {isScored ? <ActionRow Icon={ScanQrCode} label="Re-scanner" onClick={onRescan} /> : null}
+                        {isScored ? (
+                            <ActionRow Icon={Scissors} label="Trouver un retoucheur" onClick={onFindRetoucheur} />
+                        ) : null}
+                        <ActionRow Icon={Trash2} label="Retirer de l'inventaire" onClick={onRemove} tone="danger" />
                     </ul>
                 </div>
             </SheetContent>

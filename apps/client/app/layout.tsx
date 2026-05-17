@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Geist_Mono } from 'next/font/google';
+import { Toaster } from '@lumiris/ui/components/sonner';
 import { ThemeProvider } from '@lumiris/ui/theme-provider';
 import { WebVitals } from './web-vitals';
 import './globals.css';
@@ -40,6 +41,7 @@ export default function RootLayout({
                 <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
                     <WebVitals />
                     {children}
+                    <Toaster position="bottom-right" closeButton />
                 </ThemeProvider>
             </body>
         </html>

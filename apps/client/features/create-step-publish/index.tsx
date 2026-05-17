@@ -1,14 +1,27 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
-import { Download, Eye, Printer, Sparkles } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+    AlertTriangle,
+    Check,
+    CheckCircle2,
+    Download,
+    Eye,
+    FileText,
+    Loader2,
+    Nfc,
+    Printer,
+    Sparkles,
+    X,
+} from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { ESPR_REQUIRED_FIELDS, AGEC_REQUIRED_FIELDS, computeScore } from '@lumiris/core/scoring';
 import { mockCertificates } from '@lumiris/mock-data';
-import { buildGS1Identifier } from '@lumiris/types';
-import type { Passport, IrisGrade as IrisGradeLetter, ScoreResult } from '@lumiris/types';
+import { ARTISAN_PASSPORT_LIMIT, buildGS1Identifier } from '@lumiris/types';
+import type { ArtisanTier, Passport, IrisGrade as IrisGradeLetter, ScoreResult } from '@lumiris/types';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@lumiris/ui/components/accordion';
+import { Badge } from '@lumiris/ui/components/badge';
 import { Button } from '@lumiris/ui/components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@lumiris/ui/components/card';
 import {
@@ -19,18 +32,31 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@lumiris/ui/components/dialog';
+import { toast } from '@lumiris/ui/components/sonner';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@lumiris/ui/components/tooltip';
+import { cn } from '@lumiris/ui/lib/cn';
 import { IrisGrade, MissingFieldsBadge, ScoreBreakdown, ScoreCapWarning, ScoreReasonsList } from '@lumiris/scoring-ui';
+import { randomGtin13 } from '@lumiris/utils';
+import { QuotaUpsellDialog } from '@/features/quota-upsell';
 import { WizardShell } from '@/features/wizard-shell';
 import { useStepNavigation } from '@/features/wizard-shell/use-step-navigation';
-import { currentArtisan } from '@/lib/current-artisan';
+import { useBilling } from '@/lib/billing-store';
+import { useCurrentArtisan } from '@/lib/current-artisan';
 import { draftToPassport, useDraftStore } from '@/lib/draft-store';
+import { simulateNfcWrite } from '@/lib/nfc-mock';
+import { usePassports } from '@/lib/passports-source';
+import { activePassportCount, isQuotaReached } from '@/lib/quota';
 
 export function CreateStepPublish({ draftId }: { draftId: string }) {
+    const artisan = useCurrentArtisan();
     const draft = useDraftStore((s) => s.drafts[draftId]);
     const publish = useDraftStore((s) => s.publish);
     const { goTo } = useStepNavigation(draftId);
+    const passports = usePassports(artisan.id);
+    const billing = useBilling(artisan.id);
 
     const [open, setOpen] = useState(false);
+    const [upsellOpen, setUpsellOpen] = useState(false);
     const [published, setPublished] = useState<{
         passport: Passport;
         score: ScoreResult;
@@ -41,11 +67,11 @@ export function CreateStepPublish({ draftId }: { draftId: string }) {
     const score = useMemo(() => {
         if (!passport) return null;
         return computeScore(passport, {
-            artisan: currentArtisan,
+            artisan,
             certificates: mockCertificates,
             now: new Date(),
         });
-    }, [passport]);
+    }, [artisan, passport]);
 
     if (!passport || !score) {
         return (
@@ -58,7 +84,17 @@ export function CreateStepPublish({ draftId }: { draftId: string }) {
     const missing = listMissingFields(passport);
     const willBeIncomplete = missing.length > 0;
 
+    // Quota = tout non-Draft (Published + InCompletion). Republier un déjà-actif ne consomme pas → on ne bloque que les Draft.
+    const tier: ArtisanTier = billing.tier;
+    const quotaWouldExceed = passport.status === 'Draft' && isQuotaReached(passports, tier);
+    const usedSlots = activePassportCount(passports);
+    const tierLimit = ARTISAN_PASSPORT_LIMIT[tier];
+
     const handlePublish = () => {
+        if (quotaWouldExceed) {
+            setUpsellOpen(true);
+            return;
+        }
         const gtin = randomGtin13();
         const serial = randomSerial(8);
         const gs1 = buildGS1Identifier(gtin, serial, draftId);
@@ -67,6 +103,8 @@ export function CreateStepPublish({ draftId }: { draftId: string }) {
         setPublished({ passport: { ...passport, gs1, status }, score, gs1: gs1.verificationUrl });
         setOpen(true);
     };
+
+    const checklist = buildChecklist(passport);
 
     return (
         <WizardShell draftId={draftId} step="publish" onPrev={() => goTo('certifications')}>
@@ -82,8 +120,8 @@ export function CreateStepPublish({ draftId }: { draftId: string }) {
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
-                            <IrisGrade grade={score.grade} size="lg" />
-                            <p className="text-foreground font-mono text-2xl font-semibold">
+                            <IrisGrade grade={score.grade} size="xl" shape="square" tone="solid" />
+                            <p className="text-foreground font-mono text-3xl font-semibold">
                                 {score.total.toFixed(1)}
                                 <span className="text-muted-foreground/70 ml-0.5 text-sm font-normal">/ 100</span>
                             </p>
@@ -96,16 +134,42 @@ export function CreateStepPublish({ draftId }: { draftId: string }) {
                             <span className="text-muted-foreground text-xs">Champs ESPR/AGEC obligatoires</span>
                             <MissingFieldsBadge passport={passport} showWhenComplete />
                         </div>
-                        {missing.length > 0 && (
-                            <div className="border-lumiris-orange/30 bg-lumiris-orange/5 rounded-lg border p-3 text-sm">
-                                <p className="text-lumiris-orange mb-1.5 font-semibold">Champs manquants</p>
-                                <ul className="text-foreground/80 list-disc space-y-0.5 pl-5 text-xs">
-                                    {missing.map((m) => (
-                                        <li key={m}>{m}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
+                        <p className="text-muted-foreground border-t pt-3 text-xs">
+                            Le passeport sera disponible via QR code et puce NFC GS1 Digital Link.
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Checklist ESPR / AGEC</CardTitle>
+                        <p className="text-muted-foreground text-xs">
+                            Tout doit être coché pour publier en statut « Publié ». Sinon → sauvegarde en « En
+                            complétion ».
+                        </p>
+                    </CardHeader>
+                    <CardContent>
+                        <ul className="grid gap-1.5 text-sm md:grid-cols-2">
+                            {checklist.map((item) => (
+                                <li
+                                    key={`${item.kind}::${item.path}`}
+                                    className={cn(
+                                        'flex items-center gap-2 rounded-md px-2 py-1.5',
+                                        item.ok ? 'text-foreground/80' : 'bg-lumiris-amber/5 text-lumiris-amber',
+                                    )}
+                                >
+                                    {item.ok ? (
+                                        <Check className="text-lumiris-emerald h-3.5 w-3.5 shrink-0" />
+                                    ) : (
+                                        <X className="text-lumiris-amber h-3.5 w-3.5 shrink-0" />
+                                    )}
+                                    <span className="font-mono text-[10px] uppercase tracking-wider opacity-70">
+                                        {item.kind}
+                                    </span>
+                                    <span className="truncate">{item.path}</span>
+                                </li>
+                            ))}
+                        </ul>
                     </CardContent>
                 </Card>
 
@@ -162,19 +226,39 @@ export function CreateStepPublish({ draftId }: { draftId: string }) {
                     </CardContent>
                 </Card>
 
+                {quotaWouldExceed && (
+                    <button
+                        type="button"
+                        onClick={() => setUpsellOpen(true)}
+                        className="border-lumiris-amber/40 bg-lumiris-amber/10 text-foreground hover:bg-lumiris-amber/15 flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-colors"
+                    >
+                        <AlertTriangle className="text-lumiris-amber mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                        <div className="text-sm">
+                            <p className="font-medium">
+                                Quota atteint ({usedSlots}/{tierLimit}). Passez Studio pour 300 passeports ou supprimez
+                                des passeports inactifs.
+                            </p>
+                            <span className="text-muted-foreground mt-0.5 inline-block text-xs underline underline-offset-2">
+                                Voir mon abonnement
+                            </span>
+                        </div>
+                    </button>
+                )}
+
                 <div className="flex items-center justify-between gap-4">
                     <p className="text-muted-foreground text-xs">
-                        {willBeIncomplete
-                            ? 'Le passeport sera publié en statut "En complétion" - vous pourrez compléter les champs manquants plus tard.'
-                            : "Aucun champ obligatoire manquant - publication en statut 'Publié'."}
+                        {quotaWouldExceed
+                            ? `Quota ${tier} atteint — publication bloquée.`
+                            : willBeIncomplete
+                              ? 'Champs obligatoires manquants — sauvegarde en statut « En complétion », vous pourrez compléter plus tard.'
+                              : 'Aucun champ obligatoire manquant — publication en statut « Publié ».'}
                     </p>
-                    <Button
-                        onClick={handlePublish}
-                        size="lg"
-                        className="bg-lumiris-emerald hover:bg-lumiris-emerald/90 text-white"
-                    >
-                        Publier le passeport
-                    </Button>
+                    <PublishCta
+                        incomplete={willBeIncomplete}
+                        missing={missing}
+                        onPublish={handlePublish}
+                        quotaBlocked={quotaWouldExceed}
+                    />
                 </div>
             </div>
 
@@ -187,6 +271,8 @@ export function CreateStepPublish({ draftId }: { draftId: string }) {
                     grade={published.score.grade}
                 />
             )}
+
+            <QuotaUpsellDialog open={upsellOpen} onOpenChange={setUpsellOpen} currentTier={tier} used={usedSlots} />
         </WizardShell>
     );
 }
@@ -222,6 +308,23 @@ interface SuccessDialogProps {
 }
 
 function SuccessDialog({ open, onOpenChange, passportId, gs1, grade }: SuccessDialogProps) {
+    const [nfcState, setNfcState] = useState<'idle' | 'writing' | 'success'>('idle');
+    const [nfcBytes, setNfcBytes] = useState<number | null>(null);
+    const nfcButtonRef = useRef<HTMLButtonElement | null>(null);
+
+    useEffect(() => {
+        if (!open) {
+            setNfcState('idle');
+            setNfcBytes(null);
+        }
+    }, [open]);
+
+    useEffect(() => {
+        if (nfcState === 'success') {
+            nfcButtonRef.current?.focus();
+        }
+    }, [nfcState]);
+
     const downloadPng = () => {
         const canvas = document.querySelector<HTMLCanvasElement>(`#publish-qr-${passportId} canvas`);
         if (!canvas) return;
@@ -233,6 +336,24 @@ function SuccessDialog({ open, onOpenChange, passportId, gs1, grade }: SuccessDi
         a.click();
         a.remove();
     };
+
+    const writeNfc = async () => {
+        setNfcState('writing');
+        setNfcBytes(null);
+        const result = await simulateNfcWrite(gs1);
+        setNfcBytes(result.bytes);
+        setNfcState('success');
+        toast.info('Mode démo — aucune puce réellement écrite.', {
+            description: 'En production, Web NFC API (Chrome Android) ou hardware externe.',
+        });
+    };
+
+    const nfcStatus =
+        nfcState === 'writing'
+            ? 'Écriture en cours…'
+            : nfcState === 'success' && nfcBytes != null
+              ? `Puce écrite — ${nfcBytes} octet${nfcBytes > 1 ? 's' : ''}.`
+              : '';
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -253,6 +374,49 @@ function SuccessDialog({ open, onOpenChange, passportId, gs1, grade }: SuccessDi
                     <p className="text-muted-foreground max-w-full break-all font-mono text-[11px]">{gs1}</p>
                 </div>
 
+                <div className="border-border space-y-3 rounded-lg border p-3">
+                    <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                            <Nfc className="text-lumiris-emerald h-4 w-4" />
+                            <h3 className="text-sm font-medium">Puce NFC GS1</h3>
+                        </div>
+                        <Badge variant="outline" className="font-mono uppercase">
+                            Démo
+                        </Badge>
+                    </div>
+                    <p className="text-muted-foreground text-xs">
+                        Approchez votre puce NFC pour écrire l&apos;URL GS1 — payload :{' '}
+                        <span className="text-foreground/80 break-all font-mono">{gs1}</span>
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            ref={nfcButtonRef}
+                            variant="outline"
+                            size="sm"
+                            onClick={writeNfc}
+                            disabled={nfcState === 'writing'}
+                        >
+                            {nfcState === 'writing' ? (
+                                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                            ) : nfcState === 'success' ? (
+                                <CheckCircle2 className="text-lumiris-emerald mr-1.5 h-3.5 w-3.5" />
+                            ) : (
+                                <Nfc className="mr-1.5 h-3.5 w-3.5" />
+                            )}
+                            {nfcState === 'success' ? 'Réécrire la puce' : 'Écrire sur la puce'}
+                        </Button>
+                        <span
+                            aria-live="polite"
+                            className={cn(
+                                'text-xs',
+                                nfcState === 'success' ? 'text-lumiris-emerald' : 'text-muted-foreground',
+                            )}
+                        >
+                            {nfcStatus}
+                        </span>
+                    </div>
+                </div>
+
                 <DialogFooter className="flex-col gap-2 sm:flex-row">
                     <Button variant="outline" onClick={downloadPng}>
                         <Download className="mr-1.5 h-3.5 w-3.5" /> Télécharger PNG
@@ -260,6 +424,11 @@ function SuccessDialog({ open, onOpenChange, passportId, gs1, grade }: SuccessDi
                     <Button variant="outline" asChild>
                         <Link href={`/print/${passportId}`} target="_blank">
                             <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimer étiquette
+                        </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                        <Link href={`/print/passport/${passportId}`} target="_blank">
+                            <FileText className="mr-1.5 h-3.5 w-3.5" /> Imprimer fiche complète
                         </Link>
                     </Button>
                     <Button asChild className="bg-lumiris-emerald hover:bg-lumiris-emerald/90 text-white">
@@ -284,10 +453,75 @@ function listMissingFields(p: Passport): string[] {
     return missing;
 }
 
-function randomGtin13(): string {
-    let s = '';
-    for (let i = 0; i < 13; i++) s += Math.floor(Math.random() * 10).toString();
-    return s;
+interface ChecklistItem {
+    kind: 'ESPR' | 'AGEC';
+    path: string;
+    ok: boolean;
+}
+
+function buildChecklist(p: Passport): ChecklistItem[] {
+    return [
+        ...ESPR_REQUIRED_FIELDS.map((f) => ({ kind: 'ESPR' as const, path: f.path, ok: f.isPresent(p) })),
+        ...AGEC_REQUIRED_FIELDS.map((f) => ({ kind: 'AGEC' as const, path: f.path, ok: f.isPresent(p) })),
+    ];
+}
+
+function PublishCta({
+    incomplete,
+    missing,
+    onPublish,
+    quotaBlocked,
+}: {
+    incomplete: boolean;
+    missing: string[];
+    onPublish: () => void;
+    quotaBlocked: boolean;
+}) {
+    const button = (
+        <Button
+            onClick={onPublish}
+            size="lg"
+            disabled={quotaBlocked}
+            className={cn(
+                'text-white',
+                incomplete
+                    ? 'bg-lumiris-amber hover:bg-lumiris-amber/90'
+                    : 'bg-lumiris-emerald hover:bg-lumiris-emerald/90',
+            )}
+        >
+            {incomplete ? 'Sauvegarder en IN_COMPLETION' : 'Publier le passeport'}
+        </Button>
+    );
+    if (quotaBlocked) {
+        return (
+            <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <span>{button}</span>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                        Quota atteint — passez au palier supérieur pour publier.
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        );
+    }
+    if (!incomplete || missing.length === 0) return button;
+    const head = missing.slice(0, 3).join(' · ');
+    const label =
+        missing.length <= 3
+            ? `Champs manquants : ${head}`
+            : `Champs manquants : ${head} et ${missing.length - 3} autre${missing.length - 3 > 1 ? 's' : ''}`;
+    return (
+        <TooltipProvider delayDuration={200}>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <span>{button}</span>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">{label}</TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
 }
 
 function randomSerial(len: number): string {

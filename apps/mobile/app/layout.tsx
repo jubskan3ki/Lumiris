@@ -17,7 +17,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
     title: 'Lumiris Vision',
-    description: 'The X-Ray Transparency App for Consumers. Scan, reveal, and understand what you wear.',
+    description:
+        'Le scanner universel des passeports numériques européens. Scannez un produit, révélez son histoire et son score Iris V2.',
 };
 
 export const viewport: Viewport = {

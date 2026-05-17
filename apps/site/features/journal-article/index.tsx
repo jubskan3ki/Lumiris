@@ -48,7 +48,7 @@ export function JournalArticleView({ article, related }: Props) {
                     <div className="border-border bg-muted relative aspect-[16/9] w-full overflow-hidden rounded-2xl border">
                         <Image
                             src={article.coverImage}
-                            alt=""
+                            alt={article.title}
                             fill
                             sizes="(max-width: 1024px) 100vw, 1024px"
                             className="object-cover"

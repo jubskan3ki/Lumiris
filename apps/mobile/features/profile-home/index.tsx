@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
     ChevronRight,
+    FileText,
     Info,
     LifeBuoy,
     LogOut,
@@ -81,8 +82,8 @@ function LoggedIn({ displayName, email, city }: LoggedInProps) {
     const [signingOut, setSigningOut] = useState(false);
 
     const initial = displayName.trim().charAt(0).toUpperCase() || 'L';
-    const items = stats.entries.length;
-    const overallGrade = items > 0 ? stats.overall.grade : null;
+    const items = stats.items.length;
+    const overallGrade = stats.scoredCount > 0 ? stats.overall.grade : null;
 
     function handleSignOut(): void {
         if (signingOut) return;
@@ -148,6 +149,7 @@ function LoggedIn({ displayName, email, city }: LoggedInProps) {
                 animate="animate"
             >
                 <ActionLink href="/me/repairs" Icon={Wrench} label="Mes demandes" />
+                <ActionLink href="/me/documents" Icon={FileText} label="Mes documents" />
                 <ActionLink href="/me/settings" Icon={SettingsIcon} label="Réglages" />
                 <ActionLink href="/me/privacy" Icon={ShieldCheck} label="Confidentialité" />
                 <ActionLink href="/help" Icon={LifeBuoy} label="Aide / Support" />

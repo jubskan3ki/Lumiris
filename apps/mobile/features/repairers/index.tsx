@@ -6,7 +6,8 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Award, Clock, MapPin, Search, Star } from 'lucide-react';
 import { Badge } from '@lumiris/ui/components/badge';
 import { mockRepairers, CITY_COORDS, distanceKm } from '@lumiris/mock-data';
-import type { Coordinates, Repairer, RepairerSpecialty } from '@lumiris/types';
+import type { Coordinates, Repairer, RepairerSector, RepairerSpecialty } from '@lumiris/types';
+import { SPECIALTY_TO_SECTOR } from '@lumiris/types';
 import { isLumirisLocal, repairerSlug } from '@/lib/repairers/badge';
 import { RepairersMap } from './repairers-map';
 
@@ -16,9 +17,29 @@ const SPECIALITY_LABEL: Record<RepairerSpecialty, string> = {
     'shoe-repair': 'Cordonnerie',
     leather: 'Cuir',
     lining: 'Doublure',
+    'electronics-repair': 'Électronique',
+    'phone-repair': 'Téléphonie',
+    'computer-repair': 'Informatique',
+    cabinetmaking: 'Ébénisterie',
+    upholstery: 'Tapisserie',
+    'appliance-repair': 'Électroménager',
 };
 
-const SPECIALITIES: readonly RepairerSpecialty[] = ['alteration', 'embroidery', 'shoe-repair', 'leather', 'lining'];
+const SECTOR_LABEL: Record<RepairerSector, string> = {
+    textile: 'Textile',
+    electronics: 'Électronique',
+    furniture: 'Mobilier',
+    appliance: 'Électroménager',
+};
+
+const SECTOR_ORDER: readonly RepairerSector[] = ['textile', 'electronics', 'furniture', 'appliance'];
+
+const SPECIALITIES_BY_SECTOR: Record<RepairerSector, readonly RepairerSpecialty[]> = {
+    textile: ['alteration', 'embroidery', 'shoe-repair', 'leather', 'lining'],
+    electronics: ['electronics-repair', 'phone-repair', 'computer-repair'],
+    furniture: ['cabinetmaking', 'upholstery'],
+    appliance: ['appliance-repair'],
+};
 
 export function RepairersDirectory() {
     const router = useRouter();
@@ -26,13 +47,41 @@ export function RepairersDirectory() {
     const forParam = searchParams.get('for');
     const forQuery = forParam ? `?for=${encodeURIComponent(forParam)}` : '';
 
+    const availableSectors = useMemo(() => {
+        const set = new Set<RepairerSector>();
+        for (const r of mockRepairers) {
+            for (const s of r.specialities) set.add(SPECIALTY_TO_SECTOR[s]);
+        }
+        return SECTOR_ORDER.filter((sector) => set.has(sector));
+    }, []);
+    const showSectorFilter = availableSectors.length > 1;
+
     const [city, setCity] = useState('');
+    const [activeSector, setActiveSector] = useState<RepairerSector | null>(null);
     const [activeSpecs, setActiveSpecs] = useState<Set<RepairerSpecialty>>(new Set());
     const [maxPrice, setMaxPrice] = useState<number>(200);
     const [maxDelay, setMaxDelay] = useState<number>(14);
     const [userCoords, setUserCoords] = useState<Coordinates | null>(null);
     const [highlightedId, setHighlightedId] = useState<string | null>(null);
     const cardRefs = useRef<Map<string, HTMLLIElement>>(new Map());
+
+    const visibleSpecialities = useMemo<readonly RepairerSpecialty[]>(() => {
+        if (activeSector === null) {
+            return availableSectors.flatMap((s) => SPECIALITIES_BY_SECTOR[s]);
+        }
+        return SPECIALITIES_BY_SECTOR[activeSector];
+    }, [activeSector, availableSectors]);
+
+    const selectSector = (sector: RepairerSector | null) => {
+        setActiveSector(sector);
+        setActiveSpecs((prev) => {
+            if (sector === null) return prev;
+            const allowed = new Set<RepairerSpecialty>(SPECIALITIES_BY_SECTOR[sector]);
+            const next = new Set<RepairerSpecialty>();
+            for (const s of prev) if (allowed.has(s)) next.add(s);
+            return next;
+        });
+    };
 
     useEffect(() => {
         if (typeof navigator === 'undefined' || !navigator.geolocation) return;
@@ -57,6 +106,8 @@ export function RepairersDirectory() {
     const items = useMemo(() => {
         const filtered = mockRepairers.filter((r) => {
             if (city && !r.city.toLowerCase().includes(city.toLowerCase())) return false;
+            if (activeSector !== null && !r.specialities.some((s) => SPECIALTY_TO_SECTOR[s] === activeSector))
+                return false;
             if (activeSpecs.size > 0 && !r.specialities.some((s) => activeSpecs.has(s))) return false;
             if (r.priceRange.min > maxPrice) return false;
             if (r.avgDelayDays > maxDelay) return false;
@@ -75,7 +126,7 @@ export function RepairersDirectory() {
         return [...filtered]
             .map((r) => ({ repairer: r, distance: undefined as number | undefined }))
             .sort((a, b) => b.repairer.avgRating - a.repairer.avgRating);
-    }, [city, activeSpecs, maxPrice, maxDelay, userCoords]);
+    }, [city, activeSector, activeSpecs, maxPrice, maxDelay, userCoords]);
 
     const filteredRepairers = useMemo(() => items.map((it) => it.repairer), [items]);
 
@@ -107,7 +158,7 @@ export function RepairersDirectory() {
                     <ArrowLeft className="h-4 w-4" />
                 </button>
                 <div className="min-w-0 flex-1">
-                    <h1 className="text-foreground text-base font-bold">Retoucheurs</h1>
+                    <h1 className="text-foreground text-base font-bold">Retoucheurs & réparateurs</h1>
                     <p className="text-muted-foreground text-xs">
                         {items.length} atelier{items.length > 1 ? 's' : ''}
                         {userCoords ? ' · trié par distance' : ' · trié par note'}
@@ -128,8 +179,46 @@ export function RepairersDirectory() {
                     />
                 </label>
 
-                <ul className="-mx-1 flex flex-wrap gap-1.5 px-1">
-                    {SPECIALITIES.map((spec) => {
+                {showSectorFilter ? (
+                    <ul className="-mx-1 flex flex-wrap gap-1.5 px-1" aria-label="Filtre secteur">
+                        <li>
+                            <button
+                                type="button"
+                                onClick={() => selectSector(null)}
+                                aria-pressed={activeSector === null}
+                                className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
+                                    activeSector === null
+                                        ? 'border-lumiris-cyan bg-lumiris-cyan/10 text-lumiris-cyan'
+                                        : 'border-border bg-card text-muted-foreground'
+                                }`}
+                            >
+                                Tous secteurs
+                            </button>
+                        </li>
+                        {availableSectors.map((sector) => {
+                            const active = activeSector === sector;
+                            return (
+                                <li key={sector}>
+                                    <button
+                                        type="button"
+                                        onClick={() => selectSector(sector)}
+                                        aria-pressed={active}
+                                        className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
+                                            active
+                                                ? 'border-lumiris-cyan bg-lumiris-cyan/10 text-lumiris-cyan'
+                                                : 'border-border bg-card text-muted-foreground'
+                                        }`}
+                                    >
+                                        {SECTOR_LABEL[sector]}
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                ) : null}
+
+                <ul className="-mx-1 flex flex-wrap gap-1.5 px-1" aria-label="Filtre spécialité">
+                    {visibleSpecialities.map((spec) => {
                         const active = activeSpecs.has(spec);
                         return (
                             <li key={spec}>

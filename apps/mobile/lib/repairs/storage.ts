@@ -1,12 +1,14 @@
 'use client';
 
-// Demandes de retouche locales - persistance localStorage anonyme. Pas de sync,
-// pas d'auth. Format versionné (`lumiris.repairs.v1`) pour permettre une migration
-// ultérieure sans casser l'historique d'un utilisateur.
+// Demandes de retouche locales - persistance localStorage *scopée par user.id*
+// pour qu'un persona ne voie pas les demandes d'un autre. Format versionné (`v1`)
+// pour permettre une migration ultérieure sans casser l'historique d'un utilisateur.
 
 import { useSyncExternalStore } from 'react';
 import type { RepairerSpecialty } from '@lumiris/types';
-import { STORAGE_KEYS } from '../storage-keys';
+import { SPECIALTY_TO_SECTOR } from '@lumiris/types';
+import { readUser } from '../auth/storage';
+import { USER_KEYS, userScopedKey } from '../storage-keys';
 
 export type RepairRequestStatus = 'pending' | 'cancelled' | 'completed';
 
@@ -23,12 +25,16 @@ export interface RepairRequest {
     status: RepairRequestStatus;
 }
 
-const KEY = STORAGE_KEYS.repairs;
 const EVENT = 'lumiris:repairs-changed';
-const SPECIALTIES: readonly RepairerSpecialty[] = ['alteration', 'embroidery', 'shoe-repair', 'leather', 'lining'];
+const USER_CHANGED = 'lumiris:user-changed';
+const SPECIALTIES: readonly RepairerSpecialty[] = Object.keys(SPECIALTY_TO_SECTOR) as RepairerSpecialty[];
 const STATUSES: readonly RepairRequestStatus[] = ['pending', 'cancelled', 'completed'];
 
 const subscribers = new Set<() => void>();
+
+function currentKey(): string {
+    return userScopedKey(readUser()?.id ?? null, USER_KEYS.repairs);
+}
 
 function notify(): void {
     if (typeof window === 'undefined') return;
@@ -57,7 +63,7 @@ function isRepairRequest(value: unknown): value is RepairRequest {
 function read(): RepairRequest[] {
     if (typeof window === 'undefined') return [];
     try {
-        const raw = window.localStorage.getItem(KEY);
+        const raw = window.localStorage.getItem(currentKey());
         if (!raw) return [];
         const parsed: unknown = JSON.parse(raw);
         if (!Array.isArray(parsed)) return [];
@@ -69,7 +75,7 @@ function read(): RepairRequest[] {
 
 function write(requests: readonly RepairRequest[]): void {
     if (typeof window === 'undefined') return;
-    window.localStorage.setItem(KEY, JSON.stringify(requests));
+    window.localStorage.setItem(currentKey(), JSON.stringify(requests));
     notify();
 }
 
@@ -112,12 +118,14 @@ function subscribe(cb: () => void): () => void {
         window.addEventListener(EVENT, cb);
         // `storage` event = sync entre onglets, propre côté web.
         window.addEventListener('storage', cb);
+        window.addEventListener(USER_CHANGED, cb);
     }
     return () => {
         subscribers.delete(cb);
         if (typeof window !== 'undefined') {
             window.removeEventListener(EVENT, cb);
             window.removeEventListener('storage', cb);
+            window.removeEventListener(USER_CHANGED, cb);
         }
     };
 }

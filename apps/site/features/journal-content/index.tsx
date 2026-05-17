@@ -55,7 +55,7 @@ function ArticleCard({ article, index, featured }: { article: ArticleMeta; index
                     >
                         <Image
                             src={article.coverImage}
-                            alt=""
+                            alt={article.title}
                             fill
                             sizes={featured ? '(max-width: 768px) 100vw, 1024px' : '(max-width: 768px) 100vw, 50vw'}
                             className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"

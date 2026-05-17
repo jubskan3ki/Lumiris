@@ -1,13 +1,13 @@
 # @lumiris/scoring-ui
 
-Visual primitives bound to the LUMIRIS 50/30/20 transparency score. Re-uses the
-algorithm from `@lumiris/core` and the design tokens from `@lumiris/ui` -
-**owns no domain logic of its own**.
+Visual primitives bound to the LUMIRIS Iris V2 transparency score (40/25/25/10).
+Re-uses the algorithm from `@lumiris/core` and the design tokens from
+`@lumiris/ui` - **owns no domain logic of its own**.
 
 ## Components
 
 - `<IrisGrade grade size>` - grade pastille (A+ → E) using the canonical palette.
-- `<ScoreBreakdown breakdown weights>` - three bars sized against 50/30/20.
+- `<ScoreBreakdown breakdown weights>` - four bars sized against 40/25/25/10.
 - `<ScoreReasonsList reasons limit>` - narrative explanation of issues.
 - `<MissingFieldsBadge dpp>` - counter derived from `MANDATORY_DPP_FIELDS`.
 

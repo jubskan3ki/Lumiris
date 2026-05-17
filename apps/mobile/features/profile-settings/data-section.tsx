@@ -14,7 +14,7 @@ import {
     AlertDialogTrigger,
 } from '@lumiris/ui/components/alert-dialog';
 import { GlassCard } from '@/lib/motion';
-import { STORAGE_KEYS } from '@/lib/storage-keys';
+import { USER_KEYS, userScopedKey } from '@/lib/storage-keys';
 import { useWardrobe } from '@/lib/wardrobe-storage';
 import type { Settings } from '@/lib/settings';
 
@@ -79,7 +79,7 @@ export function DataSection({ user, settings, appVersion }: DataSectionProps) {
 
     function handleClearWardrobe() {
         if (typeof window === 'undefined') return;
-        window.localStorage.removeItem(STORAGE_KEYS.wardrobe);
+        window.localStorage.removeItem(userScopedKey(user.id, USER_KEYS.wardrobe));
         window.dispatchEvent(new CustomEvent('lumiris:wardrobe-changed'));
     }
 

@@ -6,16 +6,7 @@ import Image from 'next/image';
 import { ArrowRight, MapPin } from 'lucide-react';
 import { mockPassportsPublic } from '@lumiris/mock-data';
 import { IrisGrade } from '@lumiris/scoring-ui/components/iris-grade';
-
-const KIND_LABEL: Record<string, string> = {
-    sweater: 'Pull',
-    shirt: 'Chemise',
-    shoe: 'Chaussures',
-    jacket: 'Veste',
-    trouser: 'Pantalon',
-    accessory: 'Accessoire',
-    other: 'Pièce',
-};
+import { KIND_LABEL_FR } from '@lumiris/utils';
 
 export function FeaturedPassports() {
     const passports = mockPassportsPublic.filter((v) => v.passport.status === 'Published' && v.irisScore).slice(0, 8);
@@ -63,7 +54,7 @@ export function FeaturedPassports() {
                     {passports.map((view, i) => {
                         const score = view.irisScore;
                         if (!score) return null;
-                        const kind = KIND_LABEL[view.passport.garment.kind] ?? KIND_LABEL.other;
+                        const kind = KIND_LABEL_FR[view.passport.garment.kind] ?? KIND_LABEL_FR.other;
                         const photo = view.passport.garment.mainPhotoUrl;
                         return (
                             <motion.li

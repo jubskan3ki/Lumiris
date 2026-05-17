@@ -5,7 +5,6 @@ import { mockPassports } from '@lumiris/mock-data';
 import type { Passport } from '@lumiris/types';
 import { useDraftStore, draftToPassport } from './draft-store';
 
-// Drafts localStorage en tête + fixtures mock, filtrés par artisan.
 export function usePassports(artisanId: string): readonly Passport[] {
     const drafts = useDraftStore((s) => s.drafts);
     return useMemo(() => {

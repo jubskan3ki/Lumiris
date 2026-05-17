@@ -1,13 +1,23 @@
 @import '@lumiris/ui/styles/prismatic.css';
 
-/* Tailwind v4 walks from this file to find class usages but skips node_modules,
- * so symlinked workspace packages live outside the scanned tree. Point the
- * scanner at their sources explicitly. */
+/* Workspace packages symlinkés → hors du scan Tailwind v4, on les pointe explicitement. */
 @source "../../../packages/ui/src/**/*.{ts,tsx}";
 @source "../../../packages/scoring-ui/src/**/*.{ts,tsx}";
 
-/* Wizard steps build grade utilities via template literals - force-emit the full
- * A-E triad so each grade keeps its hue. */
+:root {
+    /* Palette tiers volontairement disjointe des hues grades Iris : un palier ne doit jamais être lu comme un grade. */
+    --tier-solo: oklch(76% 0.02 240deg);
+    --tier-studio: oklch(55% 0.1 250deg);
+    --tier-maison: oklch(42% 0.14 280deg);
+}
+
+@theme inline {
+    --color-tier-solo: var(--tier-solo);
+    --color-tier-studio: var(--tier-studio);
+    --color-tier-maison: var(--tier-maison);
+}
+
+/* Utilitaires grade construits via template literals → force-emit du triad A-E pour préserver chaque hue. */
 @source inline("text-grade-a text-grade-b text-grade-c text-grade-d text-grade-e");
 @source inline("bg-grade-a bg-grade-b bg-grade-c bg-grade-d bg-grade-e");
 @source inline("bg-grade-a/8 bg-grade-b/8 bg-grade-c/8 bg-grade-d/8 bg-grade-e/8");
@@ -15,3 +25,5 @@
 @source inline("border-grade-a/20 border-grade-b/20 border-grade-c/20 border-grade-d/20 border-grade-e/20");
 @source inline("text-lumiris-emerald text-lumiris-cyan text-lumiris-amber text-lumiris-orange text-lumiris-rose");
 @source inline("bg-lumiris-emerald bg-lumiris-cyan bg-lumiris-amber bg-lumiris-orange bg-lumiris-rose");
+@source inline("text-tier-solo text-tier-studio text-tier-maison");
+@source inline("bg-tier-solo/15 bg-tier-studio/15 bg-tier-maison/15");

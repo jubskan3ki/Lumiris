@@ -1,19 +1,19 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, ImagePlus, Plus, Trash2 } from 'lucide-react';
-import type { ProductionStep, StageKind } from '@lumiris/types';
+import type { Artisan, ProductionStep, StageKind } from '@lumiris/types';
 import { Button } from '@lumiris/ui/components/button';
 import { Input } from '@lumiris/ui/components/input';
 import { Label } from '@lumiris/ui/components/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@lumiris/ui/components/select';
 import { WizardStepFrame } from '@/features/wizard-shell/step-frame';
 import { useStepNavigation } from '@/features/wizard-shell/use-step-navigation';
+import { COUNTRIES, readFileAsDataUrl } from '@lumiris/utils';
 import { useDraftStore } from '@/lib/draft-store';
-import { COUNTRIES } from '@/lib/countries';
-import { currentArtisan } from '@/lib/current-artisan';
-import { readFileAsDataUrl } from '@/lib/file-utils';
+import { useCurrentArtisan } from '@/lib/current-artisan';
+import { validateStep } from './schema';
 
 const STEP_KINDS: ReadonlyArray<{ value: StageKind; label: string }> = [
     { value: 'weaving', label: 'Tissage' },
@@ -29,25 +29,26 @@ const STEP_KINDS: ReadonlyArray<{ value: StageKind; label: string }> = [
 
 const MAX_PHOTOS = 4;
 
-function newStep(idPrefix: string, idx: number): ProductionStep {
+function newStep(idPrefix: string, idx: number, artisan: Artisan): ProductionStep {
     return {
         id: `${idPrefix}-step-${idx}-${Math.random().toString(36).slice(2, 6)}`,
         kind: 'sewing',
         label: '',
-        performedBy: currentArtisan.atelierName,
-        locationCity: currentArtisan.city,
+        performedBy: artisan.atelierName,
+        locationCity: artisan.city,
         locationCountry: 'FR',
         photos: [],
     };
 }
 
 export function CreateStepManufacturing({ draftId }: { draftId: string }) {
+    const artisan = useCurrentArtisan();
     const draft = useDraftStore((s) => s.drafts[draftId]);
     const setSteps = useDraftStore((s) => s.setProductionSteps);
     const { goNext, goTo } = useStepNavigation(draftId);
 
     const [items, setItems] = useState<ProductionStep[]>(
-        draft?.steps.length ? [...draft.steps] : [newStep(draftId, 0)],
+        draft?.steps.length ? [...draft.steps] : [newStep(draftId, 0, artisan)],
     );
 
     const updateItem = (idx: number, patch: Partial<ProductionStep>) => {
@@ -67,13 +68,30 @@ export function CreateStepManufacturing({ draftId }: { draftId: string }) {
 
     const remove = (idx: number) => setItems((cur) => cur.filter((_, i) => i !== idx));
 
+    const validation = useMemo(
+        () =>
+            validateStep({
+                garment: draft?.garment ?? {
+                    kind: 'sweater',
+                    reference: '',
+                    mainPhotoUrl: '',
+                    dimensions: {},
+                    retailPrice: 0,
+                    currency: 'EUR',
+                },
+                materials: draft?.materials ?? [],
+                steps: items,
+                certifications: draft?.certifications ?? [],
+                warranty: draft?.warranty ?? { durationMonths: 0, terms: '' },
+            }),
+        [items, draft],
+    );
+    const nextMissing = validation.ok ? [] : validation.missing;
+
     const handleNext = () => {
-        if (items.length === 0) return;
         setSteps(draftId, items);
         goNext('manufacturing', 'certifications');
     };
-
-    const valid = items.length >= 1;
 
     return (
         <WizardStepFrame
@@ -83,7 +101,7 @@ export function CreateStepManufacturing({ draftId }: { draftId: string }) {
             subtitle="Au moins une étape requise. Chaque étape précise qui l’a réalisée et où."
             onPrev={() => goTo('invoice')}
             onNext={handleNext}
-            nextDisabled={!valid}
+            nextMissing={nextMissing}
             contentClassName="space-y-3"
         >
             {items.map((item, idx) => (
@@ -102,7 +120,7 @@ export function CreateStepManufacturing({ draftId }: { draftId: string }) {
             <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setItems((cur) => [...cur, newStep(draftId, cur.length)])}
+                onClick={() => setItems((cur) => [...cur, newStep(draftId, cur.length, artisan)])}
             >
                 <Plus className="mr-1.5 h-3.5 w-3.5" /> Ajouter une étape
             </Button>

@@ -1,11 +1,36 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { mockArtisanById } from '@lumiris/mock-data';
 import type { Artisan } from '@lumiris/types';
+import { signOut } from './auth-store';
+import { useAuthArtisanId } from './use-auth';
 
-const MARIE = mockArtisanById('art-marie');
-if (!MARIE) {
+const FALLBACK_ID = 'art-marie';
+
+const FALLBACK_RAW = mockArtisanById(FALLBACK_ID);
+if (!FALLBACK_RAW) {
     throw new Error('Mock data missing persona art-marie - atelier dev expects Marie Le Goff.');
 }
+const FALLBACK: Artisan = FALLBACK_RAW;
 
-// Persona Marie est le profil par défaut côté ATELIER en dev (cf. cahier v6.1).
-// Le vrai ID artisan viendra du JWT côté apps/api en V5.
-export const currentArtisan: Artisan = MARIE;
+/** Hook React réactif - re-render à chaque changement d'artisan signé in. */
+export function useCurrentArtisan(): Artisan {
+    const id = useAuthArtisanId();
+    const router = useRouter();
+    const resolved = id == null ? FALLBACK : (mockArtisanById(id) ?? null);
+
+    useEffect(() => {
+        if (id != null && resolved === null) {
+            console.warn(
+                `[atelier] Artisan id "${id}" introuvable dans mockArtisans. ` +
+                    `Sign-out automatique pour éviter une démo incohérente.`,
+            );
+            signOut();
+            router.replace('/login');
+        }
+    }, [id, resolved, router]);
+
+    return resolved ?? FALLBACK;
+}

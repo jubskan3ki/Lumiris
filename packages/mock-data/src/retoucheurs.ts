@@ -17,6 +17,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 12, max: 90, currency: 'EUR' },
         localSubscribed: true,
         joinedAt: '2024-09-10T08:00:00Z',
+        phone: '+33472000142',
+        email: 'mehdi@mehdi-retouches.fr',
     },
     {
         id: 'rtc-002',
@@ -33,6 +35,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 15, max: 120, currency: 'EUR' },
         localSubscribed: true,
         joinedAt: '2025-01-20T08:00:00Z',
+        phone: '+33478452210',
+        email: 'sophie@atelier-sophie.fr',
     },
     {
         id: 'rtc-003',
@@ -49,6 +53,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 20, max: 140, currency: 'EUR' },
         localSubscribed: true,
         joinedAt: '2024-06-05T08:00:00Z',
+        phone: '+33478630987',
+        email: 'contact@cordonnerie-rhone.fr',
     },
     {
         id: 'rtc-004',
@@ -65,6 +71,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 10, max: 70, currency: 'EUR' },
         localSubscribed: true,
         joinedAt: '2025-03-12T08:00:00Z',
+        phone: '+33298901745',
+        email: 'emma@aiguille-fine.fr',
     },
     {
         id: 'rtc-005',
@@ -81,6 +89,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 18, max: 100, currency: 'EUR' },
         localSubscribed: false,
         joinedAt: '2025-11-08T08:00:00Z',
+        phone: '+33298556712',
+        email: 'yann@yann-cuir.fr',
     },
     {
         id: 'rtc-006',
@@ -97,6 +107,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 12, max: 80, currency: 'EUR' },
         localSubscribed: false,
         joinedAt: '2025-12-01T08:00:00Z',
+        phone: '+33298122390',
+        email: 'helene@helene-couture.fr',
     },
     {
         id: 'rtc-007',
@@ -113,6 +125,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 18, max: 130, currency: 'EUR' },
         localSubscribed: true,
         joinedAt: '2024-08-14T08:00:00Z',
+        phone: '+33475022311',
+        email: 'ines@atelier-ines.fr',
     },
     {
         id: 'rtc-008',
@@ -129,6 +143,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 15, max: 95, currency: 'EUR' },
         localSubscribed: true,
         joinedAt: '2025-02-28T08:00:00Z',
+        phone: '+33475714028',
+        email: 'bastien@rivet-cordonnerie.fr',
     },
     {
         id: 'rtc-009',
@@ -145,6 +161,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 14, max: 110, currency: 'EUR' },
         localSubscribed: true,
         joinedAt: '2025-05-19T08:00:00Z',
+        phone: '+33320551842',
+        email: 'manon@manon-brodeuse.fr',
     },
     {
         id: 'rtc-010',
@@ -161,6 +179,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 11, max: 75, currency: 'EUR' },
         localSubscribed: false,
         joinedAt: '2025-10-04T08:00:00Z',
+        phone: '+33491347205',
+        email: 'olivier@marchand-retouche.fr',
     },
     {
         id: 'rtc-011',
@@ -177,6 +197,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 12, max: 85, currency: 'EUR' },
         localSubscribed: false,
         joinedAt: '2025-09-25T08:00:00Z',
+        phone: '+33556441178',
+        email: 'lea@lea-atelier.fr',
     },
     {
         id: 'rtc-012',
@@ -193,6 +215,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 25, max: 200, currency: 'EUR' },
         localSubscribed: true,
         joinedAt: '2024-04-15T08:00:00Z',
+        phone: '+33142890316',
+        email: 'hugo@hugo-cuir.fr',
     },
     {
         id: 'rtc-013',
@@ -209,6 +233,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 18, max: 130, currency: 'EUR' },
         localSubscribed: false,
         joinedAt: '2025-07-22T08:00:00Z',
+        phone: '+33145327649',
+        email: 'camille@camille-couture.fr',
     },
     {
         id: 'rtc-014',
@@ -225,6 +251,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 9, max: 60, currency: 'EUR' },
         localSubscribed: false,
         joinedAt: '2026-02-14T08:00:00Z',
+        phone: '+33326470192',
+        email: 'elodie@atelier-vasseur.fr',
     },
     {
         id: 'rtc-015',
@@ -241,6 +269,8 @@ export const mockRepairers: readonly Repairer[] = [
         priceRange: { min: 16, max: 100, currency: 'EUR' },
         localSubscribed: false,
         joinedAt: '2025-08-30T08:00:00Z',
+        phone: '+33563598471',
+        email: 'pierre@chassagne-cuir.fr',
     },
 ];
 

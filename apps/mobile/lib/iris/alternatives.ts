@@ -1,8 +1,12 @@
+// Tri par grade puis prix croissant. AUCUNE pondération ATELIER+, AUCUNE commission.
+// Cf. cahier §10 « mise en avant à score équivalent uniquement, indépendant des commissions ».
+// Toute modification qui introduit un poids commercial doit faire l'objet d'une revue produit.
+
 import { mockPassports } from '@lumiris/mock-data';
 import type { Passport, ScoreResult } from '@lumiris/types';
 import { scorePassport } from '../passport-score';
 
-interface AlternativeMatch {
+export interface AlternativeMatch {
     passport: Passport;
     score: ScoreResult;
 }

@@ -1,5 +1,6 @@
 import { CITY_COORDS, distanceKm, mockPassportsByArtisan, type ArtisanWithSlug } from '@lumiris/mock-data';
 import type { IrisGrade, Repairer, RepairerSpecialty } from '@lumiris/types';
+import { SPECIALTY_TO_SECTOR } from '@lumiris/types';
 import { scorePassport } from '@/lib/passport-score';
 import type { LocalPoint } from './types';
 
@@ -9,6 +10,12 @@ const REPAIRER_SPECIALTY_LABEL: Record<RepairerSpecialty, string> = {
     'shoe-repair': 'Cordonnerie',
     leather: 'Cuir',
     lining: 'Doublures',
+    'electronics-repair': 'Électronique',
+    'phone-repair': 'Téléphonie',
+    'computer-repair': 'Informatique',
+    cabinetmaking: 'Ébénisterie',
+    upholstery: 'Tapisserie',
+    'appliance-repair': 'Électroménager',
 };
 
 export function toLocalPoints(
@@ -42,6 +49,7 @@ export function toLocalPoints(
 
     for (const r of repairers) {
         const coords = CITY_COORDS[r.city];
+        const [firstSpecialty] = r.specialities;
         points.push({
             kind: 'repairer',
             id: r.id,
@@ -55,6 +63,7 @@ export function toLocalPoints(
             reviewCount: r.reviewCount,
             avgDelayDays: r.avgDelayDays,
             specialties: r.specialities.map((s) => REPAIRER_SPECIALTY_LABEL[s]),
+            sector: firstSpecialty ? SPECIALTY_TO_SECTOR[firstSpecialty] : undefined,
         });
     }
 

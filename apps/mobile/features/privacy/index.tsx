@@ -20,7 +20,7 @@ import { useUser } from '@/lib/auth';
 import { wipeAllUserData } from '@/lib/auth/wipe';
 import { useWardrobe } from '@/lib/wardrobe-storage';
 import { useSettings } from '@/lib/settings';
-import { STORAGE_KEYS } from '@/lib/storage-keys';
+import { USER_KEYS, userScopedKey } from '@/lib/storage-keys';
 import { GlassCard, IridescentBackground, slideUpFade } from '@/lib/motion';
 
 const APP_VERSION = '0.1.0';
@@ -188,13 +188,16 @@ function RightsSection() {
 
     function handleClearWardrobe() {
         if (typeof window === 'undefined') return;
-        window.localStorage.removeItem(STORAGE_KEYS.wardrobe);
+        window.localStorage.removeItem(userScopedKey(user?.id ?? null, USER_KEYS.wardrobe));
         window.dispatchEvent(new CustomEvent('lumiris:wardrobe-changed'));
     }
 
     function handleDeleteAccount() {
-        signOut();
+        // Wipe d'abord, signOut ensuite : `wipeAllUserData` lit le user courant pour
+        // identifier le scope à effacer ; déconnecter avant aurait laissé les données
+        // de l'user en place sous `lumiris.users.{id}.*`.
         wipeAllUserData();
+        signOut();
         router.push('/');
     }
 

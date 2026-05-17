@@ -1,9 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ImagePlus } from 'lucide-react';
-import { z } from 'zod';
 import type { GarmentInfo, GarmentKind } from '@lumiris/types';
 import { Input } from '@lumiris/ui/components/input';
 import { Label } from '@lumiris/ui/components/label';
@@ -11,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { WizardStepFrame } from '@/features/wizard-shell/step-frame';
 import { useStepNavigation } from '@/features/wizard-shell/use-step-navigation';
 import { useDraftStore } from '@/lib/draft-store';
-import { readFileAsDataUrl } from '@/lib/file-utils';
+import { readFileAsDataUrl } from '@lumiris/utils';
+import { validateStep } from './schema';
 
 const PRODUCT_KINDS: ReadonlyArray<{ value: GarmentKind; label: string }> = [
     { value: 'sweater', label: 'Pull' },
@@ -22,17 +22,6 @@ const PRODUCT_KINDS: ReadonlyArray<{ value: GarmentKind; label: string }> = [
     { value: 'accessory', label: 'Accessoire' },
     { value: 'other', label: 'Autre' },
 ];
-
-const IdentificationSchema = z.object({
-    kind: z.enum(['sweater', 'shirt', 'shoe', 'jacket', 'trouser', 'accessory', 'other']),
-    reference: z.string().min(2, 'Référence trop courte'),
-    mainPhotoUrl: z.string().url('URL photo invalide').or(z.literal('')).optional(),
-    length: z.coerce.number().min(0).optional(),
-    width: z.coerce.number().min(0).optional(),
-    height: z.coerce.number().min(0).optional(),
-    weightG: z.coerce.number().min(1, 'Poids requis'),
-    retailPrice: z.coerce.number().min(1, 'Prix requis'),
-});
 
 export function CreateStepIdentification({ draftId }: { draftId: string }) {
     const draft = useDraftStore((s) => s.drafts[draftId]);
@@ -49,33 +38,28 @@ export function CreateStepIdentification({ draftId }: { draftId: string }) {
             currency: 'EUR',
         },
     );
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (draft) setForm(draft.garment);
     }, [draft]);
 
+    const validation = useMemo(
+        () =>
+            validateStep({
+                garment: form,
+                materials: draft?.materials ?? [],
+                steps: draft?.steps ?? [],
+                certifications: draft?.certifications ?? [],
+                warranty: draft?.warranty ?? { durationMonths: 0, terms: '' },
+            }),
+        [form, draft],
+    );
+    const nextMissing = validation.ok ? [] : validation.missing;
+
     const handleNext = () => {
-        const parsed = IdentificationSchema.safeParse({
-            kind: form.kind,
-            reference: form.reference,
-            mainPhotoUrl: form.mainPhotoUrl,
-            length: form.dimensions.length,
-            width: form.dimensions.width,
-            height: form.dimensions.height,
-            weightG: form.dimensions.weightG ?? 0,
-            retailPrice: form.retailPrice,
-        });
-        if (!parsed.success) {
-            setError(parsed.error.issues[0]?.message ?? 'Vérifiez les champs');
-            return;
-        }
-        setError(null);
         setGarment(draftId, form);
         goNext('identification', 'composition');
     };
-
-    const valid = form.reference.length >= 2 && form.retailPrice > 0 && (form.dimensions.weightG ?? 0) > 0;
 
     const handlePhoto = async (file: File | undefined) => {
         if (!file) return;
@@ -88,9 +72,9 @@ export function CreateStepIdentification({ draftId }: { draftId: string }) {
             draftId={draftId}
             step="identification"
             title="Identifier la pièce"
-            subtitle="Type, référence interne, photo et caractéristiques physiques."
+            subtitle="Type, référence interne, photo et caractéristiques physiques. Les dimensions sont optionnelles."
             onNext={handleNext}
-            nextDisabled={!valid}
+            nextMissing={nextMissing}
             contentClassName="grid gap-4 md:grid-cols-2"
         >
             <div className="space-y-2">
@@ -114,6 +98,7 @@ export function CreateStepIdentification({ draftId }: { draftId: string }) {
                 <Input
                     id="reference"
                     value={form.reference}
+                    maxLength={60}
                     onChange={(e) => setForm((f) => ({ ...f, reference: e.target.value }))}
                     placeholder="CHE-2026-001"
                 />
@@ -197,7 +182,7 @@ export function CreateStepIdentification({ draftId }: { draftId: string }) {
                 <Input
                     id="weight"
                     type="number"
-                    min={1}
+                    min={0}
                     value={form.dimensions.weightG ?? ''}
                     onChange={(e) =>
                         setForm((f) => ({
@@ -205,7 +190,6 @@ export function CreateStepIdentification({ draftId }: { draftId: string }) {
                             dimensions: { ...f.dimensions, weightG: numOrUndef(e.target.value) },
                         }))
                     }
-                    required
                 />
             </div>
 
@@ -222,8 +206,6 @@ export function CreateStepIdentification({ draftId }: { draftId: string }) {
                     <span className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 text-sm">€</span>
                 </div>
             </div>
-
-            {error && <p className="text-lumiris-rose text-sm md:col-span-2">{error}</p>}
         </WizardStepFrame>
     );
 }

@@ -5,7 +5,8 @@
 // (cf. `MockUser`) ; ce module ne stocke que ce qui n'a pas de propriétaire backend.
 
 import { useSyncExternalStore } from 'react';
-import { STORAGE_KEYS } from './storage-keys';
+import { readUser } from './auth/storage';
+import { USER_KEYS, userScopedKey } from './storage-keys';
 
 export type ThemePref = 'system' | 'light' | 'dark';
 
@@ -25,10 +26,14 @@ const DEFAULT_SETTINGS: Settings = {
     notifReminders: false,
 };
 
-const KEY = STORAGE_KEYS.settings;
 const EVENT = 'lumiris:settings-changed';
+const USER_CHANGED = 'lumiris:user-changed';
 
 const subscribers = new Set<() => void>();
+
+function currentKey(): string {
+    return userScopedKey(readUser()?.id ?? null, USER_KEYS.settings);
+}
 
 function notify(): void {
     if (typeof window === 'undefined') return;
@@ -57,7 +62,7 @@ function pickSettings(value: unknown): Partial<Settings> {
 function read(): Settings {
     if (typeof window === 'undefined') return DEFAULT_SETTINGS;
     try {
-        const raw = window.localStorage.getItem(KEY);
+        const raw = window.localStorage.getItem(currentKey());
         if (!raw) return DEFAULT_SETTINGS;
         const parsed: unknown = JSON.parse(raw);
         // Merge avec les defaults - préserve forward-compat si une nouvelle clé est ajoutée.
@@ -69,7 +74,7 @@ function read(): Settings {
 
 function write(settings: Settings): void {
     if (typeof window === 'undefined') return;
-    window.localStorage.setItem(KEY, JSON.stringify(settings));
+    window.localStorage.setItem(currentKey(), JSON.stringify(settings));
     notify();
 }
 
@@ -99,12 +104,14 @@ function subscribe(cb: () => void): () => void {
     if (typeof window !== 'undefined') {
         window.addEventListener(EVENT, cb);
         window.addEventListener('storage', cb);
+        window.addEventListener(USER_CHANGED, cb);
     }
     return () => {
         subscribers.delete(cb);
         if (typeof window !== 'undefined') {
             window.removeEventListener(EVENT, cb);
             window.removeEventListener('storage', cb);
+            window.removeEventListener(USER_CHANGED, cb);
         }
     };
 }

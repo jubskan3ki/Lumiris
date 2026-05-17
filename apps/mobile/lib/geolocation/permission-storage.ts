@@ -1,6 +1,6 @@
-import { STORAGE_KEYS } from '@/lib/storage-keys';
+import { DEVICE_KEYS } from '@/lib/storage-keys';
 
-const KEY = STORAGE_KEYS.geolocPromptSeen;
+const KEY = DEVICE_KEYS.geolocPromptSeen;
 
 export function hasSeenGeolocPrompt(): boolean {
     if (typeof window === 'undefined') return false;

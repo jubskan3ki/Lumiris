@@ -124,24 +124,16 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
 
 function RepairCallout() {
     return (
-        <aside className="border-grade-b/30 bg-grade-b/5 flex flex-col gap-3 rounded-2xl border p-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <p className="text-foreground inline-flex items-center gap-2 text-base font-semibold">
-                    <Smartphone className="text-grade-b h-4 w-4" aria-hidden="true" />
-                    Besoin d’une retouche ?
-                </p>
-                <p className="text-muted-foreground mt-1 max-w-xl text-sm leading-relaxed">
-                    Téléchargez l’app LUMIRIS Vision pour trouver un retoucheur référencé près de chez vous, avec
-                    géolocalisation et plages de disponibilité en temps réel.
-                </p>
-            </div>
-            <Link
-                href="#"
-                className="bg-foreground text-background inline-flex shrink-0 items-center gap-2 self-start rounded-full px-4 py-2 text-xs font-medium transition-opacity hover:opacity-90"
-            >
-                Télécharger Vision
-                <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+        <aside className="border-grade-b/30 bg-grade-b/5 flex flex-col gap-3 rounded-2xl border p-6">
+            <p className="text-foreground inline-flex items-center gap-2 text-base font-semibold">
+                <Smartphone className="text-grade-b h-4 w-4" aria-hidden="true" />
+                Besoin d’une retouche ?
+            </p>
+            <p className="text-muted-foreground max-w-xl text-sm leading-relaxed">
+                LUMIRIS Vision — l’app mobile compagnon — permettra bientôt de localiser un retoucheur référencé près de
+                chez vous, avec géolocalisation et plages de disponibilité en temps réel. Ouverture publique annoncée
+                pour le second semestre 2026.
+            </p>
         </aside>
     );
 }

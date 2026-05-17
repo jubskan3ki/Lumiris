@@ -8,6 +8,7 @@ import { Badge } from '@lumiris/ui/components/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@lumiris/ui/components/card';
 import { IrisGrade } from '@lumiris/scoring-ui/components/iris-grade';
 import { type PassportPublicView, CITY_COORDS } from '@lumiris/mock-data';
+import { KIND_LABEL_FR } from '@lumiris/utils';
 import type { ArtisanWithSlug } from '@/lib/artisans';
 
 const AtelierMap = dynamic(() => import('./atelier-map').then((m) => m.AtelierMap), {
@@ -19,23 +20,13 @@ const AtelierMap = dynamic(() => import('./atelier-map').then((m) => m.AtelierMa
     ),
 });
 
-const KIND_LABEL: Record<string, string> = {
-    sweater: 'Pull',
-    shirt: 'Chemise',
-    shoe: 'Chaussures',
-    jacket: 'Veste',
-    trouser: 'Pantalon',
-    accessory: 'Accessoire',
-    other: 'Pièce textile',
-};
-
 interface Props {
     artisan: ArtisanWithSlug;
     passports: readonly PassportPublicView[];
 }
 
 function PieceCard({ view }: { view: PassportPublicView }) {
-    const kind = KIND_LABEL[view.passport.garment.kind] ?? KIND_LABEL.other;
+    const kind = KIND_LABEL_FR[view.passport.garment.kind] ?? KIND_LABEL_FR.other;
     const photo = view.passport.garment.mainPhotoUrl;
     return (
         <Link

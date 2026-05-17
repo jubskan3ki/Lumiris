@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { passportPublicByArtisan, CITY_COORDS } from '@lumiris/mock-data';
 import { ArtisanPublicView } from '@/features/artisan-public-view';
+import { JsonLd } from '@/features/json-ld';
 import { getAllArtisans, getArtisanBySlug } from '@/lib/artisans';
 
 export const dynamicParams = false;
@@ -78,10 +79,7 @@ export default async function ArtisanPage({ params }: RouteProps) {
 
     return (
         <>
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
-            />
+            <JsonLd data={localBusinessJsonLd} />
             <ArtisanPublicView artisan={artisan} passports={passports} />
         </>
     );

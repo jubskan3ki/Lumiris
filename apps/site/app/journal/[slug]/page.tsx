@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { JournalArticleView } from '@/features/journal-article';
+import { JsonLd } from '@/features/json-ld';
 import { getAllArticles, getArticleBySlug, getRelatedArticles } from '@/lib/journal';
 
 export const dynamicParams = false;
@@ -69,7 +70,7 @@ export default async function JournalArticlePage({ params }: RouteProps) {
 
     return (
         <>
-            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
+            <JsonLd data={articleJsonLd} />
             <JournalArticleView article={article} related={related} />
         </>
     );

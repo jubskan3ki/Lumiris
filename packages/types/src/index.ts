@@ -1,4 +1,5 @@
 export * from './passport';
+export * from './external-dpp';
 export * from './certificate';
 export * from './invoice';
 export * from './artisan';

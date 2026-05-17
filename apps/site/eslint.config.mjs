@@ -5,4 +5,8 @@ export default [
     {
         ignores: ['.next/**', 'node_modules/**', 'public/**'],
     },
+    {
+        files: ['features/json-ld/index.tsx'],
+        rules: { 'react/no-danger': 'off' },
+    },
 ];

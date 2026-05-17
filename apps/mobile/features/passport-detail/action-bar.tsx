@@ -3,23 +3,26 @@
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { X, Share2, GitCompareArrows, BookmarkPlus, BookmarkCheck, ShoppingBag } from 'lucide-react';
+import { X, Share2, GitCompareArrows, BookmarkPlus, BookmarkCheck, ShoppingBag, FileText } from 'lucide-react';
 import { cn } from '@lumiris/ui/lib/cn';
 import type { Passport } from '@lumiris/types';
 import type { ArtisanWithSlug } from '@lumiris/mock-data';
-import { addToWardrobe, removeFromWardrobe } from '@/lib/wardrobe-storage';
+import { addToWardrobe, removeLumirisPassport, type WardrobeDocument } from '@/lib/wardrobe-storage';
 import { toast } from '@/lib/toast';
 import { BuySheet } from './buy-sheet';
+import { DocumentsSheet } from './documents-sheet';
 
 interface ActionBarProps {
     passport: Passport;
     artisan: ArtisanWithSlug | null;
     isSaved: boolean;
+    documents: readonly WardrobeDocument[];
 }
 
-export function ActionBar({ passport, artisan, isSaved }: ActionBarProps) {
+export function ActionBar({ passport, artisan, isSaved, documents }: ActionBarProps) {
     const router = useRouter();
     const [buyOpen, setBuyOpen] = useState(false);
+    const [docsOpen, setDocsOpen] = useState(false);
 
     const onShare = useCallback(async () => {
         const url =
@@ -44,11 +47,12 @@ export function ActionBar({ passport, artisan, isSaved }: ActionBarProps) {
     }, [router, passport.id]);
 
     const onToggleSave = useCallback(() => {
-        if (isSaved) removeFromWardrobe(passport.id);
+        if (isSaved) removeLumirisPassport(passport.id);
         else addToWardrobe(passport.id);
     }, [isSaved, passport.id]);
 
     const buyDisabled = !artisan?.websiteUrl;
+    const docsCount = documents.length;
 
     return (
         <>
@@ -62,6 +66,13 @@ export function ActionBar({ passport, artisan, isSaved }: ActionBarProps) {
                 <ActionButton onClick={() => router.back()} label="Fermer" Icon={X} />
                 <ActionButton onClick={onShare} label="Partager" Icon={Share2} />
                 <ActionButton onClick={onCompare} label="Comparer" Icon={GitCompareArrows} />
+                <ActionButton
+                    onClick={() => setDocsOpen(true)}
+                    label="Documents"
+                    Icon={FileText}
+                    badge={docsCount > 0 ? docsCount : undefined}
+                    active={docsCount > 0}
+                />
                 <ActionButton
                     onClick={() => setBuyOpen(true)}
                     label="Acheter"
@@ -79,6 +90,8 @@ export function ActionBar({ passport, artisan, isSaved }: ActionBarProps) {
             {artisan ? (
                 <BuySheet open={buyOpen} onOpenChange={setBuyOpen} passport={passport} artisan={artisan} />
             ) : null}
+
+            <DocumentsSheet open={docsOpen} onOpenChange={setDocsOpen} passportId={passport.id} documents={documents} />
         </>
     );
 }
@@ -89,14 +102,16 @@ interface ActionButtonProps {
     Icon: typeof X;
     active?: boolean;
     disabled?: boolean;
+    badge?: number;
 }
 
-function ActionButton({ onClick, label, Icon, active = false, disabled = false }: ActionButtonProps) {
+function ActionButton({ onClick, label, Icon, active = false, disabled = false, badge }: ActionButtonProps) {
     return (
         <button
             type="button"
             onClick={onClick}
             disabled={disabled}
+            aria-label={label}
             className={cn(
                 'flex flex-1 flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 transition-colors active:scale-95',
                 disabled
@@ -106,7 +121,17 @@ function ActionButton({ onClick, label, Icon, active = false, disabled = false }
                       : 'text-foreground/80 hover:text-foreground',
             )}
         >
-            <Icon className="h-5 w-5" aria-hidden />
+            <span className="relative inline-flex">
+                <Icon className="h-5 w-5" aria-hidden />
+                {badge !== undefined && badge > 0 ? (
+                    <span
+                        aria-hidden
+                        className="bg-lumiris-emerald text-background absolute -right-2 -top-1 inline-flex min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-semibold leading-none"
+                    >
+                        {badge > 9 ? '9+' : badge}
+                    </span>
+                ) : null}
+            </span>
             <span className="text-[10px] font-medium tracking-wide">{label}</span>
         </button>
     );

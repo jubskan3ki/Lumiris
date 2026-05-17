@@ -1,4 +1,4 @@
-import type { FrenchRegion, IrisGrade } from '@lumiris/types';
+import type { FrenchRegion, IrisGrade, RepairerSector } from '@lumiris/types';
 
 export type LocalPointKind = 'artisan' | 'repairer';
 
@@ -18,4 +18,6 @@ export interface LocalPoint {
     reviewCount?: number;
     avgDelayDays?: number;
     specialties?: readonly string[];
+    /** Secteur du repairer (textile, electronics, …). Indéfini pour les artisans. */
+    sector?: RepairerSector;
 }

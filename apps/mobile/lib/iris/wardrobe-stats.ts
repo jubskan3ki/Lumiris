@@ -1,16 +1,19 @@
 'use client';
 
-// Stats agrégées d'une garde-robe : distribution A→E + grade global pour la jauge
-// "Wardrobe Health" + bilan CO₂/eau "évité" pour le profil. Helpers purs (testables
-// isolément) + hook `useWardrobeStats` qui résout chaque entry vers son passeport mock,
-// calcule le grade via @lumiris/core et garde tout mémoïsé.
+// Stats agrégées d'un inventaire multi-secteurs : distribution A→E + grade global pour
+// la jauge "Wardrobe Health" + bilan CO₂/eau "évité" pour le profil. Helpers purs
+// (testables isolément) + hook `useWardrobeStats`.
+//
+// Seuls les items qui ont un score (Lumiris passport, DPP externe) participent au
+// calcul du grade et de l'impact. Les `manual` sont comptés dans le total mais
+// n'ont pas de DPP donc pas de grade.
 
 import { useMemo } from 'react';
 import { FIBER_IMPACT_COEFFICIENTS, FIBER_WATER_COEFFICIENTS, IMPACT_BASELINE } from '@lumiris/core/scoring';
 import { mockPassportById } from '@lumiris/mock-data';
 import type { IrisGrade, Passport } from '@lumiris/types';
 import { scorePassport } from '../passport-score';
-import { useWardrobe, type WardrobeEntry } from '../wardrobe-storage';
+import { useWardrobe, type WardrobeItem } from '../wardrobe-storage';
 
 const FALLBACK_WEIGHT_G = 400;
 
@@ -64,7 +67,9 @@ interface ImpactSummary {
 }
 
 interface WardrobeStats {
-    entries: readonly WardrobeEntry[];
+    items: readonly WardrobeItem[];
+    /** Items qui ont un DPP (Lumiris ou externe) et donc un score. */
+    scoredCount: number;
     grades: readonly IrisGrade[];
     distribution: GradeDistribution;
     overall: OverallScore;
@@ -72,21 +77,23 @@ interface WardrobeStats {
 }
 
 export function useWardrobeStats(now: Date = new Date()): WardrobeStats {
-    const entries = useWardrobe();
+    const items = useWardrobe();
     const dayKey = now.toISOString().slice(0, 10);
     return useMemo(() => {
         const grades: IrisGrade[] = [];
         let co2Avoided = 0;
         let waterSaved = 0;
-        for (const entry of entries) {
-            const passport = mockPassportById(entry.passportId);
+        for (const item of items) {
+            if (item.kind !== 'lumiris-passport') continue;
+            const passport = mockPassportById(item.passportId);
             if (!passport) continue;
             grades.push(scorePassport(passport, now).grade);
             co2Avoided += Math.max(0, IMPACT_BASELINE.carbonCeilingKg - carbonForPassport(passport));
             waterSaved += Math.max(0, IMPACT_BASELINE.waterCeilingLiters - waterForPassport(passport));
         }
         return {
-            entries,
+            items,
+            scoredCount: grades.length,
             grades,
             distribution: getGradeDistribution(grades),
             overall: getOverallScore(grades),
@@ -95,5 +102,5 @@ export function useWardrobeStats(now: Date = new Date()): WardrobeStats {
                 waterSavedLiters: Math.round(waterSaved),
             },
         };
-    }, [entries, dayKey, now]);
+    }, [items, dayKey, now]);
 }

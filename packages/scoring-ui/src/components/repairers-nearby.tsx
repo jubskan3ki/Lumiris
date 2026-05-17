@@ -23,6 +23,12 @@ const SPECIALITY_LABEL: Record<RepairerSpecialty, string> = {
     'shoe-repair': 'Cordonnerie',
     leather: 'Cuir',
     lining: 'Doublure',
+    'electronics-repair': 'Électronique',
+    'phone-repair': 'Téléphonie',
+    'computer-repair': 'Informatique',
+    cabinetmaking: 'Ébénisterie',
+    upholstery: 'Tapisserie',
+    'appliance-repair': 'Électroménager',
 };
 
 const PRICE_LABEL: Record<'low' | 'mid' | 'high', string> = {
